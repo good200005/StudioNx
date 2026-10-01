@@ -72,6 +72,7 @@ git push --follow-tags
 | `refactor` | 동작 변화 없는 정리 | `refactor(api): 라우터 파일 분리` |
 | `test` | 테스트 | `test(audio): 패처 회귀 테스트 추가` |
 | `chore` | 설정·의존성 | `chore: sentry-sdk 버전 업데이트` |
+| `wip` | 다른 컴퓨터로 옮기기 전 미완성 작업 (§8.2) | `wip(sequencer): 피아노롤 드래그 작업 중` |
 
 - 한 커밋에는 한 가지 목적만 담습니다.
 - AI가 작성한 커밋에는 `Co-Authored-By: Claude ...` 줄이 붙습니다.
@@ -113,3 +114,48 @@ git push --follow-tags
 | `main` 보호 | **Settings → Branches → Add rule**: `main`에 "Require a pull request before merging" |
 | 기본 브랜치 변경 | **Settings → General → Default branch** (예: `develop`) |
 | 이슈로 할 일 관리 | **Issues**에 작업 등록 (예: `S1-02 인증 API`), PR 설명에 `Closes #번호` 적으면 병합 시 자동 종료 |
+
+## 8. 다른 컴퓨터에서 작업하기
+### 8.1 처음 받기 (컴퓨터마다 1회)
+**① 설치**: Git, Python 3.13, Node.js, MySQL 8.0, Google Chrome, (IDE: WebStorm)
+
+**② 저장소 받기** — 비공개 저장소라 **GitHub 계정 로그인**이 필요합니다(저장소 주인 또는 초대된 협업자).
+```
+cd C:\Users\<사용자>\Desktop\myProject
+git clone https://github.com/good200005/StudioNx.git
+cd StudioNx
+git config user.name "이름"
+git config user.email "GitHub 이메일"
+```
+- clone 시 브라우저 로그인 창이 뜹니다(Windows Git에 포함된 Git Credential Manager). 안 되면 GitHub **Settings → Developer settings → Personal access tokens**에서 토큰을 만들어 비밀번호 대신 입력합니다.
+
+**③ 브랜치 받기**
+```
+git fetch --all
+git branch -a                     # 원격 브랜치 목록 (remotes/origin/...)
+git switch develop                # 이름만 쓰면 원격 브랜치를 자동으로 추적
+git switch feature/phase1-account
+```
+
+**④ 저장소에 없는 것 다시 만들기** (`studionx/` 폴더에서)
+| 항목 | 이유 | 만드는 방법 |
+|---|---|---|
+| `.venv/` | git 제외 | `py -3.13 -m venv .venv` → `.venv\Scripts\python -m pip install -r backend\requirements-dev.txt` |
+| `.env` | 비밀값이라 git 제외 | `copy .env.example .env` → `DB_PASSWORD=nyxiadmin`(개발용), `JWT_SECRET` 입력 |
+| MySQL DB·테이블 | DB는 git으로 옮겨지지 않음 | `mysql -u root -p < db\00_create_database.sql` → 01~06 순서대로 실행 (`db/docs/StudioNx_DB_Guide.md` §2) |
+| `node_modules/` | git 제외 | Word 문서 빌드할 때만: `cd db\docs\_build` → `npm install` |
+| `storage/` 파일 | 업로드 파일은 git 제외 | 빈 폴더로 시작 |
+
+**⑤ 확인**: `cd backend` → `..\.venv\Scripts\python -m uvicorn app.main:app --reload` → http://localhost:8000/api/v1/health/db 가 `{"db":"ok"}`
+
+### 8.2 컴퓨터를 오가며 작업하는 규칙
+| 시점 | 할 일 |
+|---|---|
+| 작업 시작 | `git switch <브랜치>` → **`git pull`** |
+| 자리 뜨기 전 | 커밋 → **`git push`**. 미완성이면 `wip(범위): ...`로라도 커밋해서 push |
+| 다른 컴퓨터에서 이어서 | `git pull` 후 작업. 마무리되면 `wip` 커밋들은 PR 병합 시 **Squash and merge**로 하나로 합침 |
+
+- 같은 브랜치를 두 컴퓨터에서 **동시에** 고치지 않습니다(충돌 원인).
+- `git pull`에서 충돌이 나면 §5 "병합 충돌" 방법으로 해결합니다.
+- DB **데이터**는 옮겨지지 않습니다. 테스트 데이터가 필요하면 `mysqldump -u root -p studionx > dump.sql`로 내보내고 다른 컴퓨터에서 `mysql -u root -p studionx < dump.sql` (dump 파일은 커밋하지 않기).
+- 다른 컴퓨터에서 AI로 문서를 만들 때는 [AI_Doc_Template_Guide.md](AI_Doc_Template_Guide.md)를 먼저 읽게 하면 같은 템플릿으로 만들어집니다.
