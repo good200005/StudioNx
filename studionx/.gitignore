@@ -1,0 +1,24 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# 환경 변수 (비밀값)
+.env
+
+# 업로드·출력 파일 (DB에는 경로만 저장)
+storage/*
+!storage/.gitkeep
+
+# C++ / WASM 빌드 산출물
+native/build/
+frontend/static/wasm/*.wasm
+
+# Node / 기타
+node_modules/
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

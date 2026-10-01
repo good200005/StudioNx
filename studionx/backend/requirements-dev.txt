@@ -1,0 +1,6 @@
+-r requirements.txt
+
+# 테스트 · 코드 품질
+pytest>=8.3
+httpx2                       # FastAPI TestClient (starlette 최신 버전 권장)
+ruff>=0.6

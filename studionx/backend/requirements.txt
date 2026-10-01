@@ -1,0 +1,17 @@
+# Studio Nx 백엔드 런타임 의존성
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic-settings>=2.4
+python-multipart>=0.0.9      # 파일 업로드(multipart/form-data)
+
+# DB (MySQL 8.0)
+sqlalchemy>=2.0
+pymysql>=1.1
+cryptography>=43             # MySQL 8 기본 인증(caching_sha2_password)에 필요
+
+# 인증 (Phase 1)
+pyjwt>=2.9
+bcrypt>=4.2
+
+# 오류 추적
+sentry-sdk[fastapi]>=2.14

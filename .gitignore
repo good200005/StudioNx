@@ -1,0 +1,13 @@
+# 문서 빌드 임시 파일
+docs/_build/.tmp_*.html
+docs/_build/ERD.dot
+
+# 공통
+node_modules/
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# docs/ 폴더 백업 압축본 (원본이 docs/에 있음)
+/docs.zip

@@ -1,0 +1,33 @@
+"""Studio Nx FastAPI 진입점.
+
+실행 (studionx/backend 에서):  uvicorn app.main:app --reload
+- API:       http://localhost:8000/api/v1/...
+- API 문서:  http://localhost:8000/docs
+- 프론트:     http://localhost:8000/  (studionx/frontend 정적 파일)
+"""
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
+from app.api.v1.router import api_router
+from app.core.config import ROOT_DIR, get_settings
+from app.core.sentry import init_sentry
+
+settings = get_settings()
+init_sentry(settings)
+
+app = FastAPI(title=settings.app_name, version="0.1.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_credentials=True,  # 리프레시 토큰 HttpOnly 쿠키
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(api_router, prefix=settings.api_prefix)
+
+# 프론트엔드 정적 파일 — API 라우터보다 뒤에 마운트해야 /api 경로를 가리지 않는다
+app.mount("/", StaticFiles(directory=ROOT_DIR / "frontend", html=True), name="frontend")

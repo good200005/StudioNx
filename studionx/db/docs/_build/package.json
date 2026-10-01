@@ -1,0 +1,7 @@
+{
+  "name": "studionx-db-docs-build",
+  "private": true,
+  "description": "StudioNx_DB_Guide.md → .docx 변환",
+  "scripts": { "build": "node md2docx.js" },
+  "dependencies": { "docx": "^9.5.0" }
+}
