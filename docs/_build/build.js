@@ -2,6 +2,7 @@
 //   node docs/_build/build.js          → ERD.png + 모든 PDF 생성
 //   node docs/_build/build.js erd      → ERD.png 만
 //   node docs/_build/build.js pdf      → PDF 만
+//   node docs/_build/build.js pdf Git  → 이름에 'Git'이 들어간 PDF만
 // 필요: Node.js, Google Chrome(또는 Edge), 인터넷(CDN: marked, mermaid, viz.js)
 const fs = require('fs');
 const path = require('path');
@@ -121,9 +122,11 @@ const PDFS = [
   { out: 'Implementation_Plan.pdf', title: 'Studio Nx', subtitle: '구현 계획 — 3단계 목록 &amp; 간트차트', files: ['Implementation_Plan.md'] },
   { out: 'Ai_feedback.pdf', title: 'Studio Nx', subtitle: 'AI 제안 — 추가하면 좋을 기능', files: ['Ai_feedback.md'] },
   { out: 'Ai_feedback_moreExplain.pdf', title: 'Studio Nx', subtitle: 'AI 제안 추가 설명 — 상황 인지 팁 · 스냅샷 · 이름 추천', files: ['Ai_feedback_moreExplain.md'] },
+  { out: 'Git_Manual.pdf', title: 'Studio Nx', subtitle: 'Git · GitHub 관리 매뉴얼', files: ['Git_Manual.md'] },
 ];
 
 const mode = process.argv[2];
 if (mode !== 'pdf') buildErd();
-if (mode !== 'erd') PDFS.forEach(buildPdf);
+const only = process.argv[3];
+if (mode !== 'erd') PDFS.filter(p => !only || p.out.includes(only)).forEach(buildPdf);
 fs.rmSync(TMP, { recursive: true, force: true });
