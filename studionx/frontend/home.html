@@ -67,12 +67,13 @@
 
   <main id="main">
     <section class="hero" id="top" aria-labelledby="hero-title">
-      <!-- 지그재그 띠(Nyxi 후드 무늬) + 띠 안쪽 윤곽을 바깥으로 130·300·470만큼 평행 이동한 선 -->
+      <!-- 지그재그 띠(Nyxi 후드 무늬) + 띠 안쪽 윤곽을 바깥으로 130·300·470만큼 평행 이동한 선
+           띠 위쪽 꼭짓점(453,-121)과 오른쪽 다리의 사선 끝(1275,-121 → 1527,-25)은 틀 밖까지 그려 둠 → 모바일처럼 띠가 화면 안에 다 보일 때도 끊기지 않음 -->
       <svg class="hero__ribbon" viewBox="0 0 1440 900" preserveAspectRatio="none" aria-hidden="true" focusable="false">
         <polyline class="hero__echo hero__echo--3" points="730,1250 978,682 1654,865 2182,-356"/>
         <polyline class="hero__echo hero__echo--2" points="551,1236 881,480 1556,662 1979,-315"/>
         <polyline class="hero__echo hero__echo--1" points="371,1222 783,278 1459,460 1777,-275"/>
-        <polygon class="hero__band" points="-14,900 398,0 768,0 1157,149 1222,0 1516,0 1384,305 709,123 370,900"/>
+        <polygon class="hero__band" points="-14,900 453,-121 1157,149 1275,-121 1527,-25 1384,305 709,123 370,900"/>
       </svg>
       <img class="hero__nyxi" src="static/characters/nyxi/hero.png" width="768" height="1280" draggable="false"
            alt="Nyxi, the Studio Nx character: short white hair, violet headphones around her neck, hands in the pocket of a black hoodie.">
@@ -107,8 +108,8 @@
           <div class="service__grid">
             <article class="service__intro" aria-labelledby="intro-title">
               <h3 class="block-title" id="intro-title">What is Studio Nx?</h3>
-              <p>Studio Nx is a DAW sequencer that runs entirely in your browser. Drop in your samples, write melodies on the piano roll or with a MIDI keyboard, shape the sound with web-native synths and effects, and export a finished WAV or MP3 — nothing to install.</p>
-              <p>Stuck on the mix? Hand it a track you love. The AI listens to that reference and suggests synth presets, mixing moves and a mastering chain you can apply — and undo — in one click. Invite friends to the same project and build it together in real time, while Nyxi keeps the beat.</p>
+              <p>Studio Nx is a DAW sequencer that runs entirely in your browser. Drop in your samples, write melodies on the piano roll or with a MIDI keyboard, shape the sound with web-native synths and effects, and export a finished WAV or MP3, with nothing to install.</p>
+              <p>Stuck on the mix? Hand it a track you love. The AI listens to that reference and suggests synth presets, mixing moves and a mastering chain you can apply, and undo, in one click. Invite friends to the same project and build it together in real time, while Nyxi keeps the beat.</p>
             </article>
 
             <div class="service__for">
@@ -117,14 +118,17 @@
                 <li class="persona">
                   <h4 class="persona__title">First-time producers</h4>
                   <p>Never opened a DAW? Start making music in a browser tab. When the mix sounds off, the AI tells you what to change and why.</p>
+                  <div class="persona__art" aria-hidden="true"></div>
                 </li>
                 <li class="persona">
                   <h4 class="persona__title">Beat makers</h4>
                   <p>Build from samples. Your library lives in your account, so the same project opens on whichever computer you sit down at.</p>
+                  <div class="persona__art" aria-hidden="true"></div>
                 </li>
                 <li class="persona">
                   <h4 class="persona__title">Bands &amp; study groups</h4>
                   <p>Stop emailing project files. Invite your crew, edit the same session at once, and talk it through in the project chat.</p>
+                  <div class="persona__art" aria-hidden="true"></div>
                 </li>
               </ul>
             </div>
@@ -132,33 +136,164 @@
         </div>
       </section>
 
-      <section class="section" id="character" aria-labelledby="character-title">
+      <section class="section character" id="character" aria-labelledby="character-title">
         <h2 class="section-title" id="character-title">Character</h2>
         <p class="section-sub">Meet Nyxi</p>
+
+        <div class="section__body">
+          <div class="character__grid">
+            <article class="character__story" aria-labelledby="nyxi-title">
+              <h3 class="block-title" id="nyxi-title">Nyxi — a child of the night, and of unfinished songs</h3>
+              <p>Nyxi was born from Nyx, the goddess of night, out of the sounds that never sleep: melodies hummed at 3 a.m. and songs that never got an ending. Abandoned songs fade into the night sky. Nyxi came down to Studio Nx to make sure yours doesn't.</p>
+              <p>The crescent pin in her hair is a sliver of the moon. It grows a little with every song you finish. It hasn't been full yet. She acts like she couldn't care less, but she never gives up on a song she's heard, and she won't give up on you either.</p>
+              <blockquote class="character__quote">
+                <p>“A silent night is too quiet. …So go make some noise.”</p>
+              </blockquote>
+            </article>
+            <figure class="character__art">
+              <img src="static/characters/nyxi/character.png" width="1232" height="1632" draggable="false" loading="lazy"
+                   alt="Portrait of Nyxi: white bob with a crescent moon hair pin, glowing violet eyes, violet headphones over a black hoodie.">
+            </figure>
+          </div>
+        </div>
       </section>
 
-      <section class="section" id="feature" aria-labelledby="feature-title">
+      <section class="section feature" id="feature" aria-labelledby="feature-title">
         <h2 class="section-title" id="feature-title">Feature</h2>
         <p class="section-sub">What you can make with it</p>
+
+        <div class="section__body">
+          <!-- 대표 기능 3개. 스크린샷은 시퀀서 화면이 나오면 .feature__shot 안에 <img> 로 교체 (모바일에서는 숨김) -->
+          <ul class="features">
+            <li class="feature-item">
+              <h3 class="feature-item__title">A full sequencer in a browser tab</h3>
+              <p>Drop samples from your desktop into your own library, draw notes on the piano roll or play them in on a MIDI keyboard, and shape them with web-native synths and effects. Export to WAV or MP3 when it's done.</p>
+              <div class="feature__shot" aria-hidden="true"></div>
+            </li>
+            <li class="feature-item">
+              <h3 class="feature-item__title">Start from a track you love</h3>
+              <p>Paste a YouTube link or upload a file, pick a genre, and the AI reads its tempo, key, tone and loudness. It suggests synth presets, a mix and a mastering chain you can apply, and undo, in one click.</p>
+              <div class="feature__shot" aria-hidden="true"></div>
+            </li>
+            <li class="feature-item">
+              <h3 class="feature-item__title">Make it together, live</h3>
+              <p>Invite your crew to the same project and edit at once, like a shared doc. See who is working on which track, leave comments on the timeline, and talk it through in the project chat.</p>
+              <div class="feature__shot" aria-hidden="true"></div>
+            </li>
+          </ul>
+        </div>
       </section>
 
-      <section class="section" id="development" aria-labelledby="development-title">
+      <section class="section dev" id="development" aria-labelledby="development-title">
         <h2 class="section-title" id="development-title">Development</h2>
         <p class="section-sub">Notes from the developer</p>
+
+        <div class="section__body">
+          <!-- 최신 공지 4개. 실제 데이터는 GET /api/v1/dev-notes?limit=4 (관리자만 작성) — 지금은 예시 -->
+          <ol class="dev-notes">
+            <li class="dev-note">
+              <time datetime="2026-10-02">2026.10.02</time>
+              <h3 class="dev-note__title">The landing page takes shape</h3>
+              <p class="dev-note__excerpt">Nyxi on a violet zigzag, a Service overview, and the sections you are scrolling through right now.</p>
+            </li>
+            <li class="dev-note">
+              <time datetime="2026-10-02">2026.10.02</time>
+              <h3 class="dev-note__title">69 tasks, one board</h3>
+              <p class="dev-note__excerpt">Every planned task now lives on YouTrack, linked from epics down to single tasks and tied to GitHub branches.</p>
+            </li>
+            <li class="dev-note">
+              <time datetime="2026-10-01">2026.10.01</time>
+              <h3 class="dev-note__title">The database is ready</h3>
+              <p class="dev-note__excerpt">The MySQL schema for all six phases is in place: projects, patterns, automation, collaboration and more.</p>
+            </li>
+            <li class="dev-note">
+              <time datetime="2026-10-01">2026.10.01</time>
+              <h3 class="dev-note__title">Meet the plan</h3>
+              <p class="dev-note__excerpt">Six PRDs and a three-stage roadmap: an MVP first, then AI analysis and stem separation, then real-time collaboration.</p>
+            </li>
+          </ol>
+          <p class="dev-more">
+            <button type="button" class="text-link" command="show-modal" commandfor="dev-notes-modal">+ View More</button>
+          </p>
+        </div>
       </section>
 
-      <section class="section" id="contact" aria-labelledby="contact-title">
+      <section class="section contact" id="contact" aria-labelledby="contact-title">
         <h2 class="section-title" id="contact-title">Contact</h2>
         <p class="section-sub">Get in touch</p>
+
+        <div class="section__body">
+          <!-- 전송은 home.js 템플릿(initContactForm)에서 POST /api/v1/inquiries (JSON) -->
+          <form class="contact-form" id="contact-form" action="/api/v1/inquiries" method="post">
+            <div class="form-row">
+              <label for="contact-email">Email</label>
+              <input id="contact-email" name="email" type="email" required maxlength="255"
+                     autocomplete="email" placeholder="Where should we reply?">
+            </div>
+            <div class="form-row">
+              <label for="contact-title">Title</label>
+              <input id="contact-title" name="title" type="text" required maxlength="200"
+                     placeholder="What is it about?">
+            </div>
+            <div class="form-row form-row--tall">
+              <label for="contact-content">Contents</label>
+              <div class="form-row__field">
+                <textarea id="contact-content" name="content" required maxlength="2000"
+                          aria-describedby="contact-content-hint" placeholder="Tell us more."></textarea>
+                <p class="form-hint" id="contact-content-hint">Up to 2,000 characters.</p>
+              </div>
+            </div>
+
+            <p class="form-consent">
+              <input id="contact-agree" name="privacy_agreed" type="checkbox" required>
+              <label for="contact-agree">I agree to the
+                <button type="button" class="text-link text-link--strong" command="show-modal" commandfor="privacy-modal">Privacy Policy</button>.</label>
+            </p>
+            <p class="form-actions">
+              <button type="submit" class="btn btn--primary">Send</button>
+            </p>
+          </form>
+        </div>
       </section>
     </div>
   </main>
 
   <footer class="site-footer">
     <span class="brand__name">Studio Nx</span>
-    <span>Developer contact — coming soon</span>
+    <span>Developer contact: <a href="mailto:good200005@naver.com">good200005@naver.com</a></span>
     <span>© 2026 Studio Nx. All rights reserved.</span>
   </footer>
+
+  <!-- 모달: 버튼의 command="show-modal" 로 열림 (JS 없음, 구형 브라우저용 대체 코드는 home.js 템플릿) -->
+  <dialog class="modal" id="dev-notes-modal" aria-labelledby="dev-notes-modal-title">
+    <div class="modal__head">
+      <h2 class="modal__title" id="dev-notes-modal-title">Development notes</h2>
+      <button type="button" class="btn btn--ghost modal__close" command="close" commandfor="dev-notes-modal">Close</button>
+    </div>
+    <div class="modal__body">
+      <!-- 전체 목록 디자인은 추후 (GET /api/v1/dev-notes) -->
+      <p>The full archive of developer notes will be listed here.</p>
+    </div>
+  </dialog>
+
+  <dialog class="modal" id="privacy-modal" aria-labelledby="privacy-modal-title">
+    <div class="modal__head">
+      <h2 class="modal__title" id="privacy-modal-title">Privacy Policy</h2>
+      <button type="button" class="btn btn--ghost modal__close" command="close" commandfor="privacy-modal">Close</button>
+    </div>
+    <div class="modal__body">
+      <!-- 초안: 보관 기간 등은 개발자가 최종 확인 후 확정 -->
+      <p>Draft · last updated 2 October 2026</p>
+      <h3>What we collect</h3>
+      <p>When you send the contact form we store your email address, the title and the contents of your message, and the time you agreed to this policy.</p>
+      <h3>Why</h3>
+      <p>Only to read and answer your inquiry. We do not use it for marketing and do not share it with anyone else.</p>
+      <h3>How long</h3>
+      <p>We keep an inquiry for one year after we reply, then delete it.</p>
+      <h3>Your choices</h3>
+      <p>You can ask us to see or delete your inquiry at any time: <a class="text-link text-link--strong" href="mailto:good200005@naver.com">good200005@naver.com</a>.</p>
+    </div>
+  </dialog>
 
   <script type="module" src="static/js/pages/home.js"></script>
 </body>

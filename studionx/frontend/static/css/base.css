@@ -55,7 +55,11 @@ a {
 }
 .skip-link:focus { top: var(--sp-4); }
 
-/* ---------- 버튼 ---------- */
+/* ---------- 버튼 ----------
+   [버튼 템플릿] 모든 페이지에서 이 두 가지를 기본으로 사용
+   - .btn--primary   주요 행동 (Join Us, Send …): 검은 바탕 + 보라 윤곽·글자 → hover 흰 바탕 + 진한 보라 글자
+   - .btn--ghost     보조 행동 (Sign In, 취소 …): 검은 바탕 + 옅은 윤곽·흰 글자 → hover 흰 바탕 + 검은 글자
+   (.btn--solid 보라 배경은 예비용) */
 .btn {
   display: inline-flex; align-items: center; justify-content: center;
   min-height: 2.5rem; padding: 0 var(--sp-6);
@@ -75,7 +79,43 @@ a {
 }
 .btn--primary:hover { background: #ffffff; border-color: #ffffff; color: var(--c-violet); }
 .btn--ghost { background: var(--c-ground); border-color: var(--c-rule); color: var(--c-ink); }
-.btn--ghost:hover { border-color: var(--c-ink); }
+.btn--ghost:hover { background: #ffffff; border-color: #ffffff; color: var(--c-ground); }
+
+/* 버튼 모양이 아닌 글자 링크형 행동 (+ View More, 개인정보정책 등) */
+.text-link {
+  padding: 0; border: 0; background: none; cursor: pointer;
+  color: var(--c-ink-soft); text-decoration: none;
+  font: 600 var(--fs-sm) / 1.4 var(--font-text); letter-spacing: 0.04em;
+  transition: color var(--dur) var(--ease-out);
+}
+.text-link:hover { color: var(--c-violet-ink); }   /* 진한 보라(#6a24f6)는 검은 바탕에서 대비 부족 → 밝은 보라 */
+.text-link--strong { color: var(--c-violet-ink); font-weight: 700; letter-spacing: 0; font-size: inherit; }
+.text-link--strong:hover,
+.text-link--strong:active { color: var(--c-violet-ink); }   /* 클릭해도 색이 바뀌지 않음 */
+
+/* ---------- 모달 (<dialog>) ---------- */
+.modal {
+  width: min(40rem, calc(100vw - 2rem)); max-height: min(80svh, 46rem);
+  padding: 0; border: 1px solid var(--c-rule);
+  background: var(--c-ground-raised); color: var(--c-ink);
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.55);
+}
+.modal::backdrop { background: rgb(11 10 15 / 0.72); backdrop-filter: blur(3px); }
+.modal__head {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4);
+  padding: var(--sp-6) var(--sp-8); border-bottom: 1px solid var(--c-rule);
+}
+.modal__title { font: 700 var(--fs-lg) / 1.2 var(--font-display); }
+.modal__close { min-height: 2.25rem; padding: 0 var(--sp-4); }
+.modal__body { padding: var(--sp-6) var(--sp-8) var(--sp-8); overflow-y: auto; max-height: calc(min(80svh, 46rem) - 5rem); }
+.modal__body h3 { margin-top: var(--sp-6); font: 700 var(--fs-md) / 1.4 var(--font-text); }
+.modal__body h3:first-child { margin-top: 0; }
+.modal__body p, .modal__body li { margin-top: var(--sp-2); color: var(--c-ink-soft); font-size: var(--fs-sm); line-height: 1.7; }
+.modal__body ul { padding-left: 1.1rem; list-style: disc; }
+@media (prefers-reduced-motion: no-preference) {
+  .modal[open] { animation: modal-in 260ms var(--ease-out); }
+}
+@keyframes modal-in { from { opacity: 0; transform: translateY(0.75rem); } }
 .btn:disabled,
 .btn[aria-disabled="true"] { opacity: 0.45; cursor: not-allowed; }
 

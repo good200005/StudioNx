@@ -136,6 +136,8 @@ const PDFS = [
   { out: 'ai-notes/01_dev_environment.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 01 — 개발 환경 구축', files: ['ai-notes/01_dev_environment.md'], base: 'ai-notes' },
   { out: 'ai-notes/02_home_first_page.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 02 — 메인 페이지 구조 · 첫 화면', files: ['ai-notes/02_home_first_page.md'], base: 'ai-notes' },
   { out: 'ai-notes/03_home_revision_service.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 03 — 메인 페이지 수정 · Service 섹션', files: ['ai-notes/03_home_revision_service.md'], base: 'ai-notes' },
+  { out: 'ai-notes/04_home_sections.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 04 — 메인 페이지 나머지 섹션 프로토타입', files: ['ai-notes/04_home_sections.md'], base: 'ai-notes' },
+  { out: 'ai-notes/05_home_feature.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 05 — 모바일 띠 재조정 · Feature 섹션', files: ['ai-notes/05_home_feature.md'], base: 'ai-notes' },
 ];
 
 const mode = process.argv[2];
