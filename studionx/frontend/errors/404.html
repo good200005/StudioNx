@@ -1,6 +1,6 @@
 <!doctype html>
 <!-- 오류 404 Not Found 페이지 (P1-22, docs/ai-notes/11_error_pages.md)
-     Starlette StaticFiles(html=True) 가 없는 주소에 자동으로 보여 줌 (상태 404)
+     백엔드가 없는 주소(페이지 요청)일 때 이 파일을 상태 404로 돌려줌 (core/errors.py TODO)
      <base href="/"> : /a/b/c 처럼 깊은 주소에서 열려도 CSS·헤더·링크가 사이트 루트 기준으로 동작 -->
 <html lang="en" data-theme="dark">
 <head>
