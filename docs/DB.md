@@ -35,7 +35,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | FK | 참조 대상 PK와 같은 이름 사용 (예외: `owner_id`, `inviter_id`처럼 의미가 분명할 때) |
 | 시간 | `DATETIME(3)`, **UTC 기준**으로 저장 |
 | 공통 컬럼 | `created_at` (기본값 현재시각), `updated_at` (수정 시 자동 갱신) |
-| 소프트 삭제 | 복구가 필요한 데이터(`users`, `projects`, `samples`, `chat_messages`)는 `deleted_at`으로 표시만 함 |
+| 소프트 삭제 | 복구가 필요한 데이터(`users`, `projects`, `samples`, `chat_messages`, `timeline_comments`, `dev_notes`)는 `deleted_at`으로 표시만 함 |
 | 상태값 | `ENUM` 사용, 값은 대문자 |
 | 유연한 설정값 | 플러그인 파라미터, AI 추천 설정 등 구조가 자주 바뀌는 값은 `JSON` |
 | 예약어 | MySQL 예약어(`references`, `key` 등)는 테이블/컬럼명으로 쓰지 않음 → `reference_tracks`, `music_key` |

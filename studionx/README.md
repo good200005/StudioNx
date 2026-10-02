@@ -49,7 +49,8 @@ py -3.13 -m venv .venv
 copy .env.example .env          # 그리고 DB_PASSWORD, JWT_SECRET 수정
 
 # 3) DB 생성 — db/00_create_database.sql 의 <APP_PASSWORD> 를 .env 의 DB_PASSWORD 와 같게 바꾼 뒤
-mysql -u root -p < db\00_create_database.sql
+mysql -u root -p -e "source db/00_create_database.sql"
+# 4) 테이블 생성 — 01~06 순서대로 (명령: db/docs/StudioNx_DB_Guide.md §2.2)
 ```
 
 ## 실행

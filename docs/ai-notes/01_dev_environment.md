@@ -63,7 +63,7 @@
 | `GET /api/v1/health/db` | `OperationalError` — **정상**: DB·계정을 아직 만들지 않음 |
 
 ## 4. 남은 일 (사용자)
-1. `db/00_create_database.sql`의 `<APP_PASSWORD>`를 바꾸고 `mysql -u root -p < db\00_create_database.sql` 실행
+1. `db/00_create_database.sql`의 `<APP_PASSWORD>`를 바꾸고 `mysql -u root -p -e "source db/00_create_database.sql"` 실행 (PowerShell은 `<`를 지원하지 않아 `source` 사용)
 2. 같은 비밀번호를 `studionx/.env`의 `DB_PASSWORD`에, 랜덤 문자열을 `JWT_SECRET`에 입력
 3. `/api/v1/health/db`가 `{"db":"ok"}`인지 확인
 4. (선택) Sentry 프로젝트를 만들고 `SENTRY_DSN` 입력
