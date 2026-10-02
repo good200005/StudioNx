@@ -57,17 +57,25 @@
         <div class="field" id="join-password-field">
           <label class="field__label" for="join-password">Password <span class="field__req" aria-hidden="true">*</span></label>
           <div class="pw">
-            <input class="field__control" id="join-password" name="password" type="password" required minlength="8" maxlength="72"
-                   autocomplete="new-password" aria-describedby="join-password-msg">
+            <input class="field__control" id="join-password" name="password" type="password" required minlength="8" maxlength="20"
+                   autocomplete="new-password" aria-describedby="join-password-rules join-password-msg">
             <button type="button" class="pw__toggle" aria-controls="join-password" aria-pressed="false">Show</button>
           </div>
-          <p class="field__msg" id="join-password-msg">8+ characters, letters and numbers</p>
+          <!-- 비밀번호 조건 (PRD 01 FR-102) — 입력할 때마다 join.js 가 만족한 항목에 is-met (✓ 초록) -->
+          <ul class="pw-rules" id="join-password-rules" aria-label="Password requirements">
+            <li data-rule="length">8–20 characters<span class="sr-only" data-rule-state>, not met</span></li>
+            <li data-rule="upper">Uppercase letter<span class="sr-only" data-rule-state>, not met</span></li>
+            <li data-rule="lower">Lowercase letter<span class="sr-only" data-rule-state>, not met</span></li>
+            <li data-rule="number">Number<span class="sr-only" data-rule-state>, not met</span></li>
+            <li data-rule="special">Special character (!@#$…)<span class="sr-only" data-rule-state>, not met</span></li>
+          </ul>
+          <p class="field__msg" id="join-password-msg" aria-live="polite"></p>
         </div>
 
         <div class="field" id="join-password2-field">
           <label class="field__label" for="join-password2">Confirm password <span class="field__req" aria-hidden="true">*</span></label>
           <div class="pw">
-            <input class="field__control" id="join-password2" name="password_confirm" type="password" required maxlength="72"
+            <input class="field__control" id="join-password2" name="password_confirm" type="password" required maxlength="20"
                    autocomplete="new-password" aria-describedby="join-password2-msg">
             <button type="button" class="pw__toggle" aria-controls="join-password2" aria-pressed="false">Show</button>
           </div>

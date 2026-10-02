@@ -25,6 +25,17 @@
 }
 .pw__toggle:hover { color: var(--c-violet-ink); }
 
+/* ---------- 비밀번호 조건 목록 (join.html) ----------
+   기본: ○ 회색 / 만족: li.is-met → ✓ 초록 (JS가 클래스만 바꿈) */
+.pw-rules {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); gap: var(--sp-1) var(--sp-4);
+  color: var(--c-ink-soft); font-size: var(--fs-xs); line-height: 1.5;
+}
+.pw-rules li { display: flex; gap: var(--sp-2); transition: color var(--dur) var(--ease-out); }
+.pw-rules li::before { content: "○"; flex: none; width: 1em; text-align: center; }
+.pw-rules li.is-met { color: var(--c-ok); }
+.pw-rules li.is-met::before { content: "✓"; }
+
 /* ---------- 폼 전체 오류 (로그인 실패 등 한 줄) ---------- */
 .form-error { color: var(--c-error); font-size: var(--fs-sm); }
 .form-error[hidden] { display: none; }
