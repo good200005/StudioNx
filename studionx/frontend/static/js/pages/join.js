@@ -16,10 +16,25 @@ export function initDuplicateChecks() {
   // TODO
 }
 
+/** 비밀번호 조건 (PRD 01 FR-102) — 서버(P1-04)도 같은 규칙으로 다시 검사 */
+export const PASSWORD_RULES = {
+  length: (pw) => pw.length >= 8 && pw.length <= 20,
+  upper: (pw) => /[A-Z]/.test(pw),
+  lower: (pw) => /[a-z]/.test(pw),
+  number: (pw) => /[0-9]/.test(pw),
+  special: (pw) => /[!-/:-@[-`{-~]/.test(pw), // 키보드 기호 (ASCII 33~126 중 영문·숫자 제외: !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~)
+};
+
+/** 쓸 수 있는 문자: 영문·숫자·키보드 기호만 (한글·공백·이모지 등 불가) */
+export const PASSWORD_ALLOWED = /^[!-~]*$/;
+
 /**
- * 비밀번호 규칙·확인 (PRD 01 FR-102)
- * - 규칙: 8자 이상, 영문 + 숫자 포함 (bcrypt 한계로 최대 72자)
- * - 규칙 위반: setFieldState(passwordField, 'error', '8+ characters, letters and numbers')
+ * 비밀번호 조건 표시·확인 (PRD 01 FR-102)
+ * - #join-password 입력할 때마다 PASSWORD_RULES 로 검사해
+ *   #join-password-rules li[data-rule="…"] 에 is-met 클래스 붙이기/빼기 (auth.css: ✓ 초록 / ○ 회색)
+ *   같은 li 안 [data-rule-state] 글자도 ', met' / ', not met' 로 (화면 읽기 프로그램용)
+ * - PASSWORD_ALLOWED 에 맞지 않으면(한글·공백 등): setFieldState(passwordField, 'error', 'Use only English letters, numbers and symbols.')
+ * - 칸을 벗어날 때(blur) 조건이 하나라도 안 맞으면: setFieldState(passwordField, 'error', 'Check the password requirements.')
  * - 확인 칸이 다르면: setFieldState(confirmField, 'error', "Passwords don't match.")
  */
 export function initPasswordRules() {

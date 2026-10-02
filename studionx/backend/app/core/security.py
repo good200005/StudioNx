@@ -6,6 +6,27 @@ get_current_user(P1-03)가 decode_access_token 을 쓰고,
 """
 
 
+# 비밀번호 조건 (PRD 01 FR-102) — 화면(join.js PASSWORD_RULES)과 같은 규칙
+PASSWORD_MIN, PASSWORD_MAX = 8, 20
+
+
+def check_password_rules(plain: str) -> list[str]:
+    """맞지 않는 조건 이름 목록을 돌려준다 (빈 목록이면 통과). 회원가입·비밀번호 변경에서 사용.
+
+    TODO(P1-04):
+    - "length":  PASSWORD_MIN <= len(plain) <= PASSWORD_MAX
+    - "upper":   대문자 [A-Z] 1개 이상
+    - "lower":   소문자 [a-z] 1개 이상
+    - "number":  숫자 [0-9] 1개 이상
+    - "special": 키보드 기호 1개 이상 (string.punctuation 중 하나)
+    - "allowed": 영문·숫자·키보드 기호만 (re.fullmatch(r"[!-~]+", plain)) — 한글·공백 등은 실패
+    - 실패하면 라우터에서
+      AppError(ErrorCode.VALIDATION_ERROR, 422, "Check the password requirements.",
+               details={"password": 실패 목록})
+    """
+    raise NotImplementedError
+
+
 def hash_password(plain: str) -> str:
     """bcrypt 해시 (FR-102).
 
