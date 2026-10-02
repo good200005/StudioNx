@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="static/css/tokens.css">
   <link rel="stylesheet" href="static/css/base.css">
   <link rel="stylesheet" href="static/css/forms.css">
+  <link rel="stylesheet" href="static/css/auth.css">
   <link rel="stylesheet" href="static/css/pages/home.css">
   <link rel="preload" as="image" href="static/characters/nyxi/hero.png" fetchpriority="high">
 </head>
@@ -41,9 +42,12 @@
       </ul>
     </nav>
 
+    <!-- 로그인 상태(<html data-auth="in">)면 My Page·My Projects가 보임 — auth.css, 상태 확인은 home.js(P1-07) -->
     <div class="site-actions">
-      <a class="btn btn--ghost" href="login.html">Sign In</a>
-      <a class="btn btn--primary" href="join.html">Join Us</a>
+      <button type="button" class="btn btn--ghost" command="show-modal" commandfor="login-modal" data-auth-show="out">Sign In</button>
+      <a class="btn btn--primary" href="join.html" data-auth-show="out">Join Us</a>
+      <a class="btn btn--ghost" href="myPage.html" data-auth-show="in">My Page</a>
+      <a class="btn btn--primary" href="myProject.html" data-auth-show="in">My Projects</a>
     </div>
 
     <details class="menu">
@@ -59,8 +63,10 @@
           </ul>
         </nav>
         <div class="site-actions">
-          <a class="btn btn--ghost" href="login.html">Sign In</a>
-          <a class="btn btn--primary" href="join.html">Join Us</a>
+          <button type="button" class="btn btn--ghost" command="show-modal" commandfor="login-modal" data-auth-show="out">Sign In</button>
+          <a class="btn btn--primary" href="join.html" data-auth-show="out">Join Us</a>
+          <a class="btn btn--ghost" href="myPage.html" data-auth-show="in">My Page</a>
+          <a class="btn btn--primary" href="myProject.html" data-auth-show="in">My Projects</a>
         </div>
       </div>
     </details>
@@ -293,6 +299,61 @@
       <p>We keep an inquiry for one year after we reply, then delete it.</p>
       <h3>Your choices</h3>
       <p>You can ask us to see or delete your inquiry at any time: <a class="text-link text-link--strong" href="mailto:good200005@naver.com">good200005@naver.com</a>.</p>
+    </div>
+  </dialog>
+
+  <!-- 로그인 모달 (PRD 01 FR-103·105·109) — 별도 login.html 없음
+       열기: Sign In 버튼(command="show-modal") 또는 주소 #login (home.js 템플릿, P1-07)
+       전송: home.js initLoginForm → POST /api/v1/auth/login { email, password, remember } -->
+  <dialog class="modal modal--narrow" id="login-modal" aria-labelledby="login-modal-title">
+    <div class="modal__head">
+      <h2 class="modal__title" id="login-modal-title">Sign In</h2>
+      <button type="button" class="btn btn--ghost modal__close" command="close" commandfor="login-modal">Close</button>
+    </div>
+    <div class="modal__body">
+      <p class="auth-sub">Welcome back.</p>
+      <form class="form-stack" id="login-form" action="/api/v1/auth/login" method="post">
+        <div class="field">
+          <label class="field__label" for="login-email">Email</label>
+          <input class="field__control" id="login-email" name="email" type="email" required maxlength="255"
+                 autocomplete="username" placeholder="you@example.com" autofocus>
+        </div>
+        <div class="field">
+          <label class="field__label" for="login-password">Password</label>
+          <div class="pw">
+            <input class="field__control" id="login-password" name="password" type="password" required
+                   autocomplete="current-password">
+            <button type="button" class="pw__toggle" aria-controls="login-password" aria-pressed="false">Show</button>
+          </div>
+        </div>
+        <p class="form-consent">
+          <input id="login-remember" name="remember" type="checkbox">
+          <label for="login-remember">Keep me signed in (3 days)</label>
+        </p>
+        <!-- 로그인 실패 시 한 문장으로 통일 (FR-103): "Email or password is incorrect." -->
+        <p class="form-error" id="login-error" role="alert" hidden></p>
+        <button type="submit" class="btn btn--primary btn--block">Sign In</button>
+      </form>
+
+      <!-- 소셜 로그인: 자리만 (연동은 추후). 누르면 "준비 중" 안내 — home.js initOAuthPlaceholders -->
+      <p class="divider">or continue with</p>
+      <div class="oauth-row">
+        <button type="button" class="btn oauth oauth--google" data-provider="google" aria-label="Continue with Google">
+          <svg class="oauth__icon oauth__icon--mono" aria-hidden="true" fill="currentColor" viewBox="0 0 24 24"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/></svg>
+          <svg class="oauth__icon oauth__icon--color" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 8 3l5.7-5.7C34 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 8 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2c-2 1.5-4.5 2.4-7.2 2.4-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>
+          <span>Google</span>
+        </button>
+        <button type="button" class="btn oauth oauth--discord" data-provider="discord" aria-label="Continue with Discord">
+          <svg class="oauth__icon oauth__icon--mono" aria-hidden="true" fill="currentColor" viewBox="0 0 24 24"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>
+          <span>Discord</span>
+        </button>
+        <button type="button" class="btn oauth oauth--soundcloud" data-provider="soundcloud" aria-label="Continue with SoundCloud">
+          <svg class="oauth__icon oauth__icon--mono" aria-hidden="true" fill="currentColor" viewBox="0 0 24 24"><path d="M23.999 14.165c-.052 1.796-1.612 3.169-3.4 3.169h-8.18a.68.68 0 0 1-.675-.683V7.862a.747.747 0 0 1 .452-.724s.75-.513 2.333-.513a5.364 5.364 0 0 1 2.763.755 5.433 5.433 0 0 1 2.57 3.54c.282-.08.574-.121.868-.12.884 0 1.73.358 2.347.992s.948 1.49.922 2.373ZM10.721 8.421c.247 2.98.427 5.697 0 8.672a.264.264 0 0 1-.53 0c-.395-2.946-.22-5.718 0-8.672a.264.264 0 0 1 .53 0ZM9.072 9.448c.285 2.659.37 4.986-.006 7.655a.277.277 0 0 1-.55 0c-.331-2.63-.256-5.02 0-7.655a.277.277 0 0 1 .556 0Zm-1.663-.257c.27 2.726.39 5.171 0 7.904a.266.266 0 0 1-.532 0c-.38-2.69-.257-5.21 0-7.904a.266.266 0 0 1 .532 0Zm-1.647.77a26.108 26.108 0 0 1-.008 7.147.272.272 0 0 1-.542 0 27.955 27.955 0 0 1 0-7.147.275.275 0 0 1 .55 0Zm-1.67 1.769c.421 1.865.228 3.5-.029 5.388a.257.257 0 0 1-.514 0c-.21-1.858-.398-3.549 0-5.389a.272.272 0 0 1 .543 0Zm-1.655-.273c.388 1.897.26 3.508-.01 5.412-.026.28-.514.283-.54 0-.244-1.878-.347-3.54-.01-5.412a.283.283 0 0 1 .56 0Zm-1.668.911c.4 1.268.257 2.292-.026 3.572a.257.257 0 0 1-.514 0c-.241-1.262-.354-2.312-.023-3.572a.283.283 0 0 1 .563 0Z"/></svg>
+          <span>SoundCloud</span>
+        </button>
+      </div>
+
+      <p class="auth-foot">New here? <a class="text-link text-link--strong" href="join.html">Join Us</a></p>
     </div>
   </dialog>
 
