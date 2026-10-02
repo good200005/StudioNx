@@ -4,7 +4,7 @@
 |---|---|
 | DBMS | MySQL 8.0 (CHECK 제약 사용 → 8.0.16 이상 필요) |
 | Database | `studionx` (문자셋 `utf8mb4` / `utf8mb4_0900_ai_ci`) |
-| 테이블 수 | 33개 |
+| 테이블 수 | 34개 |
 | 설계 원본 | `docs/DB.md` (컬럼 상세·설계 이유), `docs/ERD.md` (관계 설명) |
 | 작성일 | 2026-10-01 |
 | 상태 | **SQL 파일만 작성됨 — 아직 실행하지 않음** |
@@ -13,7 +13,7 @@
 | 순서 | 파일 | 내용 | 테이블 수 | 실행 시기 (구현 계획 기준) |
 |---|---|---|---|---|
 | 0 | `00_create_database.sql` | database `studionx` + 앱 계정 `studionx_app` 생성 | — | 개발 시작 시 (root 계정) |
-| 1 | `01_phase1_account.sql` | 회원, 문의, 프로젝트, 프로젝트 멤버 | 4 | 1단계 S1-02 |
+| 1 | `01_phase1_account.sql` | 회원, 문의, Development 공지, 프로젝트, 프로젝트 멤버 | 5 | 1단계 S1-02 |
 | 2 | `02_phase2_sequencer.sql` | 샘플·태그·플러그인·트랙·디바이스·패턴·클립·노트·오토메이션·템플릿·UI 설정 | 16 | 1단계 S1-05 ~ |
 | 3 | `03_phase3_export.sql` | 오디오 출력 작업 | 1 | 1단계 S1-11 |
 | 4 | `04_phase4_separation.sql` | 악기 분리 작업·결과 | 2 | 2단계 S2-14 |
@@ -23,7 +23,7 @@
 
 - 파일 번호 순서대로 실행해야 합니다. 뒤 파일의 테이블이 앞 파일의 테이블을 외래키로 참조합니다.
 - 한 번에 모두 만들어도 되고, 구현 단계에 맞춰 필요한 파일만 실행해도 됩니다.
-- 작성 시 확인한 것: 33개 테이블 중복 없음, 모든 외래키 대상이 먼저 생성됨, MySQL 문법 파싱 통과. (실제 DB 실행 검증은 아직 안 함)
+- 작성 시 확인한 것: 34개 테이블 중복 없음, 모든 외래키 대상이 먼저 생성됨, MySQL 문법 파싱 통과. (실제 DB 실행 검증은 아직 안 함)
 
 ## 2. 실행 방법
 ### 2.1 database와 계정 만들기 (최초 1회)
@@ -49,7 +49,7 @@ mysql -u studionx_app -p studionx < db/06_phase6_collaboration.sql
 
 ### 2.3 확인
 ```
--- 테이블 수 (전부 실행했다면 33)
+-- 테이블 수 (전부 실행했다면 34)
 SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'studionx';
 
 -- 외래키 목록
@@ -70,7 +70,8 @@ mysql -u studionx_app -p studionx < db/99_drop_all_tables.sql
 | 테이블 | 설명 | 주요 키 |
 |---|---|---|
 | `users` | 회원, 저장 용량 | PK user_id · UQ email, nickname |
-| `inquiries` | 홈 화면 문의 | FK user_id (NULL = 비회원) |
+| `inquiries` | 홈 화면 문의 (이름 선택, 개인정보 동의 시각 필수) | FK user_id (NULL = 비회원) |
+| `dev_notes` | 메인 페이지 Development 공지 (관리자만 작성) | FK author_id |
 | `projects` | 시퀀서 프로젝트 | FK owner_id, template_id |
 | `project_members` | 참여자·권한 (생성 시 OWNER 등록) | PK (project_id, user_id) |
 
@@ -146,3 +147,8 @@ mysql -u studionx_app -p studionx < db/99_drop_all_tables.sql
 2. 같은 내용을 `db/0X_*.sql`에 반영합니다.
 3. 이 문서(md·docx)와 `docs/ERD.png`를 갱신합니다.
 4. 이미 데이터가 있는 DB라면 테이블을 다시 만들지 말고 `ALTER TABLE` 문을 별도 파일(예: `db/migrations/`)로 작성합니다. 운영 단계에서는 Alembic 같은 마이그레이션 도구 도입을 검토합니다.
+
+### 6.1 변경 기록 (migrations)
+| 파일 | 내용 | 실행 대상 |
+|---|---|---|
+| `migrations/2026-10-02_contact_devnotes.sql` | `inquiries.name` NULL 허용 + `privacy_agreed_at` 추가, `dev_notes` 생성 | 2026-10-02 이전에 01~06을 실행한 DB |
