@@ -12,12 +12,14 @@ from fastapi.staticfiles import StaticFiles
 
 from app.api.v1.router import api_router
 from app.core.config import ROOT_DIR, get_settings
+from app.core.errors import register_exception_handlers
 from app.core.sentry import init_sentry
 
 settings = get_settings()
 init_sentry(settings)
 
 app = FastAPI(title=settings.app_name, version="0.1.0")
+register_exception_handlers(app)  # 오류 응답 형식 통일 (core/errors.py, P1-03)
 
 app.add_middleware(
     CORSMiddleware,
