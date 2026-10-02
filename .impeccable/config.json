@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "docs/_build/build.js"
+        ],
+        "createdAt": "2026-10-02T00:33:05.345Z",
+        "reason": "print-PDF blockquote callout in the doc template; user praised this template ('템플릿 너무 좋다') and asked to reuse it as-is"
+      }
+    ]
+  }
+}
