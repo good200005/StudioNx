@@ -1,0 +1,93 @@
+/* 오류 페이지 (P1-22) — 404.html, errors/{400,403,429,500,503,504}.html
+   시안: docs/page_mockups/16~37 (F-2 "숫자 자체가 신호")
+   모든 오류가 같은 격자·같은 간격 → 숫자·신호 표시·제목·버튼이 페이지마다 같은 위치 */
+
+body { display: flex; flex-direction: column; min-height: 100svh; }
+.site-header { position: static; }
+[data-include$="header.html"] { min-height: var(--header-h); }   /* 헤더를 받기 전 자리 확보 */
+
+/* ---------- 배치: 왼쪽 숫자·문구, 오른쪽 Nyxi 일러스트 자리 (위쪽 기준) ---------- */
+.err {
+  flex: 1;
+  display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: start; gap: var(--sp-12);
+  padding: var(--sp-12) var(--gutter) var(--sp-16);
+}
+.err__art { height: min(62svh, 34rem); border: 1px dashed var(--c-rule-violet); }   /* Nyxi 일러스트가 오면 <img> 로 교체 */
+
+/* ---------- 숫자 무대: 높이 1em 고정 → 모든 숫자가 같은 기준 ---------- */
+.err__num {
+  position: relative; height: 1em; display: flex; align-items: center;
+  font: 800 clamp(7rem, 19vw, 17rem) / .82 var(--font-display); letter-spacing: -.02em; color: var(--c-ink);
+}
+.err__mid { position: relative; color: transparent; -webkit-text-stroke: 3px var(--c-violet); }   /* 가운데 0: 보라 윤곽 */
+
+/* 404 신호 없음: 바랜 숫자 + 아래 평평한 선 */
+.err--404 .err__num { color: rgb(244 243 247 / .14); }
+.err__line { position: absolute; left: -2%; width: 104%; bottom: 0; height: .14em; overflow: visible; }
+.err__line path { fill: none; stroke: var(--c-violet-ink); stroke-width: 3; vector-effect: non-scaling-stroke; }
+
+/* 500 클리핑: 위아래 잘림 + 빨간 점선 */
+.err__clip { position: relative; display: block; height: .56em; overflow: hidden; }
+.err__clip > span { display: block; margin-top: -.13em; }
+.err__clip::before,
+.err__clip::after { content: ""; position: absolute; left: 0; right: 0; border-top: 2px dashed var(--c-error); }
+.err__clip::before { top: 0; }
+.err__clip::after { bottom: 0; }
+.err--500 .err__mid { -webkit-text-stroke-color: var(--c-error); }
+
+/* 403 잠김: 흐린 숫자 + 0 의 바깥 고리에 정확히 닿는 사선
+   inset 은 Unbounded 0 글자의 고리 범위를 측정한 값 (글꼴을 바꾸면 다시 측정) */
+.err--403 .err__num { color: rgb(244 243 247 / .32); }
+.err--403 .err__mid::after {
+  content: ""; position: absolute; inset: .004em .02em .02em .035em;
+  background: linear-gradient(to bottom right, transparent calc(50% - .04em), var(--c-violet) calc(50% - .04em),
+                              var(--c-violet) calc(50% + .04em), transparent calc(50% + .04em));
+  clip-path: ellipse(50% 50% at 50% 50%);
+}
+
+/* 429 피드백 과다: 딜레이 메아리 (text-shadow 라 배치에 영향 없음) */
+.err--429 .err__num {
+  text-shadow: .045em -.03em 0 rgb(163 131 255 / .55), .09em -.06em 0 rgb(163 131 255 / .3), .135em -.09em 0 rgb(163 131 255 / .13);
+}
+.err--429 .err__mid { color: var(--c-violet); -webkit-text-stroke: 0; }
+
+/* 503 점검: 0 자리에 일시정지 ‖ */
+.err__pause { display: inline-flex; gap: .13em; height: .8em; margin: 0 .07em; }
+.err__pause i { width: .19em; border: 3px solid var(--c-violet); }
+
+/* 400 음정 어긋남: 숫자마다 위아래로 틀어짐 + 빨간 기준선 */
+.err__pitch { position: absolute; left: 0; right: 0; top: 50%; border-top: 2px dashed var(--c-error); }
+.err--400 .err__d { display: inline-block; }
+.err--400 .err__d:nth-of-type(1) { transform: translateY(-.07em) rotate(-3deg); }
+.err--400 .err__d:nth-of-type(2) { transform: translateY(.08em); }
+.err--400 .err__d:nth-of-type(3) { transform: translateY(-.03em) rotate(2deg); }
+
+/* 504 시간 초과: 오른쪽이 끊긴 채 멈춘 로딩 고리 */
+.err__ring { width: .62em; height: .8em; margin: 0 .04em; overflow: visible; }
+.err__ring ellipse {
+  fill: none; stroke: var(--c-violet); stroke-width: 7; stroke-linecap: round;
+  stroke-dasharray: 160 45; transform: rotate(10deg); transform-origin: 50% 50%;
+}
+
+/* ---------- 글자: 모두 같은 간격 ---------- */
+.err__meter {
+  margin-top: var(--sp-6);
+  font: 600 var(--fs-xs) / 1 var(--font-text); letter-spacing: .16em; text-transform: uppercase; color: var(--c-ink-soft);
+  /* 오류 번호 + 신호 상태 (예: ERROR 404 · INPUT · NO SIGNAL) */
+}
+.err__meter b { color: var(--c-error); }
+.err__meter b.is-info { color: var(--c-violet-ink); }
+.err__fig { margin: 0; }
+.err__title { margin-top: var(--sp-8); font: 800 var(--fs-xl) / 1.05 var(--font-display); letter-spacing: .04em; text-transform: uppercase; }
+.err__text { margin-top: var(--sp-4); max-width: 34rem; min-height: 3.2em; color: var(--c-ink-soft); line-height: 1.6; }   /* 2줄 자리 → 버튼 위치 통일 */
+.err__actions { margin-top: var(--sp-8); display: flex; flex-wrap: wrap; gap: var(--sp-3); }
+
+/* ---------- 모바일 ---------- */
+@media (max-width: 760px) {
+  .err { grid-template-columns: 1fr; gap: var(--sp-6); padding-top: var(--sp-8); }
+  .err__art { display: none; }
+  .err__mid { -webkit-text-stroke-width: 2px; }
+  .err__pause i { border-width: 2px; }
+  .err__title { min-height: 2.1em; }   /* 제목 2줄 자리 */
+  .err__text { min-height: 4.8em; }    /* 설명 3줄 자리 */
+}

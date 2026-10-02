@@ -26,6 +26,18 @@ class ErrorCode(StrEnum):
     INTERNAL_ERROR = "INTERNAL_ERROR"  # 500 (자세한 내용은 Sentry로만)
 
 
+# 페이지 요청 오류 → 보여 줄 HTML (studionx/frontend 기준, P1-22)
+ERROR_PAGES: dict[int, str] = {
+    400: "errors/400.html",
+    403: "errors/403.html",
+    404: "404.html",
+    429: "errors/429.html",
+    500: "errors/500.html",
+    503: "errors/503.html",
+    504: "errors/504.html",
+}
+
+
 class AppError(Exception):
     """서비스·라우터에서 던지는 예상된 오류."""
 
@@ -54,5 +66,15 @@ def register_exception_handlers(app: FastAPI) -> None:
     - Exception (그 외)       → 500, code=INTERNAL_ERROR, message는 일반 문장만
                                 (오류 내용은 응답에 넣지 않음 — Sentry가 기록)
     - 응답 본문에 비밀번호·토큰이 섞이지 않게 주의 (PRD 01 §5)
+
+    TODO(P1-22) 오류 페이지 — API 요청과 페이지 요청을 나눠서 응답:
+    - request.url.path 가 settings.api_prefix("/api/v1")로 시작 → 지금처럼 JSON (ErrorResponse)
+    - 그 외(페이지 요청) → 오류 페이지 HTML 을 같은 상태 코드로
+        FileResponse(ROOT_DIR / "frontend" / ERROR_PAGES[status], status_code=status)
+    - 없는 주소 404: 정적 파일 마운트(StaticFiles html=True)가 frontend/404.html 을 자동으로 돌려줌.
+      단, 없는 API 주소(/api/v1/없는경로)도 지금은 이 HTML 이 나감 → API 경로는 JSON 404 로 바꿀 것
+      (예: api_router 맨 끝에 @api_router.api_route("/{path:path}") 를 두고
+       AppError(NOT_FOUND, 404) 던지기)
+    - 503(점검)은 점검 모드 설정값을 두고 미들웨어에서 errors/503.html 로 응답 (선택)
     """
     # TODO: @app.exception_handler(AppError) ... 등록
