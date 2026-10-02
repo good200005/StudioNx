@@ -51,12 +51,12 @@ PRD의 Phase는 **기능 묶음**이고, 이 문서의 단계는 **구현 순서
 | ID | 그룹 | 작업 | 관련 FR | 담당 | 기간 | 브랜치 |
 |---|---|---|---|---|---|---|
 | P1-01 | 공통 기반 (먼저) | 공통 CSS: 테마 색 변수(다크/라이트), 헤더·푸터·버튼·폼 스타일 | FR-142, 02 FR-2162 | AI | 2일 | `feature/phase1/p1-01-common-css` |
-| P1-02 | 공통 기반 (먼저) | 프론트 공통 JS: API 호출 함수(토큰 자동 첨부, 401이면 재발급), 로그인 확인 | FR-105 | 뼈대 AI → 직접 | 2일 | `feature/phase1/p1-02-frontend-api-core` |
+| P1-02 | 공통 기반 (먼저) | 프론트 공통 JS: API 호출 함수(토큰 자동 첨부, 401이면 재발급), 로그인 확인(안 됐으면 `home.html#login?next=`로 이동) | FR-105 | 뼈대 AI → 직접 | 2일 | `feature/phase1/p1-02-frontend-api-core` |
 | P1-03 | 공통 기반 (먼저) | 백엔드 공통: ORM 모델(users, inquiries, projects, project_members, tracks), 오류 응답 형식, `get_current_user` | — | 뼈대 AI → 직접 | 2일 | `feature/phase1/p1-03-backend-core` |
 | P1-04 | 인증 | 회원가입 API + 이메일·닉네임 중복 확인 + 비밀번호 규칙·bcrypt 해시 | FR-101~102 | 직접 | 2일 | `feature/phase1/p1-04-signup-api` |
-| P1-05 | 인증 | 로그인(JWT 발급, 리프레시 토큰 HttpOnly 쿠키), 토큰 재발급, 로그아웃, `last_login_at` | FR-103~105 | 직접 | 3일 | `feature/phase1/p1-05-login-jwt` |
-| P1-06 | 인증 | `join.html`, `login.html` 화면 | §6 | AI | 1일 | `feature/phase1/p1-06-auth-pages` |
-| P1-07 | 인증 | 가입·로그인 JS: 폼 검증, 실시간 중복 확인, 로그인 후 이동 | FR-101, 103 | 직접 | 2일 | `feature/phase1/p1-07-auth-js` |
+| P1-05 | 인증 | 로그인(JWT 발급, 리프레시 토큰 HttpOnly 쿠키 — 자동 로그인 체크 시 3일, 아니면 세션 쿠키), 토큰 재발급, 로그아웃, `last_login_at` | FR-103~105 | 직접 | 3일 | `feature/phase1/p1-05-login-jwt` |
+| P1-06 | 인증 | `join.html` 화면 + `home.html` 로그인 모달 + 로그인 상태 헤더 버튼(My Page·My Projects) | §6 | AI | 1일 | `feature/phase1/p1-06-auth-pages` |
+| P1-07 | 인증 | 가입·로그인 JS: 폼 검증, 실시간 중복 확인, `#login`이면 모달 자동 열기, 로그인 후 `next` 페이지로 이동, 로그인 상태면 헤더 전환 | FR-101, 103 | 직접 | 2일 | `feature/phase1/p1-07-auth-js` |
 | P1-08 | 회원 정보 | `/users/me` 조회·수정, 프로필 이미지 업로드(jpg/png/webp, 2MB) | FR-106 | 직접 | 2일 | `feature/phase1/p1-08-user-profile-api` |
 | P1-09 | 회원 정보 | 비밀번호 변경, 회원 탈퇴(재확인, 소프트 삭제, 로그인 차단) | FR-107~108 | 직접 | 1일 | `feature/phase1/p1-09-password-withdraw` |
 | P1-10 | 회원 정보 | `userInfo.html` [회원 정보] 탭 화면 + JS | FR-106~108 | AI(화면) / 직접(JS) | 2일 | `feature/phase1/p1-10-userinfo-page` |

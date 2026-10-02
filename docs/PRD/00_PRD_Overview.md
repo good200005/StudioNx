@@ -87,7 +87,7 @@ Phase 6  협업·단체톡        ──►  초대, 동시 편집, 채팅
 | 페이지 | 설명 | Phase |
 |---|---|---|
 | `home.html` | 서비스 첫 화면 — 서비스 소개, 기능 설명, 문의 창 | 1 |
-| `login.html` | 로그인 | 1 |
+| (로그인 모달) | 로그인 — 별도 페이지 없이 `home.html`의 모달. 로그인이 필요한 페이지는 `home.html#login`으로 보냄 | 1 |
 | `join.html` | 회원가입 | 1 |
 | `myPage.html` | 마이페이지 대시보드 (최근 프로젝트, 라이브러리 요약, 받은 초대) | 1 (+6 초대 위젯) |
 | `userInfo.html` | 회원 정보 조회·수정·탈퇴, **환경 설정(UI 커스터마이징)** 탭 | 1 (+2 환경 설정) |
@@ -95,9 +95,9 @@ Phase 6  협업·단체톡        ──►  초대, 동시 편집, 채팅
 | `studioNx.html` | 시퀀서 본체 — 트랙 아코디언(디바이스·노트·오토메이션), 어레인지/런처 뷰, 토글형 하단 패널(톡방·Nyxi), 캐릭터 Nyxi, 설정·커맨드 팔레트 | 2~6 |
 
 ```
-home ─┬─ login ──► myPage ─┬─ userInfo
-      └─ join              ├─ myProject ──► studioNx
-                           └─ (초대 수락) ──► studioNx
+home ─┬─ (로그인 모달) ──► myPage ─┬─ userInfo
+      └─ join                      ├─ myProject ──► studioNx
+                                   └─ (초대 수락) ──► studioNx
 ```
 
 ## 7. 공통 비기능 요구사항
