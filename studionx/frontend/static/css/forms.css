@@ -1,0 +1,111 @@
+/* Studio Nx — 공통 폼 스타일 (모든 페이지)
+   [입력칸 템플릿] B-2 세로·밑줄형: 라벨이 위, 입력칸은 테두리 없이 밑줄만.
+   - 시안: docs/form_mockups/05_states_B2_line.png
+   - Contact(메인 페이지)는 가로형(A)을 유지 → 줄 배치는 pages/home.css 의 .form-row
+
+   마크업 예시
+   <div class="field">                                   ← 상태: .is-ok / .is-error
+     <label class="field__label" for="nick">Nickname <span class="field__req" aria-hidden="true">*</span></label>
+     <div class="field__group">                          ← 옆에 버튼(Check)이 있을 때만
+       <input class="field__control" id="nick" aria-describedby="nick-msg">
+       <button type="button" class="btn btn--ghost btn--sm">Check</button>
+     </div>
+     <p class="field__msg" id="nick-msg">2–20 characters</p>
+   </div>
+
+   상태 6가지 (JS는 클래스·속성만 바꿈)
+   | 상태     | 방법                                         | 모양                         |
+   | default  | —                                            | 옅은 보라 밑줄               |
+   | focus    | 브라우저 :focus                              | 두꺼운 밝은 보라 밑줄 + 라벨 보라 |
+   | ok       | .field.is-ok                                 | 초록 밑줄 + 초록 문구        |
+   | error    | .field.is-error + input[aria-invalid="true"] | 빨강 밑줄 + 빨강 문구        |
+   | readonly | input[readonly]                              | 점선 밑줄                    |
+   | disabled | input[disabled]                              | 흐린 글자·밑줄               */
+
+/* ---------- 세로 폼 묶음 ---------- */
+.form-stack { display: flex; flex-direction: column; gap: var(--sp-6); }
+
+/* ---------- 입력칸 하나 ---------- */
+.field { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
+
+.field__label {
+  font: 700 var(--fs-sm) / 1.3 var(--font-text); letter-spacing: 0.02em;
+  color: var(--c-ink);
+  transition: color var(--dur) var(--ease-out);
+}
+.field__req { color: var(--c-violet-ink); }
+.field:focus-within .field__label { color: var(--c-violet-ink); }
+
+.field__group { display: flex; align-items: flex-end; gap: var(--sp-2); }
+.field__group > .field__control { flex: 1; }
+
+.field__control {
+  width: 100%; min-width: 0;
+  padding: var(--sp-3) 2px;
+  border: 0; border-bottom: 1px solid var(--c-rule-violet); border-radius: 0;
+  outline: none; background: transparent;
+  color: var(--c-ink); caret-color: var(--c-violet-ink);
+  font: 400 var(--fs-md) / 1.5 var(--font-text);
+  transition: border-color var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
+}
+textarea.field__control { min-height: 8rem; resize: vertical; }
+.field__control::placeholder { color: var(--c-ink-faint); }
+
+/* focus — 밑줄을 2px로 (box-shadow라서 높이가 변하지 않음) */
+.field__control:focus {
+  border-bottom-color: var(--c-focus);
+  box-shadow: 0 1px 0 0 var(--c-focus);
+}
+.field__control:focus-visible { outline: none; }
+
+/* ok · error */
+.field.is-ok .field__control { border-bottom-color: var(--c-ok); }
+.field.is-ok .field__control:focus { box-shadow: 0 1px 0 0 var(--c-ok); }
+.field.is-error .field__control,
+.field__control[aria-invalid="true"] { border-bottom-color: var(--c-error); }
+.field.is-error .field__control:focus,
+.field__control[aria-invalid="true"]:focus { box-shadow: 0 1px 0 0 var(--c-error); }
+
+/* readonly — 볼 수만 있음 (예: 이메일 변경 불가) */
+.field__control[readonly] { border-bottom-style: dashed; border-bottom-color: var(--c-rule); color: var(--c-ink-soft); }
+.field__control[readonly]:focus { box-shadow: none; }
+.field:has(.field__control[readonly]) .field__label { color: var(--c-ink); }
+
+/* disabled */
+.field__control:disabled {
+  border-bottom-color: var(--c-rule);
+  color: var(--c-ink-faint); cursor: not-allowed;
+}
+
+/* 브라우저 자동 완성 배경(노랑·흰색)이 테마를 덮지 않도록 */
+.field__control:-webkit-autofill,
+.form-row input:-webkit-autofill {
+  -webkit-text-fill-color: var(--c-ink);
+  caret-color: var(--c-violet-ink);
+  transition: background-color 9999s 0s;
+}
+
+/* ---------- 입력칸 아래 문구 ---------- */
+.field__msg { color: var(--c-ink-soft); font-size: var(--fs-xs); line-height: 1.5; }
+.field.is-ok .field__msg { color: var(--c-ok); }
+.field.is-error .field__msg { color: var(--c-error); }
+
+/* 입력칸 아래 작은 안내 (Contact 글자 수 등) */
+.form-hint { color: var(--c-ink-faint); font-size: var(--fs-xs); }
+
+/* ---------- 작은 버튼 (입력칸 옆 Check 등) ---------- */
+.btn--sm { min-height: 2.75rem; padding: 0 var(--sp-4); font-size: var(--fs-xs); }
+
+/* ---------- 동의 체크박스 ---------- */
+.form-consent {
+  display: flex; align-items: center; gap: var(--sp-3);
+  color: var(--c-ink-soft); font-size: var(--fs-sm);
+}
+.form-consent input {
+  flex: none;
+  width: 1.125rem; height: 1.125rem; margin: 0;
+  accent-color: var(--c-violet);
+}
+
+/* ---------- 버튼 줄 (Save · Cancel) ---------- */
+.form-actions { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
