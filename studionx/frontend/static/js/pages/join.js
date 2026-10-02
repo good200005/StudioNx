@@ -1,5 +1,7 @@
 // join.html 페이지 스크립트 (템플릿 — 구현은 직접, P1-07)
-import { initPasswordToggles, initOAuthPlaceholders, setFieldState } from '../core/auth-ui.js';
+import { initLoginForm, initPasswordToggles, initOAuthPlaceholders, setFieldState } from '../core/auth-ui.js';
+import { initModalFallback } from '../core/modal.js';
+import { includePartials } from '../core/include.js';
 
 /**
  * 이메일·닉네임 중복 확인 (PRD 01 FR-101)
@@ -36,6 +38,12 @@ export function initJoinForm() {
   // TODO
 }
 
+// 공통 헤더·푸터·로그인 모달을 먼저 끼움 (static/partials/) — 아래 init 들은 그 요소를 찾으므로 순서 중요
+await includePartials();
+
+initModalFallback();
+// 로그인 모달(이미 가입한 사람용): 성공하면 메인으로 — 헤더가 My Page·My Projects로 보임
+initLoginForm({ onSuccess: null /* TODO: () => { location.href = 'home.html'; } */ });
 initPasswordToggles();
 initOAuthPlaceholders();
 initDuplicateChecks();

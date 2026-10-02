@@ -22,16 +22,8 @@
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
 
-  <header class="site-header site-header--plain">
-    <a class="brand" href="home.html" aria-label="Studio Nx home">
-      <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true">
-        <path fill="currentColor" d="M20.6 3.2A13 13 0 1 0 28.8 22 10.5 10.5 0 1 1 20.6 3.2Z"/>
-      </svg>
-      <span class="brand__name">Studio Nx</span>
-    </a>
-    <!-- 로그인은 메인 페이지 모달 → home.html#login 이면 home.js가 모달을 엶 (P1-07) -->
-    <a class="btn btn--ghost join-signin" href="home.html#login">Sign In</a>
-  </header>
+  <!-- 공통 헤더: static/partials/header.html (core/include.js 가 끼움) -->
+  <div data-include="static/partials/header.html"></div>
 
   <main id="main" class="join">
     <section class="join__card" aria-labelledby="join-title">
@@ -104,15 +96,15 @@
         </button>
       </div>
 
-      <p class="auth-foot">Already have an account? <a class="text-link text-link--strong" href="home.html#login">Sign In</a></p>
+      <p class="auth-foot">Already have an account? <button type="button" class="text-link text-link--strong" command="show-modal" commandfor="login-modal">Sign In</button></p>
     </section>
   </main>
 
-  <footer class="site-footer">
-    <span class="brand__name">Studio Nx</span>
-    <span>Developer contact: <a href="mailto:good200005@naver.com">good200005@naver.com</a></span>
-    <span>© 2026 Studio Nx. All rights reserved.</span>
-  </footer>
+  <!-- 공통 푸터: static/partials/footer.html -->
+  <div data-include="static/partials/footer.html"></div>
+
+  <!-- 로그인 모달: static/partials/login-modal.html -->
+  <div data-include="static/partials/login-modal.html"></div>
 
   <script type="module" src="static/js/pages/join.js"></script>
 </body>
