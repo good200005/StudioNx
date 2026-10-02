@@ -359,9 +359,11 @@ body { timeline-scope: --hero; }
 /* ---------- 모바일 ---------- */
 @media (max-width: 760px) {
   .hero { min-height: max(100svh, 44rem); }
-  /* 띠 전체(-20~1530 × -130~900)를 오른쪽 아래 영역(가로 12~96%, 세로 51~100%)에 축소.
-     SVG 박스는 기준 프레임 0~1440 × 0~900 이고, 그 바깥(꼭짓점·사선 끝)은 overflow: visible 로 그려짐 */
-  .hero__ribbon { inset: 57.1% auto auto 12.1%; width: 78%; height: 42.4%; }
+  /* 띠 전체(-20~1530 × -130~900)를 오른쪽 아래(세로 51~100%)에 축소.
+     SVG 박스는 기준 프레임 0~1440 × 0~900 이고, 그 바깥(꼭짓점·사선 끝)은 overflow: visible 로 그려짐.
+     2026-10-03: 왼쪽 12.1% → 28% — 띠 가운데가 Nyxi 뒤에 가려 두 조각으로 끊겨 보여서 오른쪽으로 옮김.
+     띠가 어깨 뒤에서 이어져 나오고, 오른쪽 위 끝은 데스크톱처럼 화면 밖으로 나감 */
+  .hero__ribbon { inset: 57.1% auto auto 28%; width: 78%; height: 42.4%; }
   .hero__echo--3 { display: none; }
   .hero__copy {
     top: calc(var(--header-h) + var(--sp-6)); bottom: auto;
