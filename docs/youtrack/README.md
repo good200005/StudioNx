@@ -42,7 +42,7 @@
 | 작업 | State | 메모 |
 |---|---|---|
 | S1-01 | In Progress | 환경·DB·FastAPI 완료, Sentry DSN만 남음 |
-| P1-01 | In Progress | 공통 CSS + 첫 화면 완료, PR #1 리뷰 대기 |
+| P1-01 | Closed | 공통 CSS·폼 스타일 완료, PR #10 병합 (2026-10-02) |
 | P1-11 | In Progress | home 구조·첫 화면은 완료, 섹션 내용 남음 |
 | P1-20 | To be discussed | 로딩 애니메이션 보류 (레퍼런스 대기) |
 
@@ -55,6 +55,8 @@
 | `python tools/youtrack/yt.py issues StudioNx` | 이슈 목록 (ID, 계획 번호, 상위 연결) |
 | `python tools/youtrack/yt.py link-parents StudioNx [--dry-run]` | 설명의 `상위 작업:` 기준으로 subtask 연결 |
 | `python tools/youtrack/yt.py fields StudioNx` | 프로젝트 필드 목록 |
+| `python tools/youtrack/yt.py states StudioNx` | State에 쓸 수 있는 값 (완료 값 표시) |
+| `python tools/youtrack/yt.py set-state StudioNx P1-01 <State> [--comment "…"]` | 계획 번호로 이슈를 찾아 State 변경 + 코멘트 (작업 완료 시 사용) |
 | `python tools/youtrack/yt.py move <원본> <대상> [--dry-run]` | 프로젝트 간 이동 (대상에 없는 필드가 있으면 중단) |
 | `python tools/youtrack/migrate_tasks_to_studionx.py setup / move` | (1회성, 완료) StudioNx_tasks → StudioNx 이동 + 필드 변환 |
 
