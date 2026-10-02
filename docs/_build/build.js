@@ -135,6 +135,7 @@ const PDFS = [
   { out: 'Git_Manual.pdf', title: 'Studio Nx', subtitle: 'Git · GitHub 관리 매뉴얼', files: ['Git_Manual.md'] },
   { out: 'ai-notes/01_dev_environment.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 01 — 개발 환경 구축', files: ['ai-notes/01_dev_environment.md'], base: 'ai-notes' },
   { out: 'ai-notes/02_home_first_page.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 02 — 메인 페이지 구조 · 첫 화면', files: ['ai-notes/02_home_first_page.md'], base: 'ai-notes' },
+  { out: 'ai-notes/03_home_revision_service.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 03 — 메인 페이지 수정 · Service 섹션', files: ['ai-notes/03_home_revision_service.md'], base: 'ai-notes' },
 ];
 
 const mode = process.argv[2];

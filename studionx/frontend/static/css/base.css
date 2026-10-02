@@ -69,7 +69,12 @@ a {
 }
 .btn--solid { background: var(--c-violet); color: var(--c-on-violet); }
 .btn--solid:hover { background: #5a17e0; }
-.btn--ghost { border-color: var(--c-rule); color: var(--c-ink); }
+/* 주요 행동(Join Us): 검은 바탕 + 보라 윤곽·글자, 마우스를 올리면 흰 바탕 */
+.btn--primary {
+  background: var(--c-ground); border-color: var(--c-violet-ink); color: var(--c-violet-ink);
+}
+.btn--primary:hover { background: #ffffff; border-color: #ffffff; color: var(--c-violet); }
+.btn--ghost { background: var(--c-ground); border-color: var(--c-rule); color: var(--c-ink); }
 .btn--ghost:hover { border-color: var(--c-ink); }
 .btn:disabled,
 .btn[aria-disabled="true"] { opacity: 0.45; cursor: not-allowed; }
@@ -95,13 +100,13 @@ a {
 .site-nav__list { display: flex; gap: clamp(var(--sp-4), 2.2vw, var(--sp-8)); }
 .site-nav__link {
   position: relative; display: block; padding-block: var(--sp-2);
-  color: var(--c-ink-soft); text-decoration: none;
+  color: var(--c-ink); text-decoration: none;   /* 보라 띠 위에서도 읽히도록 흰 글자 */
   font: 600 var(--fs-xs) / 1 var(--font-text); letter-spacing: 0.16em; text-transform: uppercase;
   transition: color var(--dur) var(--ease-out);
 }
 .site-nav__link::after {
   content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
-  background: var(--c-violet-ink);
+  background: currentColor;
   transform: scaleX(0); transform-origin: right;
   transition: transform 320ms var(--ease-out);
 }
@@ -143,7 +148,7 @@ a {
 }
 .section-sub {
   margin-top: var(--sp-3);
-  color: var(--c-ink-soft); font-size: var(--fs-sm); letter-spacing: 0.08em;
+  color: var(--c-ink-soft); font-size: var(--fs-sm); letter-spacing: 0.02em;
 }
 
 /* ---------- 푸터 ---------- */

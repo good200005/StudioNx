@@ -11,6 +11,15 @@
         ],
         "createdAt": "2026-10-02T00:33:05.345Z",
         "reason": "print-PDF blockquote callout in the doc template; user praised this template ('템플릿 너무 좋다') and asked to reuse it as-is"
+      },
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "studionx/frontend/home.html"
+        ],
+        "createdAt": "2026-10-02T04:26:45.363Z",
+        "reason": "false positive: static detector cannot resolve CSS custom properties/clamp(); rendered sizes verified in browser (h1 ~104px, h2 ~44px, h3 ~26px, body 16px)"
       }
     ]
   }

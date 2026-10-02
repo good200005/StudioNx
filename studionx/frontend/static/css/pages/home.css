@@ -1,4 +1,4 @@
-/* home.html — 첫 화면(hero) + 섹션 골격 + 세로 앵커 */
+/* home.html — 첫 화면(hero) + 섹션 + 세로 앵커 */
 
 /* ---------- 첫 화면 ---------- */
 .hero {
@@ -6,17 +6,26 @@
   min-height: max(100svh, 40rem);
   overflow: hidden;
   isolation: isolate;
+  view-timeline: --hero block;   /* 세로 앵커 등장 시점 계산용 */
 }
 
-/* Nyxi 발밑의 보라 무대면 (레퍼런스의 평행사변형 바닥) */
-.hero__stage {
-  position: absolute; z-index: -1;
-  left: clamp(-4rem, -2vw, 0rem); bottom: 0;
-  width: clamp(18rem, 40vw, 38rem);
-  height: 44%;
-  background: var(--c-violet);
-  clip-path: polygon(34% 0, 100% 0, 66% 100%, 0 100%);
+/* Nyxi 뒤의 지그재그 보라 띠 + 빈 공간으로 퍼지는 윤곽선 (기준 프레임 1440×900) */
+.hero__ribbon {
+  position: absolute; inset: 0; z-index: -1;
+  width: 100%; height: 100%;
+  overflow: visible;
 }
+.hero__band { fill: var(--c-violet); }
+.hero__echo {
+  fill: none;
+  stroke: var(--c-violet-ink);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+/* 칠해진 띠에서 멀어질수록 더 투명하게 */
+.hero__echo--1 { opacity: 0.5; }
+.hero__echo--2 { opacity: 0.26; }
+.hero__echo--3 { opacity: 0.12; }
 
 .hero__nyxi {
   position: absolute; z-index: 0;
@@ -63,7 +72,6 @@
 .hero__scroll {
   position: absolute; right: calc(var(--gutter) * 0.5); bottom: 0; z-index: 1;
   display: flex; flex-direction: column; align-items: center; gap: var(--sp-3);
-  padding-bottom: 0;
   color: var(--c-ink-soft); text-decoration: none;
   font: 600 0.6875rem / 1 var(--font-text); letter-spacing: 0.32em; text-transform: uppercase;
   writing-mode: vertical-rl;
@@ -75,36 +83,36 @@
 }
 .hero__scroll:hover { color: var(--c-ink); }
 
-/* 첫 화면 등장 — 한 번만, 헤드라인이 한 줄씩 올라오고 Nyxi가 뒤따름 */
+/* 첫 화면 등장 — 한 번만: 띠가 아래에서 차오르고, 윤곽선이 차례로 번지고, 제목·Nyxi가 들어옴 */
 @media (prefers-reduced-motion: no-preference) {
-  .hero__title span {
-    animation: rise 900ms var(--ease-out) both;
-  }
+  .hero__band { animation: band-in 1000ms var(--ease-out) both; }
+  .hero__echo { animation: echo-in 1400ms var(--ease-out) both; }
+  .hero__echo--1 { animation-delay: 350ms; }
+  .hero__echo--2 { animation-delay: 500ms; }
+  .hero__echo--3 { animation-delay: 650ms; }
+  .hero__title span { animation: rise 900ms var(--ease-out) both; }
   .hero__title span:nth-child(2) { animation-delay: 90ms; }
   .hero__title span:nth-child(3) { animation-delay: 180ms; }
   .hero__lede, .hero__sub { animation: fade 900ms var(--ease-out) 320ms both; }
   .hero__nyxi { animation: nyxi-in 1100ms var(--ease-out) 120ms both; }
-  .hero__stage { animation: stage-in 1000ms var(--ease-out) both; }
   .hero__scroll::after { animation: scroll-line 2.4s var(--ease-out) 1.2s infinite; }
 }
+@keyframes band-in { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0); } }
+@keyframes echo-in { from { opacity: 0; } }
 @keyframes rise { from { transform: translateY(0.35em); opacity: 0; } }
 @keyframes fade { from { opacity: 0; } }
 @keyframes nyxi-in { from { transform: translateY(2.5rem); opacity: 0; filter: blur(6px); } }
-@keyframes stage-in { from { clip-path: polygon(34% 100%, 100% 100%, 66% 100%, 0 100%); } }
 @keyframes scroll-line { from { background-position: 0 100%; } to { background-position: 0 -100%; } }
 
-/* ---------- 두 번째 화면부터: 세로 앵커 (S — Ch — F — D — Co) ---------- */
-.sections { position: relative; }
+/* ---------- 세로 앵커 (S — Ch — F — D — Co) ---------- */
+body { timeline-scope: --hero; }
 
-/* sticky + 높이 0 → 첫 화면을 지나 섹션 영역에 들어왔을 때만 보임 (JS 불필요) */
 .side-nav {
-  position: sticky; top: calc(50svh - 7.5rem); z-index: 30;  /* 목록 높이의 절반만큼 올려 화면 세로 가운데 */
-  height: 0;
+  position: fixed; z-index: 30;
+  top: 50%; right: calc(var(--gutter) * 0.5);
+  transform: translateY(-50%);
 }
-.side-nav__list {
-  position: absolute; top: var(--sp-6); right: calc(var(--gutter) * 0.5);
-  display: flex; flex-direction: column; align-items: center;
-}
+.side-nav__list { display: flex; flex-direction: column; align-items: center; }
 .side-nav__list li + li::before {
   content: ""; display: block; width: 1px; height: 1.25rem; margin: var(--sp-2) auto;
   background: var(--c-rule);
@@ -132,17 +140,91 @@
 .side-nav__link:hover .side-nav__full,
 .side-nav__link:focus-visible .side-nav__full { opacity: 1; transform: translate(0, -50%); }
 
-/* ---------- 섹션 골격 (내용은 다음 단계에서) ---------- */
+/* 첫 화면이 화면에서 완전히 사라지는 순간 나타남 — 처음부터 화면 가운데 고정, 움직이지 않음 (JS 없음)
+   스크롤 연동 애니메이션 미지원 브라우저(구형 Firefox·Safari)에서는 항상 표시 */
+@supports (animation-timeline: view()) {
+  .side-nav {
+    animation: side-nav-reveal linear both;
+    animation-timeline: --hero;
+    animation-range: exit 99% exit 100%;   /* 첫 화면이 마지막 몇 px 남았을 때 짧게 나타남 */
+  }
+}
+@keyframes side-nav-reveal {
+  from { opacity: 0; visibility: hidden; }
+  to   { opacity: 1; visibility: visible; }
+}
+
+/* ---------- 섹션 공통: 한 섹션이 화면 한 장을 꽉 채움 ---------- */
 .section {
-  min-height: 80svh;
-  padding: var(--sp-24) calc(var(--gutter) + 3.5rem) var(--sp-24) var(--gutter);
+  display: flex; flex-direction: column;
+  min-height: 100svh;
+  padding: clamp(4rem, 11svh, 7.5rem) calc(var(--gutter) + 3.5rem) clamp(3rem, 8svh, 5rem) var(--gutter);
   border-top: 1px solid var(--c-rule);
-  scroll-margin-top: 0;
+}
+.section__body { flex: 1; display: grid; align-content: center; padding-top: var(--sp-12); }
+
+.block-title {
+  font: 700 clamp(1.25rem, 1.8vw, 1.625rem) / 1.2 var(--font-display);
+  letter-spacing: 0.02em;
+}
+
+/* ---------- Service ---------- */
+.service__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+}
+.service__intro { padding-right: clamp(2rem, 4vw, 4.5rem); }
+.service__intro p {
+  margin-top: var(--sp-6);
+  max-width: 46ch;
+  color: var(--c-ink-soft);
+  font-size: var(--fs-lg); line-height: 1.7;
+  text-wrap: pretty;
+}
+.service__intro p:first-of-type { color: var(--c-ink); }
+
+.service__for {
+  position: relative;
+  padding-left: clamp(2rem, 4vw, 4.5rem);
+}
+.service__for::before {   /* 왼쪽 소개와 나누는 세로 구분선 */
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 1px;
+  background: var(--c-rule);
+}
+.personas {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: var(--sp-8);
+}
+.persona { padding: var(--sp-2) clamp(1rem, 2vw, 2rem) var(--sp-2) 0; }
+.persona + .persona { padding-left: clamp(1rem, 2vw, 2rem); border-left: 1px solid var(--c-rule); }
+.persona__title {
+  font: 700 var(--fs-md) / 1.35 var(--font-text);
+  letter-spacing: 0.01em;
+}
+.persona__title::before {   /* 제목 앞 짧은 보라 막대 — 세 칸의 시작점을 맞춰 줌 */
+  content: ""; display: block; width: 1.5rem; height: 2px; margin-bottom: var(--sp-4);
+  background: var(--c-violet-ink);
+}
+.persona p {
+  margin-top: var(--sp-3);
+  color: var(--c-ink-soft);
+  font-size: var(--fs-sm); line-height: 1.7;
+  text-wrap: pretty;
+}
+
+/* ---------- 태블릿 ---------- */
+@media (max-width: 1100px) {
+  .service__grid { grid-template-columns: 1fr; row-gap: var(--sp-12); }
+  .service__intro { padding-right: 0; }
+  .service__for { padding-left: 0; padding-top: var(--sp-12); }
+  .service__for::before { right: 0; bottom: auto; width: auto; height: 1px; }   /* 세로선 → 가로선 */
 }
 
 /* ---------- 모바일 ---------- */
 @media (max-width: 760px) {
   .hero { min-height: max(100svh, 44rem); }
+  .hero__ribbon { inset: 45% auto auto -55%; width: 240%; height: 100%; }   /* 제목·설명 아래부터 시작 */
+  .hero__echo--3 { display: none; }
   .hero__copy {
     top: calc(var(--header-h) + var(--sp-6)); bottom: auto;
     max-width: none; left: var(--gutter);
@@ -150,8 +232,11 @@
   .hero__lede { margin-top: var(--sp-4); font-size: var(--fs-md); }
   .hero__sub { font-size: var(--fs-sm); }
   .hero__nyxi { left: 50%; translate: -60% 0; height: min(58svh, 30rem); }
-  .hero__stage { width: 80vw; height: 30%; left: -8vw; }
   .hero__scroll { display: none; }
   .side-nav { display: none; }
-  .section { padding-right: var(--gutter); min-height: 60svh; }
+  .section { padding-right: var(--gutter); }
+  .service__intro p { font-size: var(--fs-md); }
+  .personas { grid-template-columns: 1fr; }
+  .persona, .persona + .persona { padding: var(--sp-6) 0; border-left: 0; }
+  .persona + .persona { border-top: 1px solid var(--c-rule); }
 }
