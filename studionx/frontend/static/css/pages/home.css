@@ -23,7 +23,11 @@
   left: clamp(0rem, 6vw, 7rem); bottom: 0;
   height: min(94svh, 80rem);
   width: auto;
+  /* 우클릭 "이미지 저장"·끌어서 저장 막기 — 클릭이 이미지를 통과해 뒤 배경으로 감 */
+  pointer-events: none;
   user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;   /* iOS 길게 눌러 저장 막기 */
 }
 
 .hero__copy {
