@@ -1,0 +1,157 @@
+/* home.html — 첫 화면(hero) + 섹션 골격 + 세로 앵커 */
+
+/* ---------- 첫 화면 ---------- */
+.hero {
+  position: relative;
+  min-height: max(100svh, 40rem);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Nyxi 발밑의 보라 무대면 (레퍼런스의 평행사변형 바닥) */
+.hero__stage {
+  position: absolute; z-index: -1;
+  left: clamp(-4rem, -2vw, 0rem); bottom: 0;
+  width: clamp(18rem, 40vw, 38rem);
+  height: 44%;
+  background: var(--c-violet);
+  clip-path: polygon(34% 0, 100% 0, 66% 100%, 0 100%);
+}
+
+.hero__nyxi {
+  position: absolute; z-index: 0;
+  left: clamp(0rem, 6vw, 7rem); bottom: 0;
+  height: min(94svh, 80rem);
+  width: auto;
+  /* 우클릭 "이미지 저장"·끌어서 저장 막기 — 클릭이 이미지를 통과해 뒤 배경으로 감 */
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;   /* iOS 길게 눌러 저장 막기 */
+}
+
+.hero__copy {
+  position: absolute; z-index: 1;
+  right: var(--gutter);
+  bottom: clamp(5rem, 16svh, 10rem);
+  max-width: min(46rem, 52vw);
+  text-align: right;
+}
+
+.hero__title {
+  display: flex; flex-direction: column; align-items: flex-end;
+  font: 800 var(--fs-display) / 0.98 var(--font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.hero__title .is-accent { color: var(--c-violet-ink); }
+
+.hero__lede {
+  margin-top: var(--sp-8);
+  font: 600 var(--fs-lg) / 1.4 var(--font-text);
+  letter-spacing: 0.01em;
+}
+.hero__sub {
+  margin-top: var(--sp-2); margin-left: auto;
+  max-width: 34ch;
+  color: var(--c-ink-soft);
+  font-size: var(--fs-md); line-height: 1.65;
+  text-wrap: pretty;
+}
+
+/* 오른쪽 끝 세로 SCROLL 표시 */
+.hero__scroll {
+  position: absolute; right: calc(var(--gutter) * 0.5); bottom: 0; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; gap: var(--sp-3);
+  padding-bottom: 0;
+  color: var(--c-ink-soft); text-decoration: none;
+  font: 600 0.6875rem / 1 var(--font-text); letter-spacing: 0.32em; text-transform: uppercase;
+  writing-mode: vertical-rl;
+}
+.hero__scroll::after {
+  content: ""; width: 1px; height: 4.5rem;
+  background: linear-gradient(var(--c-violet-ink) 50%, var(--c-rule) 50%);
+  background-size: 1px 200%;
+}
+.hero__scroll:hover { color: var(--c-ink); }
+
+/* 첫 화면 등장 — 한 번만, 헤드라인이 한 줄씩 올라오고 Nyxi가 뒤따름 */
+@media (prefers-reduced-motion: no-preference) {
+  .hero__title span {
+    animation: rise 900ms var(--ease-out) both;
+  }
+  .hero__title span:nth-child(2) { animation-delay: 90ms; }
+  .hero__title span:nth-child(3) { animation-delay: 180ms; }
+  .hero__lede, .hero__sub { animation: fade 900ms var(--ease-out) 320ms both; }
+  .hero__nyxi { animation: nyxi-in 1100ms var(--ease-out) 120ms both; }
+  .hero__stage { animation: stage-in 1000ms var(--ease-out) both; }
+  .hero__scroll::after { animation: scroll-line 2.4s var(--ease-out) 1.2s infinite; }
+}
+@keyframes rise { from { transform: translateY(0.35em); opacity: 0; } }
+@keyframes fade { from { opacity: 0; } }
+@keyframes nyxi-in { from { transform: translateY(2.5rem); opacity: 0; filter: blur(6px); } }
+@keyframes stage-in { from { clip-path: polygon(34% 100%, 100% 100%, 66% 100%, 0 100%); } }
+@keyframes scroll-line { from { background-position: 0 100%; } to { background-position: 0 -100%; } }
+
+/* ---------- 두 번째 화면부터: 세로 앵커 (S — Ch — F — D — Co) ---------- */
+.sections { position: relative; }
+
+/* sticky + 높이 0 → 첫 화면을 지나 섹션 영역에 들어왔을 때만 보임 (JS 불필요) */
+.side-nav {
+  position: sticky; top: calc(50svh - 7.5rem); z-index: 30;  /* 목록 높이의 절반만큼 올려 화면 세로 가운데 */
+  height: 0;
+}
+.side-nav__list {
+  position: absolute; top: var(--sp-6); right: calc(var(--gutter) * 0.5);
+  display: flex; flex-direction: column; align-items: center;
+}
+.side-nav__list li + li::before {
+  content: ""; display: block; width: 1px; height: 1.25rem; margin: var(--sp-2) auto;
+  background: var(--c-rule);
+}
+.side-nav__link {
+  position: relative; display: block;
+  padding: var(--sp-1) var(--sp-2);
+  color: var(--c-ink-soft); text-decoration: none;
+  font: 700 var(--fs-xs) / 1 var(--font-display); letter-spacing: 0.06em;
+  transition: color var(--dur) var(--ease-out);
+}
+/* 마우스를 올리면 전체 이름이 왼쪽으로 펼쳐짐 */
+.side-nav__full {
+  position: absolute; right: calc(100% + var(--sp-2)); top: 50%;
+  padding: var(--sp-1) var(--sp-2);
+  background: var(--c-violet); color: var(--c-on-violet);
+  font: 600 var(--fs-xs) / 1 var(--font-text); letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap;
+  opacity: 0; transform: translate(0.5rem, -50%);
+  pointer-events: none;
+  transition: opacity var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
+}
+.side-nav__link:hover,
+.side-nav__link:focus-visible,
+.side-nav__link[aria-current="true"] { color: var(--c-violet-ink); }
+.side-nav__link:hover .side-nav__full,
+.side-nav__link:focus-visible .side-nav__full { opacity: 1; transform: translate(0, -50%); }
+
+/* ---------- 섹션 골격 (내용은 다음 단계에서) ---------- */
+.section {
+  min-height: 80svh;
+  padding: var(--sp-24) calc(var(--gutter) + 3.5rem) var(--sp-24) var(--gutter);
+  border-top: 1px solid var(--c-rule);
+  scroll-margin-top: 0;
+}
+
+/* ---------- 모바일 ---------- */
+@media (max-width: 760px) {
+  .hero { min-height: max(100svh, 44rem); }
+  .hero__copy {
+    top: calc(var(--header-h) + var(--sp-6)); bottom: auto;
+    max-width: none; left: var(--gutter);
+  }
+  .hero__lede { margin-top: var(--sp-4); font-size: var(--fs-md); }
+  .hero__sub { font-size: var(--fs-sm); }
+  .hero__nyxi { left: 50%; translate: -60% 0; height: min(58svh, 30rem); }
+  .hero__stage { width: 80vw; height: 30%; left: -8vw; }
+  .hero__scroll { display: none; }
+  .side-nav { display: none; }
+  .section { padding-right: var(--gutter); min-height: 60svh; }
+}

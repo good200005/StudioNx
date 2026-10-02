@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ko" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Studio Nx — Make your noise</title>
+  <meta name="description" content="설치 없이 브라우저에서 쓰는 DAW 시퀀서. 좋아하는 곡을 레퍼런스로 주면 AI가 프리셋과 믹싱·마스터링 설정을 추천합니다.">
+  <meta name="theme-color" content="#0b0a0f">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23a383ff' d='M20.6 3.2A13 13 0 1 0 28.8 22 10.5 10.5 0 1 1 20.6 3.2Z'/%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+
+  <link rel="stylesheet" href="static/css/tokens.css">
+  <link rel="stylesheet" href="static/css/base.css">
+  <link rel="stylesheet" href="static/css/pages/home.css">
+  <link rel="preload" as="image" href="static/characters/nyxi/hero.png" fetchpriority="high">
+</head>
+<body>
+  <a class="skip-link" href="#main">본문으로 바로가기</a>
+
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Studio Nx 첫 화면">
+      <!-- 임시 로고: Nyxi 머리띠 초승달 로고가 오면 교체 -->
+      <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true">
+        <path fill="currentColor" d="M20.6 3.2A13 13 0 1 0 28.8 22 10.5 10.5 0 1 1 20.6 3.2Z"/>
+      </svg>
+      <span class="brand__name">Studio Nx</span>
+    </a>
+
+    <nav class="site-nav" aria-label="페이지 섹션">
+      <ul class="site-nav__list">
+        <li><a class="site-nav__link" href="#service">Service</a></li>
+        <li><a class="site-nav__link" href="#character">Character</a></li>
+        <li><a class="site-nav__link" href="#feature">Feature</a></li>
+        <li><a class="site-nav__link" href="#development">Development</a></li>
+        <li><a class="site-nav__link" href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+
+    <div class="site-actions">
+      <a class="btn btn--ghost" href="login.html">Sign In</a>
+      <a class="btn btn--solid" href="join.html">Join Us</a>
+    </div>
+
+    <details class="menu">
+      <summary>Menu</summary>
+      <div class="menu__panel">
+        <nav aria-label="페이지 섹션 (모바일)">
+          <ul class="site-nav__list">
+            <li><a class="site-nav__link" href="#service">Service</a></li>
+            <li><a class="site-nav__link" href="#character">Character</a></li>
+            <li><a class="site-nav__link" href="#feature">Feature</a></li>
+            <li><a class="site-nav__link" href="#development">Development</a></li>
+            <li><a class="site-nav__link" href="#contact">Contact</a></li>
+          </ul>
+        </nav>
+        <div class="site-actions">
+          <a class="btn btn--ghost" href="login.html">Sign In</a>
+          <a class="btn btn--solid" href="join.html">Join Us</a>
+        </div>
+      </div>
+    </details>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="hero__stage" aria-hidden="true"></div>
+      <img class="hero__nyxi" src="static/characters/nyxi/hero.png" width="768" height="1280" draggable="false"
+           alt="Studio Nx의 캐릭터 Nyxi. 흰 단발머리에 보라색 헤드폰을 목에 걸고, 검은 후드티 주머니에 손을 넣은 채 서 있다.">
+      <div class="hero__copy">
+        <h1 class="hero__title" id="hero-title">
+          <span>Make</span>
+          <span>your</span>
+          <span class="is-accent">noise</span>
+        </h1>
+        <p class="hero__lede">The DAW that lives in your browser.</p>
+        <p class="hero__sub">Sequence, mix and master anywhere — with an AI that learns from the tracks you love.</p>
+      </div>
+      <a class="hero__scroll" href="#service">Scroll</a>
+    </section>
+
+    <div class="sections">
+      <nav class="side-nav" aria-label="섹션 바로가기">
+        <ul class="side-nav__list">
+          <li><a class="side-nav__link" href="#service">S<span class="side-nav__full">Service</span></a></li>
+          <li><a class="side-nav__link" href="#character">Ch<span class="side-nav__full">Character</span></a></li>
+          <li><a class="side-nav__link" href="#feature">F<span class="side-nav__full">Feature</span></a></li>
+          <li><a class="side-nav__link" href="#development">D<span class="side-nav__full">Development</span></a></li>
+          <li><a class="side-nav__link" href="#contact">Co<span class="side-nav__full">Contact</span></a></li>
+        </ul>
+      </nav>
+
+      <section class="section" id="service" aria-labelledby="service-title">
+        <h2 class="section-title" id="service-title">Service</h2>
+        <p class="section-sub">서비스 소개</p>
+      </section>
+
+      <section class="section" id="character" aria-labelledby="character-title">
+        <h2 class="section-title" id="character-title">Character</h2>
+        <p class="section-sub">Nyxi 캐릭터 소개</p>
+      </section>
+
+      <section class="section" id="feature" aria-labelledby="feature-title">
+        <h2 class="section-title" id="feature-title">Feature</h2>
+        <p class="section-sub">기능</p>
+      </section>
+
+      <section class="section" id="development" aria-labelledby="development-title">
+        <h2 class="section-title" id="development-title">Development</h2>
+        <p class="section-sub">개발자 노트</p>
+      </section>
+
+      <section class="section" id="contact" aria-labelledby="contact-title">
+        <h2 class="section-title" id="contact-title">Contact</h2>
+        <p class="section-sub">문의</p>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <span class="brand__name">Studio Nx</span>
+    <span>개발자 연락처 — 준비 중</span>
+    <span>© 2026 Studio Nx. All rights reserved.</span>
+  </footer>
+
+  <script type="module" src="static/js/pages/home.js"></script>
+</body>
+</html>
