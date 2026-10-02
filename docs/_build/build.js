@@ -120,9 +120,15 @@ document.querySelectorAll('pre code.language-mermaid').forEach(c => {
 mermaid.initialize({ startOnLoad: false, theme: 'neutral', gantt: { useWidth: 1500, fontSize: 11, barHeight: 13, barGap: 3, topPadding: 40, sectionFontSize: 12 } });
 mermaid.run();
 </script></body></html>`, 'utf8');
+  const target = path.join(DOCS, out);
+  const before = fs.existsSync(target) ? fs.statSync(target).mtimeMs : 0;
   chrome(['--no-pdf-header-footer', '--virtual-time-budget=25000', '--run-all-compositor-stages-before-draw',
-    '--allow-file-access-from-files', `--print-to-pdf=${path.join(DOCS, out)}`, fileUrl(html)]);
+    '--allow-file-access-from-files', `--print-to-pdf=${target}`, fileUrl(html)]);
   fs.unlinkSync(html);
+  // Chrome은 저장에 실패해도 오류를 내지 않음 → 파일 시각으로 확인 (PDF 뷰어에 열려 있으면 잠겨서 실패)
+  if (!fs.existsSync(target) || fs.statSync(target).mtimeMs === before) {
+    throw new Error(`${out} 저장 실패 — PDF 뷰어 등에서 파일이 열려 있으면 닫고 다시 실행하세요`);
+  }
   console.log(out);
 }
 
