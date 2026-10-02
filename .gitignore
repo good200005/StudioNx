@@ -11,3 +11,7 @@ Thumbs.db
 
 # docs/ 폴더 백업 압축본 (원본이 docs/에 있음)
 /docs.zip
+
+# 화면 캡처·브라우저 자동화 임시 파일
+.playwright-mcp/
+.impeccable/review/
