@@ -2,10 +2,11 @@
 // 사용: node docs/_build/build.js 가 이 모듈을 불러 ERD.png 를 만듭니다.
 
 const groups = [
-  { id: 'account', label: '계정', color: '#E8F1FF', head: '#3B6FD8', tables: {
+  { id: 'account', label: '계정 · 사이트 운영', color: '#E8F1FF', head: '#3B6FD8', tables: {
     users:         [['PK', 'user_id'], ['UQ', 'email'], ['UQ', 'nickname']],
     user_settings: [['PK FK', 'user_id']],
     inquiries:     [['PK', 'inquiry_id'], ['FK', 'user_id (null)']],
+    dev_notes:     [['PK', 'note_id'], ['FK', 'author_id']],
   }},
   { id: 'project', label: '프로젝트 · 협업 (코멘트 · 스냅샷)', color: '#FFF4E5', head: '#D9822B', tables: {
     projects:            [['PK', 'project_id'], ['FK', 'owner_id'], ['FK', 'template_id (null)']],
@@ -52,7 +53,7 @@ const groups = [
 // [부모, 자식, 종류]  kind: 'N' = 1:N(FK 필수), 'N?' = 0..1:N(FK NULL 허용), '1' = 1:1
 // "→ users"로 표시된 행위자 FK(요청자·작성자)는 선이 너무 많아져 선을 생략하고 박스 안에만 표기
 const relations = [
-  ['users', 'projects', 'N'], ['users', 'user_settings', '1'], ['users', 'inquiries', 'N?'],
+  ['users', 'projects', 'N'], ['users', 'user_settings', '1'], ['users', 'inquiries', 'N?'], ['users', 'dev_notes', 'N'],
   ['users', 'samples', 'N'], ['users', 'plugin_presets', 'N?'], ['users', 'project_members', 'N'],
   ['users', 'reference_tracks', 'N'], ['users', 'assistant_messages', 'N'],
   ['projects', 'project_members', 'N'], ['projects', 'invitations', 'N'], ['projects', 'project_change_logs', 'N'],

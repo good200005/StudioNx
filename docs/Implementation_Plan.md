@@ -60,8 +60,8 @@ PRD의 Phase는 **기능 묶음**이고, 이 문서의 단계는 **구현 순서
 | P1-08 | 회원 정보 | `/users/me` 조회·수정, 프로필 이미지 업로드(jpg/png/webp, 2MB) | FR-106 | 직접 | 2일 | `feature/phase1/p1-08-user-profile-api` |
 | P1-09 | 회원 정보 | 비밀번호 변경, 회원 탈퇴(재확인, 소프트 삭제, 로그인 차단) | FR-107~108 | 직접 | 1일 | `feature/phase1/p1-09-password-withdraw` |
 | P1-10 | 회원 정보 | `userInfo.html` [회원 정보] 탭 화면 + JS | FR-106~108 | AI(화면) / 직접(JS) | 2일 | `feature/phase1/p1-10-userinfo-page` |
-| P1-11 | 홈 · 문의 | `home.html`: 히어로, 기능 카드 6개, 문의 폼, 푸터 | FR-111 | AI | 2일 | `feature/phase1/p1-11-home-page` |
-| P1-12 | 홈 · 문의 | 문의 API + 로그인 시 자동 채움 + 반복 전송 제한(권장) | FR-112~113 | 직접 | 1일 | `feature/phase1/p1-12-inquiry-api` |
+| P1-11 | 홈 · 문의 | `home.html`: 첫 화면, Service·Character·Feature·Development·Contact 섹션, 푸터 | FR-111·112·114 | AI | 2일 | `feature/phase1/p1-11-home-page` |
+| P1-12 | 홈 · 문의 | 문의 API(이메일·제목·내용·개인정보 동의) + 반복 전송 제한(권장) | FR-112~113 | 직접 | 1일 | `feature/phase1/p1-12-inquiry-api` |
 | P1-13 | 프로젝트 | 프로젝트 CRUD API: 생성 시 OWNER 멤버 + MASTER 트랙 **트랜잭션**, 검색·페이지, 권한 검사, 소프트 삭제 | FR-122~126 | 직접 | 3일 | `feature/phase1/p1-13-project-api` |
 | P1-14 | 프로젝트 | `myProject.html`: 카드 목록, 새 프로젝트 모달, 이름 변경, 삭제 확인창 | FR-123~126 | AI(화면) / 직접(JS) | 2일 | `feature/phase1/p1-14-myproject-page` |
 | P1-15 | 프로젝트 | `studioNx.html` 빈 페이지 (`?projectId=` 받아 제목 표시, 열기 테스트용) | FR-126 | AI / 직접 | 0.5일 | `feature/phase1/p1-15-studionx-stub` |
@@ -69,6 +69,7 @@ PRD의 Phase는 **기능 묶음**이고, 이 문서의 단계는 **구현 순서
 | P1-17 | 마이페이지 | `myPage.html`: 좌측 메뉴, 프로필 카드, 최근 프로젝트, 위젯 자리 | FR-121 | AI(화면) / 직접(JS) | 1.5일 | `feature/phase1/p1-17-mypage` |
 | P1-18 | 마무리 | 테스트(pytest): 가입·로그인·재발급, 다른 사람 프로젝트 접근 차단, 탈퇴 계정 로그인 | §10 | 직접 (요청 시 AI) | 2일 | `feature/phase1/p1-18-tests` |
 | P1-19 | 마무리 | `docs/ai-notes/` 설명 문서, `develop`으로 PR | — | AI / 직접 | 0.5일 | `feature/phase1/p1-19-ai-notes-pr` |
+| P1-21 | 홈 · 문의 | Development 공지 API(`GET /dev-notes`) + **SQLAdmin 관리자 화면**(`/admin`, ADMIN만) — 공지 작성·문의 답변 | FR-114~115 | 직접 (요청 시 AI) | 2일 | `feature/phase1/p1-21-dev-notes-admin` |
 
 **권장 순서**: A(P1-01~03) → B(P1-04~07) → C·D·E 병행(P1-08~15) → F(P1-16~17) → G(P1-18~19)
 

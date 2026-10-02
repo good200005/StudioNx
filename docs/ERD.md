@@ -1,6 +1,6 @@
 # Studio Nx — ERD (관계 설명)
 
-> 그림: [`ERD.png`](ERD.png) · 컬럼 상세: [`DB.md`](DB.md) §3 · DBMS: MySQL 8.0 (`studionx`) · 테이블 33개
+> 그림: [`ERD.png`](ERD.png) · 컬럼 상세: [`DB.md`](DB.md) §3 · DBMS: MySQL 8.0 (`studionx`) · 테이블 34개
 
 ![Studio Nx ERD](ERD.png)
 
@@ -22,7 +22,7 @@
 ## 3. 영역별 구성
 | 영역 | 테이블 | 핵심 역할 |
 |---|---|---|
-| 계정 | `users`, `user_settings`, `inquiries` | 회원(+저장 용량), UI 설정(테마·단축키·캐릭터·튜토리얼), 문의 |
+| 계정 · 사이트 운영 | `users`, `user_settings`, `inquiries`, `dev_notes` | 회원(+저장 용량), UI 설정(테마·단축키·캐릭터·튜토리얼), 문의, 메인 페이지 Development 공지 |
 | 프로젝트 · 협업 | `projects`, `project_members`, `invitations`, `project_change_logs`, `chat_messages`, `timeline_comments`, `project_snapshots` | 프로젝트와 참여자·초대·편집이력·톡방·코멘트·스냅샷 |
 | 시퀀서 | `tracks`, `track_plugins`, `track_plugin_links`, `patterns`, `launcher_scenes`, `clips`, `midi_notes`, `automation_lanes`, `automation_points` | 곡의 실제 내용 (트랙·디바이스·라우팅·패턴·런처·클립·노트·오토메이션) |
 | 라이브러리 · 플러그인 · 템플릿 | `samples`, `tags`, `sample_tags`, `plugins`, `plugin_presets`, `project_templates` | 샘플 라이브러리, 태그, 웹 플러그인 목록·프리셋, 프로젝트 템플릿 |
@@ -37,6 +37,7 @@
 |---|---|---|---|
 | users → user_settings | 1 : 0..1 | `user_settings.user_id` (PK=FK) | 회원당 UI 설정 1행 |
 | users → inquiries | 0..1 : N | `inquiries.user_id` (null) | 비회원 문의는 NULL |
+| users → dev_notes | 1 : N | `dev_notes.author_id` | 공지 작성자 (관리자만) |
 | users → projects | 1 : N | `projects.owner_id` | 프로젝트 소유자 |
 | users → samples | 1 : N | `samples.owner_id` | 개인 샘플 라이브러리 |
 | users → plugin_presets | 0..1 : N | `plugin_presets.owner_id` (null) | NULL = 시스템 프리셋 |

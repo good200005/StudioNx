@@ -53,9 +53,11 @@
 ### 4.2 홈 / 문의 (inquiries)
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-111 | 홈 화면: 서비스 소개(히어로), 핵심 기능 6가지 소개, 시작하기(가입/로그인) 버튼 | 필수 |
-| FR-112 | 문의 창: 이름, 이메일, 제목, 내용 입력 → 저장. 로그인 상태면 이름·이메일 자동 채움, `user_id` 연결 | 필수 |
+| FR-111 | 홈 화면: 첫 화면(히어로) → Service → Character(Nyxi) → Feature → Development → Contact → 푸터. 상단 메뉴는 섹션 앵커, Sign In / Join Us 버튼 (레퍼런스: `studionx/frontend-reference/images/main page reference/`) | 필수 |
+| FR-112 | Contact 폼: **답장 받을 이메일, 제목, 내용(최대 2,000자)** + **개인정보 정책 동의(필수, 정책은 모달)** → 저장(`privacy_agreed_at` 기록). 로그인 상태면 이메일 자동 채움, `user_id` 연결 | 필수 |
 | FR-113 | 문의 남용 방지: 같은 IP/이메일 기준 짧은 시간 내 반복 전송 제한 | 권장 |
+| FR-114 | **Development 공지**: 메인 페이지에 공개된 최신 공지 4개(날짜·제목·요약). "+ View More"로 전체 목록 모달 (목록 디자인은 추후) | 필수 |
+| FR-115 | **관리자 화면**: 공지 작성·수정·공개와 문의 답변은 `users.role = 'ADMIN'` 계정만. FastAPI용 관리자 패널 **SQLAdmin**을 `/admin`에 연결해 사용 (일반 회원·비회원은 읽기만) | 필수 |
 
 ### 4.3 마이페이지 / 프로젝트 (projects)
 | ID | 요구사항 | 우선순위 |
@@ -94,7 +96,7 @@
 ## 6. 화면 구성
 | 페이지 | 주요 요소 |
 |---|---|
-| `home.html` | 상단 네비(로고, 로그인/가입 or 마이페이지), 히어로 섹션, 기능 소개 카드 6개, 문의 폼, 푸터 |
+| `home.html` | 상단 네비(로고, 섹션 앵커, Sign In·Join Us), 첫 화면, Service, Character, Feature, Development 공지 4개 + View More, Contact 폼, 푸터(개발자 연락처) — 상세: `docs/ai-notes/02~04` |
 | `login.html` | 이메일, 비밀번호, 로그인 버튼, 회원가입 링크 |
 | `join.html` | 이메일(중복확인), 닉네임(중복확인), 비밀번호/확인, 가입 버튼 |
 | `myPage.html` | 좌측 메뉴(대시보드 / 회원정보 / 나의 프로젝트), 프로필 카드, 최근 프로젝트 카드 목록, 저장 용량·AI 사용량 위젯 |
@@ -117,7 +119,10 @@
 | POST | `/users/me/profile-image` | 프로필 이미지 업로드 (multipart) | ✔ |
 | PUT | `/users/me/password` | 비밀번호 변경 | ✔ |
 | DELETE | `/users/me` | 회원 탈퇴 (body: 비밀번호) | ✔ |
-| POST | `/inquiries` | 문의 등록 | 선택 |
+| POST | `/inquiries` | 문의 등록 (email, title, content, privacy_agreed) | 선택 |
+| GET | `/dev-notes?limit=4` | 공개된 공지 목록 (최신순) | - |
+| GET | `/dev-notes/{note_id}` | 공지 상세 | - |
+| — | `/admin` | SQLAdmin 관리자 화면 (dev_notes·inquiries 등 관리) | ADMIN |
 | GET | `/projects?query=&page=&size=` | 내 프로젝트 목록 | ✔ |
 | POST | `/projects` | 프로젝트 생성 | ✔ |
 | GET | `/projects/{project_id}` | 프로젝트 기본 정보 | ✔ 멤버 |
@@ -130,7 +135,8 @@
 ## 8. 사용 테이블
 > 컬럼 상세는 [DB.md](../DB.md) §3.1 참고
 - `users`
-- `inquiries`
+- `inquiries` (name 선택, privacy_agreed_at)
+- `dev_notes` (Development 공지)
 - `projects`
 - `project_members` (프로젝트 생성 시 OWNER 행 등록용 — 협업 기능 자체는 Phase 6)
 - `tracks` (프로젝트 생성 시 MASTER 트랙 자동 생성)
