@@ -1,0 +1,49 @@
+<!doctype html>
+<!-- 오류 500 Internal Server Error 페이지 (P1-22, docs/ai-notes/11_error_pages.md)
+     백엔드 오류 처리기가 페이지 요청일 때 이 파일을 상태 코드와 함께 돌려줌 (core/errors.py TODO)
+     <base href="/"> : /a/b/c 처럼 깊은 주소에서 열려도 CSS·헤더·링크가 사이트 루트 기준으로 동작 -->
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <base href="/">
+  <title>Something clipped (500) — Studio Nx</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0b0a0f">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23a383ff' d='M20.6 3.2A13 13 0 1 0 28.8 22 10.5 10.5 0 1 1 20.6 3.2Z'/%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+
+  <link rel="stylesheet" href="static/css/tokens.css">
+  <link rel="stylesheet" href="static/css/base.css">
+  <link rel="stylesheet" href="static/css/forms.css">
+  <link rel="stylesheet" href="static/css/auth.css">
+  <link rel="stylesheet" href="static/css/pages/error.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div data-include="static/partials/header.html"></div>
+
+  <main id="main" class="err err--500">
+    <div>
+      <!-- 숫자 + 신호 표시를 한 그림으로 (오류 번호는 숫자가 일부러 흐리거나 잘려 있어 글자로도 표시) -->
+      <figure class="err__fig">
+        <div class="err__num" aria-hidden="true"><span class="err__clip"><span>5<span class="err__mid">0</span>0</span></span></div>
+        <figcaption class="err__meter">Error 500 · Output · <b>clipping</b></figcaption>
+      </figure>
+      <h1 class="err__title"><span class="sr-only">Error 500: </span>Something clipped</h1>
+      <p class="err__text">Our server hit a problem. Please try again in a moment.</p>
+      <div class="err__actions"><button type="button" class="btn btn--primary" data-action="retry">Try again</button><a class="btn btn--ghost" href="home.html">Back to home</a></div>
+    </div>
+    <!-- Nyxi 일러스트 자리: covering her ears (사용자 제작 에셋 — 오면 <img> 로 교체) -->
+    <div class="err__art" aria-hidden="true"></div>
+  </main>
+
+  <div data-include="static/partials/footer.html"></div>
+  <div data-include="static/partials/login-modal.html"></div>
+  <script type="module" src="static/js/pages/error.js"></script>
+</body>
+</html>

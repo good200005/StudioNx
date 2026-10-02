@@ -70,6 +70,7 @@ PRD의 Phase는 **기능 묶음**이고, 이 문서의 단계는 **구현 순서
 | P1-18 | 마무리 | 테스트(pytest): 가입·로그인·재발급, 다른 사람 프로젝트 접근 차단, 탈퇴 계정 로그인 | §10 | 직접 (요청 시 AI) | 2일 | `feature/phase1/p1-18-tests` |
 | P1-19 | 마무리 | `docs/ai-notes/` 설명 문서, `develop`으로 PR | — | AI / 직접 | 0.5일 | `feature/phase1/p1-19-ai-notes-pr` |
 | P1-21 | 홈 · 문의 | Development 공지 API(`GET /dev-notes`) + **SQLAdmin 관리자 화면**(`/admin`, ADMIN만) — 공지 작성·문의 답변 | FR-114~115 | 직접 (요청 시 AI) | 2일 | `feature/phase1/p1-21-dev-notes-admin` |
+| P1-22 | 공통 기반 | **오류 페이지** 7종(404·500·403·503·429·400·504, F-2 "숫자 자체가 신호" 디자인) + 페이지 요청 오류 시 HTML·API 요청 오류 시 JSON 응답 | FR-116 | AI(화면) / 직접(백엔드 연결) | 1일 | `feature/phase1/p1-22-error-pages` |
 
 **권장 순서**: A(P1-01~03) → B(P1-04~07) → C·D·E 병행(P1-08~15) → F(P1-16~17) → G(P1-18~19)
 

@@ -20,6 +20,15 @@
         ],
         "createdAt": "2026-10-02T04:26:45.363Z",
         "reason": "false positive: static detector cannot resolve CSS custom properties/clamp(); rendered sizes verified in browser (h1 ~104px, h2 ~44px, h3 ~26px, body 16px)"
+      },
+      {
+        "rule": "ai-color-palette",
+        "value": "*",
+        "files": [
+          "studionx/frontend/errors/429.html"
+        ],
+        "createdAt": "2026-10-02T15:05:03.000Z",
+        "reason": "429 'Too much feedback' uses offset violet copies (text-shadow) as a delay/echo effect, not a glow; violet is the single brand accent from Nyxi's headphones (tokens.css). Design approved by the user (docs/page_mockups/21)."
       }
     ]
   }

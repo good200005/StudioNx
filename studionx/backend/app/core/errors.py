@@ -26,6 +26,18 @@ class ErrorCode(StrEnum):
     INTERNAL_ERROR = "INTERNAL_ERROR"  # 500 (자세한 내용은 Sentry로만)
 
 
+# 페이지 요청 오류 → 보여 줄 HTML (studionx/frontend 기준, P1-22)
+ERROR_PAGES: dict[int, str] = {
+    400: "errors/400.html",
+    403: "errors/403.html",
+    404: "errors/404.html",
+    429: "errors/429.html",
+    500: "errors/500.html",
+    503: "errors/503.html",
+    504: "errors/504.html",
+}
+
+
 class AppError(Exception):
     """서비스·라우터에서 던지는 예상된 오류."""
 
@@ -54,5 +66,14 @@ def register_exception_handlers(app: FastAPI) -> None:
     - Exception (그 외)       → 500, code=INTERNAL_ERROR, message는 일반 문장만
                                 (오류 내용은 응답에 넣지 않음 — Sentry가 기록)
     - 응답 본문에 비밀번호·토큰이 섞이지 않게 주의 (PRD 01 §5)
+
+    TODO(P1-22) 오류 페이지 — API 요청과 페이지 요청을 나눠서 응답:
+    - request.url.path 가 settings.api_prefix("/api/v1")로 시작 → 지금처럼 JSON (ErrorResponse)
+    - 그 외(페이지 요청) → 오류 페이지 HTML 을 같은 상태 코드로
+        FileResponse(ROOT_DIR / "frontend" / ERROR_PAGES[status], status_code=status)
+    - 없는 주소 404: ✅ 구현됨 (core/site_files.py SiteFiles) — 없는 페이지는 errors/404.html,
+      없는 API 주소는 예외를 넘겨 JSON 404. 위 StarletteHTTPException 처리기를 만들 때
+      API 404 도 ErrorResponse 모양({"error": {"code": "NOT_FOUND", ...}})으로 바꾸면 됨
+    - 503(점검)은 점검 모드 설정값을 두고 미들웨어에서 errors/503.html 로 응답 (선택)
     """
     # TODO: @app.exception_handler(AppError) ... 등록
