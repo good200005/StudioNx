@@ -2,6 +2,8 @@
 // 지금 동작은 CSS만으로 됨: 앵커 부드러운 스크롤(scroll-behavior), 세로 앵커 표시(position: sticky),
 // 모바일 메뉴(<details>). 아래는 다음에 붙일 동작의 자리입니다.
 
+import { initAuthState, initPasswordToggles, initOAuthPlaceholders } from '../core/auth-ui.js';
+
 /**
  * 세로 앵커(S·Ch·F·D·Co)에서 지금 보고 있는 섹션 표시
  * - IntersectionObserver 로 화면 가운데에 들어온 section 을 찾고
@@ -46,6 +48,33 @@ export function loadDevNotes() {
   // TODO
 }
 
+/**
+ * 로그인 모달 자동 열기 (PRD 01 FR-105)
+ * - 주소가 #login 이면 document.getElementById('login-modal').showModal()
+ *   (로그인이 필요한 페이지가 home.html#login?next=myPage.html 로 보냄)
+ * - next 값은 저장해 두었다가 로그인 성공 후 이동에 사용 (같은 사이트 경로만 허용 — 외부 주소 금지)
+ * - 모달을 닫으면 주소의 #login 제거 (history.replaceState)
+ */
+export function initLoginModalFromHash() {
+  // TODO
+}
+
+/**
+ * 로그인 전송 (PRD 01 FR-103·109)
+ * - POST /api/v1/auth/login  JSON { email, password, remember }  (remember = 자동 로그인 체크 여부)
+ * - 성공: next 가 있으면 그 페이지로, 없으면 모달 닫고 <html data-auth="in"> (헤더가 My Page·My Projects로 바뀜)
+ * - 실패: #login-error 에 "Email or password is incorrect." 표시 (hidden 해제) — 어느 쪽이 틀렸는지 알려주지 않음
+ * - 전송 중에는 Sign In 버튼 disabled
+ */
+export function initLoginForm() {
+  // TODO
+}
+
+initAuthState();
+initLoginModalFromHash();
+initLoginForm();
+initPasswordToggles();
+initOAuthPlaceholders();
 initSideNavActiveState();
 initMobileMenuClose();
 initContactForm();
