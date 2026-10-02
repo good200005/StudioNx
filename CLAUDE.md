@@ -49,3 +49,8 @@
 - 기능 작업은 작업 단위 브랜치 `feature/phaseN/pN-NN-*`(목록: `docs/Implementation_Plan.md` §2.1) → `feature/phaseN-*` → `develop`. 문서는 `docs/planning`. `main`에 직접 커밋하지 않는다.
 - 커밋 메시지: `타입(범위): 내용` (feat, fix, docs, db, style, refactor, test, chore, wip)
 - 커밋·푸시는 사용자가 요청할 때만.
+
+## 작업 완료 시 (반드시)
+작업 단위(P1-NN 등)의 PR이 상위 브랜치에 병합되어 작업이 끝나면, 사용자가 따로 말하지 않아도 아래 두 가지를 한다.
+1. **YouTrack 반영:** 해당 이슈의 State를 `Closed`(StudioNx 프로젝트의 완료 값)로 바꾸고, PR 번호와 결과를 코멘트로 남긴다. 명령: `python tools/youtrack/yt.py set-state StudioNx P1-NN Closed --comment "…"` (인증: 사용자 환경 변수 `YOUTRACK_URL`, `YOUTRACK_TOKEN`, 사용법은 `docs/youtrack/README.md` §5). 연결이 안 되면 그 사실과 설정 방법을 알린다.
+2. **다음 작업 요약:** 끝난 것, `docs/Implementation_Plan.md` §2.1 기준 다음 작업(번호·브랜치·할 일), 사용자가 정해야 할 것을 짧게 정리해 알린다.
