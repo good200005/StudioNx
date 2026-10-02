@@ -50,7 +50,7 @@
 |---|---|
 | 헤더 Sign In | `command="show-modal"`로 모달이 열림 (JS 없이 동작) |
 | 로그인이 필요한 페이지 | `home.html#login?next=<원래 페이지>`로 보냄 → home.js가 모달을 열고, 로그인 후 원래 페이지로 (P1-07) |
-| 가입 페이지의 Sign In | `home.html#login`으로 이동 |
+| 가입 페이지의 Sign In | 그 자리에서 같은 로그인 모달이 열림 (§3.7 추가 수정) |
 
 모달을 열면 이메일 칸에 바로 커서가 갑니다(`autofocus`).
 
@@ -100,6 +100,21 @@
 
 ### 3.6 모달 안 문단 규칙 덮기
 `base.css`의 `.modal__body p`(개인정보 정책 모달용)가 모달 안 모든 문단에 위 여백과 글자 크기를 줍니다. 로그인 모달의 구분선·안내 줄도 문단이라 간격이 어긋나서, `auth.css` 끝에서 모달 안일 때만 되돌렸습니다.
+
+### 3.7 추가 수정: 가입 페이지에서도 로그인 모달 (2026-10-02)
+처음에는 가입 페이지의 Sign In이 `home.html#login`으로 이동했습니다. 사용자 제안으로 **그 자리에서 같은 로그인 모달이 열리도록** 바꿨습니다.
+
+| 변경 | 내용 |
+|---|---|
+| `join.html` | 헤더 Sign In과 아래 "Already have an account? Sign In"을 `command="show-modal"` 버튼으로 |
+| 로그인 모달 | `home.html`과 `join.html`이 **같은 파일 하나**(`static/partials/login-modal.html`)를 불러옴 → [10_common_partials.md](10_common_partials.md) |
+| `core/auth-ui.js` | `initLoginForm({ onSuccess })` — 로그인 전송을 `home.js`에서 옮겨 두 페이지가 같이 씀. 성공 후 동작만 다름 (메인: 모달 닫고 헤더 전환 / 가입: `home.html`로 이동) |
+| `core/modal.js` (새 파일) | 모달 대체 코드 `initModalFallback`을 `home.js`에서 옮김 (두 페이지 공통) |
+
+- 가입 페이지에서 모달 안 "New here? Join Us"를 누르면 가입 페이지를 다시 엽니다(모달이 닫힌 상태). 공통 모달이라 페이지마다 링크를 다르게 두지 않았습니다.
+- **검증:** 두 Sign In 모두 클릭하면 모달이 열리고 이메일 칸에 커서가 감, 콘솔 오류 없음. 가입 페이지 모양은 변경 전과 **차이 0픽셀**(데스크톱·모바일).
+
+![가입 페이지에서 연 로그인 모달](images/07_auth_pages/11_join_login_modal.png)
 
 ## 4. 검증 결과 (2026-10-02)
 | 확인 | 결과 |

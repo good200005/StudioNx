@@ -99,7 +99,7 @@
 | 페이지 | 주요 요소 |
 |---|---|
 | `home.html` | 상단 네비(로고, 섹션 앵커, Sign In·Join Us — 로그인 시 My Page·My Projects), 첫 화면, Service, Character, Feature, Development 공지 4개 + View More, Contact 폼, 푸터(개발자 연락처) — 상세: `docs/ai-notes/02~04` |
-| 로그인 모달 (`home.html`) | 이메일, 비밀번호, 자동 로그인 체크박스, 로그인 버튼, 회원가입 링크. Sign In 버튼 또는 주소 `#login`으로 열림 |
+| 로그인 모달 (`home.html`, `join.html`) | 이메일, 비밀번호, 자동 로그인 체크박스, 로그인 버튼, 회원가입 링크. Sign In 버튼 또는 `home.html#login`으로 열림. `join.html`에서는 페이지 이동 없이 그 자리에서 열림 |
 | `join.html` | 이메일(중복확인), 닉네임(중복확인), 비밀번호/확인, 가입 버튼 |
 | `myPage.html` | 좌측 메뉴(대시보드 / 회원정보 / 나의 프로젝트), 프로필 카드, 최근 프로젝트 카드 목록, 저장 용량·AI 사용량 위젯 |
 | `userInfo.html` | 탭: [회원 정보](프로필 이미지, 닉네임, 비밀번호 변경, 회원 탈퇴) · [환경 설정](UI 커스터마이징) · [용량 관리] |
