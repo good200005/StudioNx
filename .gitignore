@@ -15,3 +15,14 @@ Thumbs.db
 # 화면 캡처·브라우저 자동화 임시 파일
 .playwright-mcp/
 .impeccable/review/
+
+# YouTrack 이동 백업 (로컬 전용)
+tools/youtrack/.migrate_backup.json
+__pycache__/
+
+# 비밀 정보 — 토큰·API 키·서비스 계정 키는 절대 커밋하지 않음
+*token*.txt
+*Token*.txt
+docs/googlesheetAPI.txt
+docs/studionx-*.json
+*-service-account*.json
