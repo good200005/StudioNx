@@ -15,6 +15,7 @@
 | `studionx/backend/` | FastAPI (Python 3.13, `.venv`는 `studionx/.venv`) |
 | `studionx/frontend/` | Vanilla HTML/CSS/JS — FastAPI가 정적 서빙 |
 | `studionx/frontend-reference/` | HTML/CSS 레퍼런스 (웹 비공개) |
+| `studionx/characters/nyxi/` | Nyxi 원본 자료: `reference/`, `base/`(Base 이미지) — 웹 비공개. 화면용 에셋은 `frontend/static/characters/nyxi/` |
 | `studionx/db/` | Phase별 SQL (00~06, 99) + `docs/` 가이드 |
 
 ## 기준 문서

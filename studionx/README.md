@@ -30,6 +30,7 @@ studionx/
 │  ├─ *.html              home, login, join, myPage, userInfo, myProject, studioNx (예정)
 │  └─ static/ css · js · assets · characters(Nyxi 외부 에셋) · wasm(예정)
 ├─ frontend-reference/    HTML/CSS 레퍼런스 (images/, code/) — 웹에 서빙되지 않음, AI가 작성 전 확인
+├─ characters/nyxi/       캐릭터 원본 자료 — reference/(레퍼런스), base/(Base 이미지), 웹에 서빙되지 않음
 ├─ db/                    DB 생성(00)·Phase별 테이블(01~06)·초기화(99) SQL
 │  └─ docs/               DB 스크립트 가이드 (md + docx), _build/ = md→docx 변환
 ├─ native/                C++ DSP (사용자 영역)
