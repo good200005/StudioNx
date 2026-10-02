@@ -5,7 +5,8 @@
 /**
  * 로그인 상태를 <html data-auth> 에 표시 → auth.css 가 헤더 버튼을 바꿈
  * - 시작할 때 document.documentElement.dataset.auth = 'pending' (버튼 자리 비움, 깜빡임 방지)
- * - POST /api/v1/auth/refresh (리프레시 쿠키) 성공 → 'in' / 실패 → 속성 지우기 (로그아웃 상태)
+ * - core/auth.js 의 isLoggedIn() (내부에서 api.js refreshAccessToken → POST /api/v1/auth/refresh)
+ *   true → 'in' / false → 속성 지우기 (로그아웃 상태)
  * - 자동 로그인(3일) 쿠키가 있으면 브라우저를 다시 열어도 'in' (PRD 01 FR-109)
  */
 export function initAuthState() {

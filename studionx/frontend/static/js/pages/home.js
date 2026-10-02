@@ -50,9 +50,10 @@ export function loadDevNotes() {
 
 /**
  * 로그인 모달 자동 열기 (PRD 01 FR-105)
- * - 주소가 #login 이면 document.getElementById('login-modal').showModal()
+ * - core/auth.js 의 parseLoginHash() 로 { open, next } 를 읽고, open 이면
+ *   document.getElementById('login-modal').showModal()
  *   (로그인이 필요한 페이지가 home.html#login?next=myPage.html 로 보냄)
- * - next 값은 저장해 두었다가 로그인 성공 후 이동에 사용 (같은 사이트 경로만 허용 — 외부 주소 금지)
+ * - next 값은 저장해 두었다가 로그인 성공 후 이동에 사용 (parseLoginHash 가 safeNextPath 로 검사함)
  * - 모달을 닫으면 주소의 #login 제거 (history.replaceState)
  */
 export function initLoginModalFromHash() {
@@ -61,7 +62,8 @@ export function initLoginModalFromHash() {
 
 /**
  * 로그인 전송 (PRD 01 FR-103·109)
- * - POST /api/v1/auth/login  JSON { email, password, remember }  (remember = 자동 로그인 체크 여부)
+ * - api.post('/auth/login', { email, password, remember }, { auth: false })  (core/api.js)
+ *   remember = 자동 로그인 체크 여부, 성공 응답의 access_token → setAccessToken
  * - 성공: next 가 있으면 그 페이지로, 없으면 모달 닫고 <html data-auth="in"> (헤더가 My Page·My Projects로 바뀜)
  * - 실패: #login-error 에 "Email or password is incorrect." 표시 (hidden 해제) — 어느 쪽이 틀렸는지 알려주지 않음
  * - 전송 중에는 Sign In 버튼 disabled
