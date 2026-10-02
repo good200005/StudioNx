@@ -2,7 +2,9 @@
 // 지금 동작은 CSS만으로 됨: 앵커 부드러운 스크롤(scroll-behavior), 세로 앵커 표시(position: sticky),
 // 모바일 메뉴(<details>). 아래는 다음에 붙일 동작의 자리입니다.
 
-import { initAuthState, initPasswordToggles, initOAuthPlaceholders } from '../core/auth-ui.js';
+import { initAuthState, initLoginForm, initPasswordToggles, initOAuthPlaceholders } from '../core/auth-ui.js';
+import { initModalFallback } from '../core/modal.js';
+import { includePartials } from '../core/include.js';
 
 /**
  * 세로 앵커(S·Ch·F·D·Co)에서 지금 보고 있는 섹션 표시
@@ -32,15 +34,6 @@ export function initContactForm() {
 }
 
 /**
- * 모달 대체 코드 — 버튼의 command="show-modal" / "close" 를 지원하지 않는 브라우저용
- * - [commandfor] 버튼 클릭 시 document.getElementById(id).showModal() / close()
- * - 지원 여부: 'command' in HTMLButtonElement.prototype
- */
-export function initModalFallback() {
-  // TODO
-}
-
-/**
  * Development 공지: GET /api/v1/dev-notes?limit=4 로 최신 4개를 받아 .dev-notes 를 채움
  * (지금 HTML의 4개는 예시 문구)
  */
@@ -60,21 +53,13 @@ export function initLoginModalFromHash() {
   // TODO
 }
 
-/**
- * 로그인 전송 (PRD 01 FR-103·109)
- * - api.post('/auth/login', { email, password, remember }, { auth: false })  (core/api.js)
- *   remember = 자동 로그인 체크 여부, 성공 응답의 access_token → setAccessToken
- * - 성공: next 가 있으면 그 페이지로, 없으면 모달 닫고 <html data-auth="in"> (헤더가 My Page·My Projects로 바뀜)
- * - 실패: #login-error 에 "Email or password is incorrect." 표시 (hidden 해제) — 어느 쪽이 틀렸는지 알려주지 않음
- * - 전송 중에는 Sign In 버튼 disabled
- */
-export function initLoginForm() {
-  // TODO
-}
+// 공통 헤더·푸터·로그인 모달을 먼저 끼움 (static/partials/) — 아래 init 들은 그 요소를 찾으므로 순서 중요
+await includePartials();
 
 initAuthState();
 initLoginModalFromHash();
-initLoginForm();
+// 로그인 성공 후: next 가 있으면 그 페이지로, 없으면 모달 닫고 <html data-auth="in"> (헤더 전환)
+initLoginForm({ onSuccess: null /* TODO: (next) => ... */ });
 initPasswordToggles();
 initOAuthPlaceholders();
 initSideNavActiveState();

@@ -45,3 +45,21 @@ export function initOAuthPlaceholders(root = document) {
 export function setFieldState(field, state, message) {
   // TODO
 }
+
+/**
+ * 로그인 모달 전송 (PRD 01 FR-103·109) — home.html, join.html 이 같이 씀
+ * @param {object} [options]
+ * @param {(next: string|null) => void} [options.onSuccess]  로그인 성공 후 할 일 (페이지마다 다름)
+ *   - home.html: next 가 있으면 그 페이지로, 없으면 모달 닫고 <html data-auth="in">
+ *   - join.html: location.href = 'home.html'
+ * TODO:
+ * - #login-form submit 기본 동작 막기
+ * - api.post('/auth/login', { email, password, remember }, { auth: false })  (core/api.js)
+ *   remember = #login-remember 체크 여부, 성공 응답의 access_token → setAccessToken
+ * - 성공: options.onSuccess(next)  (next 는 core/auth.js parseLoginHash 로 읽은 값)
+ * - 실패: #login-error 에 "Email or password is incorrect." 표시 (hidden 해제) — 어느 쪽이 틀렸는지 알려주지 않음
+ * - 전송 중에는 Sign In 버튼 disabled
+ */
+export function initLoginForm(options = {}) {
+  // TODO
+}
