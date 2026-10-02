@@ -334,23 +334,13 @@ body { timeline-scope: --hero; }
 .form-row textarea { min-height: 13rem; resize: vertical; }
 .form-row input::placeholder,
 .form-row textarea::placeholder { color: var(--c-ink-faint); }
-.form-hint {
-  padding: 0 var(--sp-6) var(--sp-4);
-  color: var(--c-ink-faint); font-size: var(--fs-xs);
-}
+.form-row .form-hint { padding: 0 var(--sp-6) var(--sp-4); }
 .form-row__field { display: flex; flex-direction: column; }
 
-.form-consent {
-  display: flex; align-items: center; justify-content: center; gap: var(--sp-3);
-  margin-top: var(--sp-8);
-  color: var(--c-ink-soft); font-size: var(--fs-sm);
-}
-.form-consent input {
-  width: 1.125rem; height: 1.125rem; margin: 0;
-  accent-color: var(--c-violet);
-}
-.form-actions { margin-top: var(--sp-6); text-align: center; }
-.form-actions .btn { min-width: 10rem; }
+/* 동의 체크박스·버튼 줄의 기본 모양은 forms.css — Contact에서는 가운데 정렬 */
+.contact-form .form-consent { justify-content: center; margin-top: var(--sp-8); }
+.contact-form .form-actions { justify-content: center; margin-top: var(--sp-6); }
+.contact-form .form-actions .btn { min-width: 10rem; }
 
 /* ---------- 태블릿 ---------- */
 @media (max-width: 1100px) {
@@ -400,5 +390,5 @@ body { timeline-scope: --hero; }
   .form-row { grid-template-columns: 1fr; }
   .form-row label { padding: var(--sp-4) var(--sp-4) 0; border-right: 0; }
   .form-row input, .form-row textarea { padding: var(--sp-3) var(--sp-4) var(--sp-4); }
-  .form-consent { text-align: center; }   /* 체크박스+문장을 화면 폭 기준 가운데에, 좁아서 줄바꿈돼도 가운데 */
+  .contact-form .form-consent { text-align: center; }   /* 체크박스+문장을 화면 폭 기준 가운데에, 좁아서 줄바꿈돼도 가운데 */
 }
