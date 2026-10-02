@@ -3,12 +3,12 @@
 웹 기반 DAW 시퀀서. 항상 **한국어**로 답한다.
 
 ## 세션 시작 시 (특히 다른 컴퓨터)
-1. **최신 작업 브랜치로 맞춘다.** 사용자가 "pull/받아와/최신으로" 등을 요청하면 `main`이 아니라 **커밋 시각이 가장 최근인 원격 브랜치**를 기준으로 받는다.
+1. **최신 작업 브랜치로 맞춘다.** 사용자가 "pull/받아와/최신으로" 등을 요청하면 `main`이 아니라 **커밋 시각이 가장 최근인 작업 브랜치(`feature/*`, `fix/*`)**를 기준으로 받는다. `main`·`develop`·`docs/planning`은 PR 병합 커밋 때문에 최신처럼 보이므로 비교에서 뺀다.
    ```bash
    git fetch --all --prune
-   git for-each-ref --sort=-committerdate refs/remotes/origin --format="%(committerdate:iso) %(refname:short) %(subject)" --count=5
+   git for-each-ref --sort=-committerdate refs/remotes/origin/feature refs/remotes/origin/fix --format="%(committerdate:iso) %(refname:short) %(subject)" --count=5
    ```
-   맨 위 브랜치(`origin/HEAD` 제외)로 `git switch <브랜치>` 후 `git pull`. 바꾸기 전에 `git status`로 커밋 안 된 변경이 있으면 사용자에게 먼저 묻는다. 어떤 브랜치로 바꿨는지와 최신 커밋을 사용자에게 알린다. 백엔드 의존성 파일이 바뀌었으면 `.venv`에 다시 설치한다.
+   맨 위 브랜치로 `git switch <브랜치>` 후 `git pull`. 바꾸기 전에 `git status`로 커밋 안 된 변경이 있으면 사용자에게 먼저 묻는다. 어떤 브랜치로 바꿨는지와 최신 커밋을 사용자에게 알린다. 백엔드 의존성 파일이 바뀌었으면 `.venv`에 다시 설치한다.
 2. 작업 전에 **`docs/context_*.md` 중 날짜가 가장 최신인 파일을 먼저 읽는다** (1번으로 최신 브랜치에 맞춘 뒤). 지금까지의 결정·진행 상황·남은 일·사용자 주의 사항(PowerShell 사용 등)이 정리되어 있다. Claude Code 메모리는 컴퓨터마다 따로라서 이 파일이 맥락을 이어 준다.
 
 ## 프로젝트 원칙 (반드시 지킬 것)
