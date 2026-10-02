@@ -7,6 +7,9 @@
   python tools/youtrack/yt.py check                 연결·프로젝트 확인
   python tools/youtrack/yt.py issues SNX             프로젝트 이슈 목록 (ID, 계획 번호, 상위 연결 여부)
   python tools/youtrack/yt.py link-parents SNX       계획 번호 기준으로 subtask 연결 (--dry-run 으로 미리보기)
+  python tools/youtrack/yt.py states SNX             State 필드에 쓸 수 있는 값 목록
+  python tools/youtrack/yt.py set-state SNX P1-01 Fixed [--comment "PR #10 병합"]
+                                                    계획 번호로 이슈를 찾아 State 변경 (+ 코멘트)
 """
 
 import json
@@ -169,6 +172,32 @@ def cmd_move(src, dst, dry_run):
         print(f"  {i + len(batch)}/{len(issues)}")
 
 
+def cmd_states(key):
+    fields = api("GET", f"admin/projects/{project_id(key)}/customFields",
+                 {"fields": "field(name),bundle(values(name,isResolved))"})
+    for f in fields:
+        if f["field"]["name"] == "State":
+            for v in (f.get("bundle") or {}).get("values", []):
+                print(f"  {v['name']:<20} {'(완료)' if v.get('isResolved') else ''}")
+            return
+    sys.exit("State 필드를 찾지 못했습니다.")
+
+
+def cmd_set_state(key, pid, state, comment):
+    matches = [i for i in project_issues(key) if plan_id(i["summary"]) == pid]
+    if len(matches) != 1:
+        sys.exit(f"계획 번호 {pid} 이슈가 {len(matches)}건입니다 (1건이어야 함).")
+    issue = matches[0]["idReadable"]
+    body = {"query": f"State {state}", "issues": [{"idReadable": issue}]}
+    if comment:
+        body["comment"] = comment
+    api("POST", "commands", body=body)
+    now = api("GET", f"issues/{issue}", {"fields": "summary,customFields(name,value(name))"})
+    current = next((f["value"]["name"] for f in now["customFields"]
+                    if f["name"] == "State" and f.get("value")), "?")
+    print(f"{issue} ({pid}) State = {current} — {now['summary'][:60]}")
+
+
 if __name__ == "__main__":
     args = sys.argv[1:]
     if not args or args[0] == "check":
@@ -181,5 +210,10 @@ if __name__ == "__main__":
         cmd_fields(args[1])
     elif args[0] == "move":
         cmd_move(args[1], args[2], "--dry-run" in args)
+    elif args[0] == "states":
+        cmd_states(args[1])
+    elif args[0] == "set-state":
+        comment = args[args.index("--comment") + 1] if "--comment" in args else None
+        cmd_set_state(args[1], args[2], args[3], comment)
     else:
         sys.exit(__doc__)
