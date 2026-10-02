@@ -149,6 +149,7 @@ const PDFS = [
   { out: 'ai-notes/08_backend_core.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 08 — 백엔드 공통 뼈대', files: ['ai-notes/08_backend_core.md'], base: 'ai-notes' },
   { out: 'ai-notes/09_frontend_api_core.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 09 — 프론트 공통 JS 뼈대', files: ['ai-notes/09_frontend_api_core.md'], base: 'ai-notes' },
   { out: 'ai-notes/10_common_partials.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 10 — 공통 헤더·푸터·로그인 모달 통합', files: ['ai-notes/10_common_partials.md'], base: 'ai-notes' },
+  { out: 'ai-notes/11_error_pages.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 11 — 오류 페이지', files: ['ai-notes/11_error_pages.md'], base: 'ai-notes' },
 ];
 
 const mode = process.argv[2];
