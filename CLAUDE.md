@@ -36,6 +36,6 @@
 
 ## Git
 - 브랜치·커밋 규칙: `docs/Git_Manual.md`
-- 기능 작업은 해당 `feature/phaseN-*` 브랜치, 문서는 `docs/planning`. `main`에 직접 커밋하지 않는다.
+- 기능 작업은 작업 단위 브랜치 `feature/phaseN/pN-NN-*`(목록: `docs/Implementation_Plan.md` §2.1) → `feature/phaseN-*` → `develop`. 문서는 `docs/planning`. `main`에 직접 커밋하지 않는다.
 - 커밋 메시지: `타입(범위): 내용` (feat, fix, docs, db, style, refactor, test, chore, wip)
 - 커밋·푸시는 사용자가 요청할 때만.

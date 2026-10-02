@@ -30,7 +30,9 @@ feature/*  기능 작업 브랜치들        docs/planning  기획 문서
 | `feature/native-dsp` | C++/JUCE → WASM | `develop` |
 | `docs/planning` | PRD · DB · 구현 계획 등 문서 | `develop` → `main` |
 
-- 큰 기능은 하위 브랜치로 나눕니다: `feature/phase2-sequencer/automation`
+- 큰 기능은 **작업 단위 브랜치**로 나눕니다: `feature/phaseN/pN-NN-이름` → PR → `feature/phaseN-*` → PR → `develop`
+  - 예: `feature/phase1/p1-04-signup-api` → `feature/phase1-account` (Phase 1 목록: [Implementation_Plan.md](Implementation_Plan.md) §2.1)
+  - ⚠ `feature/phase1-account/auth`처럼 **이미 있는 브랜치 이름 아래**로는 만들 수 없습니다(Git 제약). 그래서 `feature/phase1/...`를 씁니다.
 - 버그 수정: `fix/<내용>` (예: `fix/login-redirect`), `develop`에서 만들고 `develop`에 병합
 
 ## 2. 기본 작업 흐름

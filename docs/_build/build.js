@@ -90,12 +90,22 @@ function buildPdf({ out, title, subtitle, files }) {
 ${toc}<div id="out"></div>
 <script>
 const sources = ${JSON.stringify(sources).replace(/</g, '\\u003c')};
+// 범위 표기(FR-231~233)의 ~ 가 취소선으로 바뀌지 않도록 ~~두 개~~ 만 취소선으로 인정
+marked.use({ tokenizer: { del(src) {
+  const m = /^~~(?=[^\\s~])([\\s\\S]*?[^\\s~])~~(?!~)/.exec(src);
+  if (m) return { type: 'del', raw: m[0], text: m[1], tokens: this.lexer.inlineTokens(m[1]) };
+} } });
 const out = document.getElementById('out');
 let erdShown = false;
 for (const s of sources) {
   const sec = document.createElement('section');
   sec.className = 'doc';
   sec.innerHTML = marked.parse(s.md);
+  // 첫 열이 짧은 ID(P1-01, FR-101 등)뿐인 표는 첫 열 줄바꿈 금지
+  sec.querySelectorAll('table').forEach(t => {
+    const cells = [...t.querySelectorAll('tr > :first-child')];
+    if (cells.length && cells.every(c => c.textContent.trim().length <= 8)) cells.forEach(c => c.style.whiteSpace = 'nowrap');
+  });
   sec.querySelectorAll('img[src$="ERD.png"]').forEach(i => {
     if (erdShown) { const n = document.createElement('em'); n.textContent = '(ERD 그림은 앞의 가로 페이지 참고)'; i.replaceWith(n); return; }
     erdShown = true;
