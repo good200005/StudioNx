@@ -157,6 +157,7 @@ const PDFS = [
   { out: 'ai-notes/17_login_jwt_template.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 17 — 로그인 · 토큰 재발급 · 로그아웃 템플릿', files: ['ai-notes/17_login_jwt_template.md'], base: 'ai-notes' },
   { out: 'ai-notes/18_user_profile_api_template.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 18 — 회원 정보 · 프로필 사진 API 템플릿', files: ['ai-notes/18_user_profile_api_template.md'], base: 'ai-notes' },
   { out: 'ai-notes/19_password_withdraw_template.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 19 — 비밀번호 변경 · 회원 탈퇴 API 템플릿', files: ['ai-notes/19_password_withdraw_template.md'], base: 'ai-notes' },
+  { out: 'ai-notes/20_inquiry_api_template.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 20 — 문의 API 템플릿', files: ['ai-notes/20_inquiry_api_template.md'], base: 'ai-notes' },
 ];
 
 const mode = process.argv[2];
