@@ -5,13 +5,16 @@ pydantic-settings>=2.4
 python-multipart>=0.0.9      # 파일 업로드(multipart/form-data)
 
 # DB (MySQL 8.0)
-sqlalchemy>=2.0
+sqlalchemy[asyncio]>=2.0      # [asyncio] = greenlet — sqladmin 이 import 할 때 필요
 pymysql>=1.1
 cryptography>=43             # MySQL 8 기본 인증(caching_sha2_password)에 필요
 
 # 인증 (Phase 1)
 pyjwt>=2.9
 bcrypt>=4.2
+
+# 관리자 화면 /admin (P1-21, PRD 01 FR-115)
+sqladmin>=0.20
 
 # 오류 추적
 sentry-sdk[fastapi]>=2.14

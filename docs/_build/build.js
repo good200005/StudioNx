@@ -160,6 +160,7 @@ const PDFS = [
   { out: 'ai-notes/20_inquiry_api_template.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 20 — 문의 API 템플릿', files: ['ai-notes/20_inquiry_api_template.md'], base: 'ai-notes' },
   { out: 'ai-notes/21_project_api_template.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 21 — 프로젝트 CRUD API 템플릿', files: ['ai-notes/21_project_api_template.md'], base: 'ai-notes' },
   { out: 'ai-notes/22_dashboard_api_template.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 22 — 마이페이지 대시보드 API 템플릿', files: ['ai-notes/22_dashboard_api_template.md'], base: 'ai-notes' },
+  { out: 'ai-notes/23_dev_notes_admin_template.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 23 — Development 공지 API · 관리자 화면 템플릿', files: ['ai-notes/23_dev_notes_admin_template.md'], base: 'ai-notes' },
 ];
 
 const mode = process.argv[2];
