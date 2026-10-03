@@ -1,22 +1,30 @@
-<!-- 시퀀서 로딩 목업 (B "Signal in"). 같은 폴더에 bg.png(배치안 A 깨끗한 화면), star.svg, star-active.svg 를 두고 render.mjs 로 프레임 캡처 -->
 <!doctype html>
+<!-- 시퀀서 로딩 목업 (B "Signal in") — loader.html?mode=open (기존 프로젝트, 기본) / ?mode=new (새 프로젝트)
+     같은 폴더에 bg.png(기존 프로젝트 화면), bg_new.png(빈 새 프로젝트), star.svg 를 두고 render.mjs 로 캡처 -->
 <html lang="ko"><head><meta charset="utf-8"><title>Sequencer loader — B Signal in</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&display=block">
 <style>
-  :root { --bg:#0b0a0f; --ink:#f4f3f7; --soft:#b9b6c4; --faint:#7f7b8c; --rule:rgb(244 243 247 / .14); --v:#6a24f6; --vi:#a383ff; --red:#ff6b6b; }
+  :root {
+    --bg:#0b0a0f; --ink:#f4f3f7; --soft:#b9b6c4; --faint:#7f7b8c; --rule:rgb(244 243 247 / .14); --vi:#a383ff; --red:#ff6b6b;
+    /* 시간표 — 기존 프로젝트: 불러오기 2.4초 → SIGNAL IN → 0.3초 뒤 열림 */
+    --prog: 2400ms; --open: 2700ms; --s1: 520ms; --s2: 2050ms; --s3: 2350ms; --samples: 1450ms;
+    --scene: url(bg.png);
+  }
+  /* 새 프로젝트: 불러올 샘플이 없음 → 만들기 1.2초 → SIGNAL IN → 0.25초 뒤 열림 */
+  :root.is-new { --prog: 1200ms; --open: 1450ms; --s1: 400ms; --s2: 700ms; --s3: 1150ms; --scene: url(bg_new.png); }
+
   * { box-sizing: border-box; margin: 0; }
   html, body { width: 1440px; height: 900px; overflow: hidden; background: #000; }
   body { font: 600 12px/1 Unbounded, sans-serif; color: var(--ink); }
-  .app { position: absolute; inset: 0; background: url(bg.png) center / cover; }
+  .app { position: absolute; inset: 0; background: var(--scene) center / cover; }
 
-  /* 로딩 = 위·아래 두 장 (가운데 신호선을 따라 열림) */
   .ld { position: absolute; inset: 0; }
   .half { position: absolute; left: 0; right: 0; height: 50%; background: var(--bg); }
-  .half--top { top: 0; animation: open-up 380ms cubic-bezier(.7,0,.3,1) 3450ms both; }
-  .half--bot { bottom: 0; animation: open-down 380ms cubic-bezier(.7,0,.3,1) 3450ms both; }
+  .half--top { top: 0; animation: open-up 380ms cubic-bezier(.7,0,.3,1) var(--open) both; }
+  .half--bot { bottom: 0; animation: open-down 380ms cubic-bezier(.7,0,.3,1) var(--open) both; }
   @keyframes open-up { to { transform: translateY(-100%); } }
   @keyframes open-down { to { transform: translateY(100%); } }
-  .content { position: absolute; inset: 0; animation: gone 120ms linear 3400ms both; }
+  .content { position: absolute; inset: 0; animation: gone 120ms linear calc(var(--open) - 60ms) both; }
   @keyframes gone { to { opacity: 0; } }
 
   .brand { position: absolute; left: 32px; top: 28px; display: flex; align-items: center; gap: 10px; font: 800 16px/1 Unbounded; }
@@ -25,57 +33,42 @@
 
   .title { position: absolute; left: 0; right: 0; top: 300px; text-align: center; }
   .title small { display: block; color: var(--faint); letter-spacing: .24em; font-size: 11px; margin-bottom: 14px; }
+  .is-new .title small { color: var(--vi); }
   .title b { font: 800 40px/1 Unbounded; letter-spacing: -.01em; }
   .title span { display: block; margin-top: 14px; color: var(--soft); font-size: 12px; letter-spacing: .08em; }
 
-  /* 신호선: 평평한 선 위로, 진행률만큼 왼쪽부터 파형이 그려짐 */
+  /* 신호선: 진행률만큼 왼쪽부터 파형. 100% 순간 한 번 빛남 */
   .line { position: absolute; left: 0; top: 390px; width: 1440px; height: 120px; overflow: visible; }
   .flat { stroke: var(--rule); stroke-width: 2; }
   .wave { fill: none; stroke: var(--vi); stroke-width: 2.2; stroke-linejoin: round; stroke-dasharray: 100; stroke-dashoffset: 100;
-          animation: prog-line 2400ms linear both, breathe 900ms ease-in-out 2400ms 2 alternate; }
+          animation: prog-line var(--prog) linear both, flash 300ms ease-out var(--prog) both; }
   @keyframes prog-line { 0% { stroke-dashoffset: 100; } 22% { stroke-dashoffset: 78; } 30% { stroke-dashoffset: 70; } 55% { stroke-dashoffset: 40; }
                          75% { stroke-dashoffset: 18; } 92% { stroke-dashoffset: 4; } 100% { stroke-dashoffset: 0; } }
-  @keyframes breathe { to { stroke-width: 3.4; filter: drop-shadow(0 0 6px rgb(163 131 255 / .7)); } }
+  @keyframes flash { 50% { stroke-width: 3.4; filter: drop-shadow(0 0 8px rgb(163 131 255 / .8)); } }
 
   .tag { position: absolute; left: 0; right: 0; top: 534px; text-align: center; color: var(--faint); letter-spacing: .24em; font-size: 11px; }
   .sw { display: inline-grid; } .sw b { grid-area: 1/1; font-weight: 700; }
-  .no { color: var(--red); animation: hide 1ms linear 2400ms both; }
-  .yes { color: var(--vi); opacity: 0; animation: show 1ms linear 2400ms both; }
+  .no { color: var(--red); animation: hide 1ms linear var(--prog) both; }
+  .yes { color: var(--vi); opacity: 0; animation: show 1ms linear var(--prog) both; }
   @keyframes hide { to { opacity: 0; } } @keyframes show { to { opacity: 1; } }
 
-  /* 진행률 % (정수 변수 → counter) */
   @property --pct { syntax: "<integer>"; inherits: false; initial-value: 0; }
-  .pct { counter-reset: p var(--pct); animation: prog-pct 2400ms linear both; color: var(--ink); }
+  .pct { counter-reset: p var(--pct); animation: prog-pct var(--prog) linear both; color: var(--ink); }
   .pct::before { content: counter(p) "%"; }
   @keyframes prog-pct { 0% { --pct: 0; } 22% { --pct: 22; } 30% { --pct: 30; } 55% { --pct: 60; } 75% { --pct: 82; } 92% { --pct: 96; } 100% { --pct: 100; } }
 
-  /* 불러오는 단계 3개 */
   .steps { position: absolute; left: 0; right: 0; top: 600px; display: flex; justify-content: center; gap: 48px; color: var(--faint); font-size: 11px; letter-spacing: .1em; }
   .step { display: flex; align-items: center; gap: 10px; }
   .dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--faint); }
-  .step--1 .dot { animation: done 1ms linear 520ms both; } .step--1 .st { animation: lit 1ms linear 520ms both; }
-  .step--2 .dot { animation: done 1ms linear 2050ms both; } .step--2 .st { animation: lit 1ms linear 2050ms both; }
-  .step--3 .dot { animation: done 1ms linear 2350ms both; } .step--3 .st { animation: lit 1ms linear 2350ms both; }
+  .step--1 .dot { animation: done 1ms linear var(--s1) both; } .step--1 .st { animation: lit 1ms linear var(--s1) both; }
+  .step--2 .dot { animation: done 1ms linear var(--s2) both; } .step--2 .st { animation: lit 1ms linear var(--s2) both; }
+  .step--3 .dot { animation: done 1ms linear var(--s3) both; } .step--3 .st { animation: lit 1ms linear var(--s3) both; }
   @keyframes done { to { background: var(--vi); border-color: var(--vi); } }
   @keyframes lit { to { color: var(--ink); } }
   @property --n { syntax: "<integer>"; inherits: false; initial-value: 0; }
-  .cnt { counter-reset: n var(--n); animation: samples 1450ms linear 600ms both; }
+  .cnt { counter-reset: n var(--n); animation: samples var(--samples) linear 600ms both; }
   .cnt::before { content: counter(n) "/34"; }
   @keyframes samples { to { --n: 34; } }
-
-  /* 준비됨 → 클릭해서 시작 (오디오는 사용자 클릭이 있어야 켤 수 있음) */
-  .prompt { position: absolute; left: 0; right: 0; top: 680px; display: grid; justify-items: center; gap: 10px; opacity: 0; animation: show 200ms ease-out 2450ms both; }
-  .btn { border: 2px solid var(--vi); color: var(--vi); padding: 14px 28px; font: 800 14px/1 Unbounded; letter-spacing: .12em; position: relative; }
-  .btn::after { content: ""; position: absolute; inset: -8px; border: 1px solid var(--vi); opacity: 0; animation: ring 900ms ease-out 2600ms 2; }
-  @keyframes ring { from { opacity: .8; transform: scale(.94); } to { opacity: 0; transform: scale(1.12); } }
-  .prompt small { color: var(--faint); font-size: 10px; letter-spacing: .12em; }
-
-  /* (목업) 클릭 표시: 보라 별 커서 + 퍼지는 원 */
-  .click { position: absolute; left: 732px; top: 702px; width: 24px; height: 24px; opacity: 0; animation: show 1ms linear 3000ms both, gone 1ms linear 3600ms both; }
-  .click img { width: 24px; height: 24px; display: block; }
-  .click .on { position: absolute; inset: 0; opacity: 0; animation: show 1ms linear 3300ms both; }
-  .click i { position: absolute; left: 12px; top: 12px; width: 0; height: 0; border: 2px solid var(--vi); border-radius: 50%; opacity: 0; animation: ripple 300ms ease-out 3300ms both; }
-  @keyframes ripple { 0% { opacity: .9; width: 0; height: 0; margin: 0; } 100% { opacity: 0; width: 60px; height: 60px; margin: -30px; } }
 </style></head><body>
 <div class="app"></div>
 <div class="ld">
@@ -83,22 +76,30 @@
   <div class="content">
     <div class="brand"><svg viewBox="-1 -5 98 98"><path fill="currentColor" fill-rule="evenodd" d="M73.76 16.83A42 42 0 1 0 88.14 62.36A28 28 0 1 1 73.76 16.83ZM64 -2Q66.66 14.34 83 17Q66.66 19.66 64 36Q61.34 19.66 45 17Q61.34 14.34 64 -2Z"/></svg>Studio Nx</div>
     <div class="win">STUDIO · NEW WINDOW</div>
-    <div class="title"><small>OPENING PROJECT</small><b>Midnight Drive</b><span>128 BPM · 4/4 · A MINOR · 5 TRACKS</span></div>
+    <div class="title"><small id="t-kind">OPENING PROJECT</small><b id="t-name">Midnight Drive</b><span id="t-info">128 BPM · 4/4 · A MINOR · 5 TRACKS</span></div>
     <svg class="line" viewBox="0 0 1440 120" preserveAspectRatio="none"><line class="flat" x1="0" y1="60" x2="1440" y2="60"/><path class="wave" id="wave" pathLength="100"/></svg>
     <p class="tag">INPUT · <span class="sw"><b class="no">NO SIGNAL</b><b class="yes">SIGNAL IN</b></span> · <span class="pct"></span></p>
     <div class="steps">
-      <div class="step step--1"><i class="dot"></i><span class="st">PROJECT DATA</span></div>
-      <div class="step step--2"><i class="dot"></i><span class="st">SAMPLES <span class="cnt"></span></span></div>
+      <div class="step step--1"><i class="dot"></i><span class="st" id="s1">PROJECT DATA</span></div>
+      <div class="step step--2"><i class="dot"></i><span class="st" id="s2">SAMPLES <span class="cnt"></span></span></div>
       <div class="step step--3"><i class="dot"></i><span class="st">AUDIO ENGINE</span></div>
     </div>
-    <div class="prompt"><span class="btn">CLICK TO START</span><small>OR PRESS ANY KEY · AUDIO NEEDS ONE CLICK</small></div>
-    <div class="click"><img src="star.svg" alt=""><img class="on" src="star-active.svg" alt=""><i></i></div>
   </div>
 </div>
 <script>
-// 파형: 가운데가 크고 양 끝이 잦아드는 소리 모양 (목업용 고정 모양)
+// 새 프로젝트 모드: 문구만 바꿈 (시간은 CSS 변수 :root.is-new)
+if (new URLSearchParams(location.search).get('mode') === 'new') {
+  document.documentElement.classList.add('is-new');
+  document.getElementById('t-kind').textContent = 'NEW PROJECT';
+  document.getElementById('t-name').textContent = 'Night Bus';
+  document.getElementById('t-info').textContent = '120 BPM · 4/4 · MASTER TRACK ONLY';
+  document.getElementById('s1').textContent = 'CREATING PROJECT';
+  document.getElementById('s2').textContent = 'MASTER TRACK';
+}
+// 파형 (목업용 고정 모양): 가운데가 크고 양 끝이 잦아듦. 새 프로젝트는 조금 잔잔하게
+const calm = document.documentElement.classList.contains('is-new') ? .55 : 1;
 let d = 'M0 60'; for (let x = 0; x <= 1440; x += 6) {
-  const env = Math.sin(Math.PI * x / 1440) ** 1.4, y = 60 - env * (34 * Math.sin(x * .09) * Math.sin(x * .013 + 1) + 14 * Math.sin(x * .31));
+  const env = Math.sin(Math.PI * x / 1440) ** 1.4, y = 60 - calm * env * (34 * Math.sin(x * .09) * Math.sin(x * .013 + 1) + 14 * Math.sin(x * .31));
   d += ` L${x} ${y.toFixed(1)}`; }
 document.getElementById('wave').setAttribute('d', d);
 </script>
