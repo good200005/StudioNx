@@ -4,10 +4,10 @@
 |---|---|
 | DBMS | MySQL 8.0 (CHECK 제약 사용 → 8.0.16 이상 필요) |
 | Database | `studionx` (문자셋 `utf8mb4` / `utf8mb4_0900_ai_ci`) |
-| 테이블 수 | 34개 |
+| 테이블 수 | 35개 |
 | 설계 원본 | `docs/DB.md` (컬럼 상세·설계 이유), `docs/ERD.md` (관계 설명) |
-| 작성일 | 2026-10-01 (최종 수정 2026-10-02) |
-| 상태 | 로컬 DB에 01~06 실행 완료, 2026-10-02 변경 SQL(§2.5)까지 반영 → **34개 테이블 확인** |
+| 작성일 | 2026-10-01 (최종 수정 2026-10-03) |
+| 상태 | 로컬 DB에 01~06 실행 완료, 2026-10-02 · 10-03 변경 SQL(§2.5)까지 반영 → **35개 테이블 확인** |
 
 ## 1. 파일 구성
 | 순서 | 파일 | 내용 | 테이블 수 | 실행 시기 (구현 계획 기준) |
@@ -23,7 +23,7 @@
 
 - 파일 번호 순서대로 실행해야 합니다. 뒤 파일의 테이블이 앞 파일의 테이블을 외래키로 참조합니다.
 - 한 번에 모두 만들어도 되고, 구현 단계에 맞춰 필요한 파일만 실행해도 됩니다.
-- 확인한 것: 34개 테이블 중복 없음, 모든 외래키 대상이 먼저 생성됨, MySQL 문법 파싱 통과, 로컬 MySQL 8.0에서 실제 실행.
+- 확인한 것: 35개 테이블 중복 없음, 모든 외래키 대상이 먼저 생성됨, MySQL 문법 파싱 통과, 로컬 MySQL 8.0에서 실제 실행.
 
 ## 2. 실행 방법
 > **PowerShell에서는 `<`를 쓸 수 없습니다** (`The '<' operator is reserved for future use.` 오류).
@@ -53,7 +53,7 @@ mysql -u studionx_app -p studionx -e "source db/06_phase6_collaboration.sql"
 
 ### 2.3 확인
 ```
--- 테이블 수 (전부 실행했다면 34)
+-- 테이블 수 (전부 실행했다면 35)
 SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'studionx';
 
 -- 외래키 목록
@@ -74,8 +74,9 @@ mysql -u studionx_app -p studionx -e "source db/99_drop_all_tables.sql"
 
 ```
 mysql -u studionx_app -p studionx -e "source db/migrations/2026-10-02_contact_devnotes.sql"
+mysql -u studionx_app -p studionx -e "source db/migrations/2026-10-03_project_sessions.sql"
 ```
-확인: §2.3의 테이블 수가 34이고, 아래 명령 결과로 한 줄이 나오면 정상입니다.
+확인: §2.3의 테이블 수가 35이고, 아래 명령 결과로 한 줄이 나오면 정상입니다.
 
 ```
 mysql -u studionx_app -p studionx -e "SHOW COLUMNS FROM inquiries LIKE 'privacy_agreed_at';"
@@ -90,6 +91,7 @@ mysql -u studionx_app -p studionx -e "SHOW COLUMNS FROM inquiries LIKE 'privacy_
 | `dev_notes` | 메인 페이지 Development 공지 (관리자만 작성) | FK author_id |
 | `projects` | 시퀀서 프로젝트 | FK owner_id, template_id |
 | `project_members` | 참여자·권한 (생성 시 OWNER 등록) | PK (project_id, user_id) |
+| `project_sessions` | 프로젝트 작업 세션 — 시퀀서(Phase 2)가 기록, 마이페이지가 최근 7일 작업 시간으로 표시 | FK project_id, user_id |
 
 ### 3.2 `02_phase2_sequencer.sql`
 | 테이블 | 설명 | 주요 키 |
@@ -153,7 +155,7 @@ mysql -u studionx_app -p studionx -e "SHOW COLUMNS FROM inquiries LIKE 'privacy_
 ### 5.2 삭제 정책 요약
 | 경우 | 동작 |
 |---|---|
-| 프로젝트 삭제 | 트랙·클립·패턴·노트·디바이스·오토메이션·씬·멤버·초대·이력·채팅·코멘트·스냅샷·출력이 함께 삭제 (CASCADE) |
+| 프로젝트 삭제 | 트랙·클립·패턴·노트·디바이스·오토메이션·씬·멤버·작업 세션·초대·이력·채팅·코멘트·스냅샷·출력이 함께 삭제 (CASCADE) |
 | 프로젝트 삭제 시 레퍼런스·AI 추천·Nyxi 대화 | `project_id`만 NULL (SET NULL) |
 | 사용 중인 샘플·패턴 | 바로 삭제 불가 (RESTRICT) — 샘플은 소프트 삭제 |
 | 트랙·클립 삭제 시 코멘트 | 코멘트는 남고 `track_id`/`clip_id`만 NULL |
@@ -168,3 +170,4 @@ mysql -u studionx_app -p studionx -e "SHOW COLUMNS FROM inquiries LIKE 'privacy_
 | 파일 | 내용 | 실행 대상 |
 |---|---|---|
 | `migrations/2026-10-02_contact_devnotes.sql` | `inquiries.name` NULL 허용 + `privacy_agreed_at` 추가, `dev_notes` 생성 | 2026-10-02 이전에 01~06을 실행한 DB (로컬 DB 실행 완료) |
+| `migrations/2026-10-03_project_sessions.sql` | `project_sessions` 생성 (마이페이지 작업 시간, P1-17) | 2026-10-03 이전에 01을 실행한 DB (로컬 DB 실행 완료) |
