@@ -50,14 +50,14 @@
 | FR-110 | 소셜 로그인 버튼 자리: 로그인 모달과 `join.html`에 Google·Discord·SoundCloud 버튼. 평소 단색, 마우스를 올리면 각 서비스 색. **연동은 추후** — 지금은 누르면 "준비 중" 안내. 연동할 때 `users.password_hash` NULL 허용 + 소셜 계정 연결 테이블 추가 필요 | 권장 |
 | FR-106 | 회원정보 조회/수정: 닉네임, 프로필 이미지 변경. 이메일은 변경 불가 | 필수 |
 | FR-107 | 비밀번호 변경: 현재 비밀번호 확인 후 변경 | 필수 |
-| FR-108 | 회원 탈퇴: 비밀번호 재확인 → `status='DELETED'`, `deleted_at` 기록(소프트 삭제). 탈퇴 계정은 로그인 불가 | 필수 |
+| FR-108 | 회원 탈퇴: 비밀번호 재확인 → `status='DELETED'`, `deleted_at` 기록(소프트 삭제). 탈퇴 계정은 로그인 불가. **같은 이메일·닉네임은 탈퇴 3일 뒤부터 다시 가입 가능**(그 전에는 다시 쓸 수 있는 날짜를 안내). 탈퇴한 사람이 OWNER인 **프로젝트는 지우지 않고 남김** | 필수 |
 
 ### 4.2 홈 / 문의 (inquiries)
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
 | FR-111 | 홈 화면: 첫 화면(히어로) → Service → Character(Nyxi) → Feature → Development → Contact → 푸터. 상단 메뉴는 섹션 앵커, Sign In / Join Us 버튼 (레퍼런스: `studionx/frontend-reference/images/main page reference/`). **로그인 상태**면 헤더와 첫 화면의 버튼이 My Page(`myPage.html`) / My Projects(`myProject.html`)로 바뀜 | 필수 |
 | FR-112 | Contact 폼: **답장 받을 이메일, 제목, 내용(최대 2,000자)** + **개인정보 정책 동의(필수, 정책은 모달)** → 저장(`privacy_agreed_at` 기록). 로그인 상태면 이메일 자동 채움, `user_id` 연결 | 필수 |
-| FR-113 | 문의 남용 방지: 같은 IP/이메일 기준 짧은 시간 내 반복 전송 제한 | 권장 |
+| FR-113 | 문의 남용 방지: 같은 IP/이메일 기준 짧은 시간 내 반복 전송 제한 (서버 메모리에서 셈, 10분에 3번) | 권장 |
 | FR-114 | **Development 공지**: 메인 페이지에 공개된 최신 공지 4개(날짜·제목·요약). "+ View More"로 전체 목록 모달 (목록 디자인은 추후) | 필수 |
 | FR-115 | **관리자 화면**: 공지 작성·수정·공개와 문의 답변은 `users.role = 'ADMIN'` 계정만. FastAPI용 관리자 패널 **SQLAdmin**을 `/admin`에 연결해 사용 (일반 회원·비회원은 읽기만) | 필수 |
 | FR-116 | **오류 페이지**: 페이지 요청이 실패하면 상태별 오류 페이지(404·500·403·503·429·400·504)를 같은 상태 코드로 보여 줌. 공통 헤더·푸터, 메인으로 가는 버튼, 다시 시도·뒤로 가기. API 요청(`/api/...`)은 오류 페이지가 아니라 JSON 오류 형식으로 응답. 디자인 시안 `docs/page_mockups/` | 필수 |
@@ -124,6 +124,8 @@
 | GET | `/users/me` | 내 정보 | ✔ |
 | PATCH | `/users/me` | 닉네임 등 수정 | ✔ |
 | POST | `/users/me/profile-image` | 프로필 이미지 업로드 (multipart) | ✔ |
+| DELETE | `/users/me/profile-image` | 프로필 이미지 지우기 (닉네임 첫 글자로 돌아감) | ✔ |
+| GET | `/users/{user_id}/profile-image` | 프로필 이미지 파일 (`<img src>`용) | - |
 | PUT | `/users/me/password` | 비밀번호 변경 | ✔ |
 | DELETE | `/users/me` | 회원 탈퇴 (body: 비밀번호) | ✔ |
 | POST | `/inquiries` | 문의 등록 (email, title, content, privacy_agreed) | 선택 |
