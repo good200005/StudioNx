@@ -1,0 +1,20 @@
+<!-- 작은 화면 안내 (PRD 01 FR-129) — 시퀀서(studioNx.html)는 폭 1280px 이상에서만 엶 (PRD 00 반응형 기준)
+     쓰는 곳: myProject.html, myPage.html (<div data-include="static/partials/desktop-only-modal.html">)
+     열기·문구 고르기: core/studio.js showDesktopOnly(variant, title)
+     - data-variant="created": 작은 화면에서 프로젝트를 만든 직후
+     - data-variant="open":    작은 화면에서 Open·제목을 눌렀을 때
+     PC로 접속하면 마이페이지 위쪽 'Ready to start' 배너가 이 프로젝트를 보여 줌 (FR-130) -->
+<dialog class="modal modal--narrow" id="desktop-only-modal" aria-labelledby="desktop-only-title">
+  <div class="modal__head">
+    <h2 class="modal__title" id="desktop-only-title">Open on a computer</h2>
+    <button type="button" class="btn btn--ghost modal__close" command="close" commandfor="desktop-only-modal">Close</button>
+  </div>
+  <div class="modal__body">
+    <p class="modal__lead" data-variant="created" hidden><b id="desktop-only-created-name">Summer Loop</b> is saved.</p>
+    <p class="modal__lead" data-variant="open"><b id="desktop-only-open-name">Summer Loop</b> opens in the studio, which needs a larger screen.</p>
+    <p class="modal__note">Sign in on a computer and it'll be waiting at the top of your dashboard.</p>
+    <div class="modal__actions">
+      <button type="button" class="btn btn--primary" command="close" commandfor="desktop-only-modal">Got it</button>
+    </div>
+  </div>
+</dialog>

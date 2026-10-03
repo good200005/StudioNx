@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="static/css/tokens.css">
   <link rel="stylesheet" href="static/css/base.css">
   <link rel="stylesheet" href="static/css/auth.css">
+  <link rel="stylesheet" href="static/css/account.css">
   <link rel="stylesheet" href="static/css/pages/mypage.css">
 </head>
 <body>
@@ -39,6 +40,20 @@
 
     <div class="mp-body">
       <h1 class="mp-title">Dashboard</h1>
+
+      <!-- 이어 하기 배너 (FR-130): 아직 시퀀서에서 한 번도 안 연 프로젝트(내 작업 세션 0개) 중 가장 최근 것
+           - 휴대폰에서 만든 프로젝트를 PC에서 바로 열기 위한 자리. 시퀀서를 열 수 있는 폭(1280px 이상)에서만 보임
+           - 안 연 프로젝트가 없거나 × 로 닫으면 숨김 (닫은 프로젝트 ID는 이 브라우저에 기억 — mypage.js)
+           - 시퀀서에서 한 번 열면 세션이 생겨 다음부터 자동으로 안 나옴 -->
+      <section class="mp-card ready" id="ready-banner" aria-labelledby="ready-title">
+        <p class="ready__label">Ready to start</p>
+        <div class="ready__main">
+          <h2 class="ready__title" id="ready-title">Summer Loop</h2>
+          <p class="ready__meta">Not opened yet · created 5 minutes ago · 120 BPM · 4/4<span id="ready-more"> · 1 more in <a class="text-link text-link--strong" href="myProject.html">My Projects</a></span></p>
+        </div>
+        <a class="btn btn--primary ready__open" id="ready-open" href="studioNx.html?projectId=7">Open in studio</a>
+        <button type="button" class="ready__close" id="ready-close" aria-label="Dismiss">×</button>
+      </section>
 
       <div class="mp-top">
         <!-- 프로필 요약: users.nickname · email · created_at, 사진(profile_image_path)이 있으면 .avatar 안을 <img>로 -->
@@ -194,6 +209,9 @@
       </section>
     </div>
   </main>
+
+  <!-- 작은 화면 안내 모달: static/partials/desktop-only-modal.html (FR-129) — Recent projects 를 작은 화면에서 누를 때 -->
+  <div data-include="static/partials/desktop-only-modal.html"></div>
 
   <!-- 공통 푸터: static/partials/footer.html -->
   <div data-include="static/partials/footer.html"></div>

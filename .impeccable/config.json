@@ -34,19 +34,22 @@
         "rule": "flat-type-hierarchy",
         "value": "*",
         "files": [
-          "studionx/frontend/myPage.html"
+          "studionx/frontend/myPage.html",
+          "studionx/frontend/myProject.html",
+          "studionx/frontend/userInfo.html"
         ],
         "createdAt": "2026-10-03T00:32:11.302Z",
-        "reason": "false positive: static detector does not load pages/mypage.css; rendered sizes verified in browser (h1 DASHBOARD 44px Unbounded, profile h2 20px, body 16px; card titles are 14px tracked uppercase labels by design)"
+        "reason": "false positive: static detector does not load pages/mypage.css; rendered sizes verified in browser (h1 DASHBOARD 44px Unbounded, profile h2 20px, body 16px; card titles are 14px tracked uppercase labels by design); same static-analysis false positive on myProject.html and userInfo.html (h1 44px, share account.css)"
       },
       {
         "rule": "side-tab",
         "value": "*",
         "files": [
-          "studionx/frontend/static/css/pages/mypage.css"
+          "studionx/frontend/static/css/pages/mypage.css",
+          "studionx/frontend/static/css/pages/myproject.css"
         ],
         "createdAt": "2026-10-03T00:32:11.303Z",
-        "reason": "DAW track-colour strip on Recent projects lanes (sequencer track header convention), part of the M-2 mixer-console mockup the user approved (docs/page_mockups/mypage/05~06)"
+        "reason": "DAW track-colour strip on Recent projects lanes (sequencer track header convention), part of the M-2 mixer-console mockup the user approved (docs/page_mockups/mypage/05~06); same track-colour strip on the My Projects list rows (P-2 mockup approved, docs/page_mockups/myproject/03~04)"
       }
     ]
   }
