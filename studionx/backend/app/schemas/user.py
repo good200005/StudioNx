@@ -29,3 +29,19 @@ class MeUpdateRequest(BaseModel):
     """
 
     nickname: str | None = Field(default=None, min_length=NICKNAME_MIN, max_length=NICKNAME_MAX)
+
+
+class PasswordChangeRequest(BaseModel):
+    """PUT /users/me/password (FR-107) — userinfo.js initPasswordForm
+
+    새 비밀번호 조건은 security.check_password_rules 로 서비스에서 검사 (가입과 같은 규칙)
+    """
+
+    current_password: str = Field(min_length=1, max_length=100)
+    new_password: str = Field(min_length=1, max_length=100)
+
+
+class WithdrawRequest(BaseModel):
+    """DELETE /users/me (FR-108) — 본문에 비밀번호 재확인. userinfo.js initWithdrawForm"""
+
+    password: str = Field(min_length=1, max_length=100)

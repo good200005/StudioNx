@@ -17,6 +17,7 @@ class ErrorCode(StrEnum):
     VALIDATION_ERROR = "VALIDATION_ERROR"  # 422 입력값 형식 오류
     UNAUTHORIZED = "UNAUTHORIZED"  # 401 토큰 없음·만료 → 프론트가 재발급 시도 (P1-02)
     INVALID_CREDENTIALS = "INVALID_CREDENTIALS"  # 401 이메일 또는 비밀번호 틀림 (FR-103 통일 문구)
+    WRONG_PASSWORD = "WRONG_PASSWORD"  # 400 로그인한 상태에서 재확인 비밀번호 틀림 (P1-09)
     FORBIDDEN = "FORBIDDEN"  # 403 권한 없음 (다른 사람 프로젝트 등)
     NOT_FOUND = "NOT_FOUND"  # 404
     EMAIL_TAKEN = "EMAIL_TAKEN"  # 409 (P1-04)
