@@ -5,6 +5,7 @@
 import { initAuthState } from '../core/auth-ui.js';
 import { requireLogin, logout } from '../core/auth.js';
 import { includePartials } from '../core/include.js';
+import { initDesktopOnlyLinks } from '../core/studio.js';
 
 /** 하루 칸을 꽉 채우는 작업 시간 (초) — 8시간. 세션 막대 너비 = active_seconds ÷ DAY_FULL_SECONDS */
 export const DAY_FULL_SECONDS = 8 * 60 * 60;
@@ -20,6 +21,8 @@ export const STORAGE_WARN_RATIO = 0.8;
  *     user:    { nickname, email, created_at, profile_image_url },
  *     storage: { quota_bytes, used_bytes, by_kind: { samples, exports, stems, snapshots } },
  *     ai:      { analyses: { used, limit }, questions: { used, limit } },   // 오늘 기준, 자정 초기화
+ *     ready_projects: [                                                // 아직 시퀀서에서 안 연 프로젝트 (내 세션 0개), 최근 생성순 (FR-130)
+ *       { project_id, title, bpm, time_sig_num, time_sig_den, created_at } ],
  *     recent_projects: [
  *       { project_id, title, bpm, music_key, updated_at,
  *         sessions: [ { started_at, last_seen_at, active_seconds } ] }    // 최근 7일, 내 세션만 (project_sessions)
@@ -73,6 +76,21 @@ export function renderRecentProjects(projects) {
 }
 
 /**
+ * 이어 하기 배너 (FR-130) — #ready-banner
+ * - projects 가 비었으면 hidden
+ * - 이 브라우저에서 × 로 닫은 프로젝트(localStorage 'studionx.readyDismissed' = ID 배열)는 빼고 첫 번째를 보여 줌
+ *   (localStorage 는 개인 창 등에서 막힐 수 있으니 try/catch — 실패하면 그냥 보여 줌)
+ * - #ready-title ← 제목, #ready-open href = `studioNx.html?projectId=${id}`
+ * - .ready__meta ← 'Not opened yet · created 5 minutes ago · 120 BPM · 4/4'
+ * - 남은 개수가 있으면 #ready-more ' · 1 more in My Projects', 없으면 #ready-more hidden
+ * - #ready-close: 그 ID를 저장하고 배너 숨김 (다음 안 연 프로젝트는 다음 접속 때)
+ * - 폭 1280px 미만에서는 CSS 가 숨김 (시퀀서를 열 수 없으므로)
+ */
+export function renderReadyBanner(projects) {
+  // TODO
+}
+
+/**
  * 초 → '9h 00m'
  * @param {number} seconds
  * @returns {string}
@@ -94,5 +112,6 @@ await includePartials();
 
 initAuthState();
 // TODO: await requireLogin() — 로그인 안 했으면 home.html#login?next=myPage.html 로 보냄 (core/auth.js)
-// TODO: const data = await loadDashboard(); renderProfile(data.user); renderUsage(data.storage, data.ai); renderRecentProjects(data.recent_projects);
+// TODO: const data = await loadDashboard(); renderReadyBanner(data.ready_projects); renderProfile(data.user); renderUsage(data.storage, data.ai); renderRecentProjects(data.recent_projects);
+initDesktopOnlyLinks(document.getElementById('recent-list'));   // 작은 화면에서 최근 프로젝트를 누르면 안내 (FR-129)
 initLogoutButton();

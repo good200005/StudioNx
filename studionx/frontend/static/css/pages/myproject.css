@@ -1,0 +1,145 @@
+/* myProject.html — 나의 프로젝트 (P1-14)
+   시안: docs/page_mockups/myproject/03_P2_list_desktop.png, 04_P2_list_mobile.png, 05·06(모달) — P-2 콘솔 목록형
+   왼쪽 메뉴·카드·색 등 공통 틀은 account.css, 입력칸은 forms.css, 모달 틀은 base.css(.modal) */
+
+/* ---------- 검색 · 정렬 · 개수 · 새 프로젝트 ---------- */
+.pj-tools {
+  display: grid; grid-template-columns: minmax(0, 22rem) 12rem 1fr auto; align-items: end; gap: var(--sp-6);
+  margin-bottom: var(--sp-6);
+}
+.pj-tools .field__control { padding-top: var(--sp-2); }
+.pj-tools__count { justify-self: end; padding-bottom: var(--sp-2); color: var(--c-ink-soft); font-size: var(--fs-sm); }
+
+/* ---------- 목록 (P-2) ----------
+   열: 이름·설명 | BPM 4rem | 박자 3.5rem | 키 5.5rem | 참여자 7rem | 수정 8rem | Open ··· 7.5rem
+   줄 색은 순서대로 5가지 (마이페이지 최근 프로젝트와 같은 규칙) */
+.pj-list { padding: var(--sp-2) var(--sp-6); }
+.pj-row {
+  --c: var(--mp-c1);
+  position: relative;
+  display: grid; grid-template-columns: minmax(0, 1fr) 4rem 3.5rem 5.5rem 7rem 8rem 7.5rem; align-items: center; gap: var(--sp-4);
+  border-top: 1px solid var(--c-rule);
+}
+#project-list > .pj-row:nth-child(5n + 2) { --c: var(--mp-c2); }
+#project-list > .pj-row:nth-child(5n + 3) { --c: var(--mp-c3); }
+#project-list > .pj-row:nth-child(5n + 4) { --c: var(--mp-c4); }
+#project-list > .pj-row:nth-child(5n + 5) { --c: var(--mp-c5); }
+
+.pj-row--label {
+  padding: var(--sp-3) 0; border-top: 0;
+  color: var(--c-ink-soft); font: 600 0.6875rem / 1 var(--font-text); letter-spacing: 0.1em; text-transform: uppercase;
+}
+.pj-row--label span:first-child { padding-left: var(--sp-4); }
+
+.pj-row__head {
+  display: grid; gap: 2px; min-width: 0;
+  padding: var(--sp-4) 0 var(--sp-4) var(--sp-3);
+  border-left: 3px solid var(--c); color: var(--c-ink); text-decoration: none;
+}
+.pj-row__head b,
+.pj-row__head span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pj-row__head b { font-weight: 600; transition: color var(--dur) var(--ease-out); }
+.pj-row__head:hover b { color: var(--c-violet-ink); }
+.pj-row__head span { color: var(--c-ink-soft); font-size: var(--fs-xs); }
+/* 시퀀서에서 아직 한 번도 안 연 프로젝트 (FR-130) — 모바일에서 만든 뒤 PC에서 이어 갈 것 */
+.pj-badge {
+  display: inline-block; margin-left: var(--sp-2); padding: 3px var(--sp-2); vertical-align: 2px;
+  border: 1px solid var(--c-rule-violet); color: var(--c-violet-ink);
+  font: 700 0.6875rem / 1 var(--font-text); letter-spacing: 0.08em; text-transform: uppercase;
+}
+.pj-row__cell { font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
+.pj-row__when { color: var(--c-ink-soft); }
+
+/* 참여자: 겹친 동그라미 (사진이 생기면 <i> 안에 <img>) + 내 역할(OWNER가 아닐 때만) */
+.pj-row__members { display: flex; align-items: center; }
+.pj-row__members i {
+  width: 1.5rem; height: 1.5rem; margin-right: -0.4rem; overflow: hidden;
+  border: 2px solid var(--c-ground-raised); border-radius: 50%; background: var(--c);
+}
+.pj-row__members i:nth-child(2) { background: var(--mp-c2); }
+.pj-row__members i:nth-child(3) { background: var(--mp-c3); }
+.pj-row__members i img { width: 100%; height: 100%; object-fit: cover; }
+.pj-role {
+  margin-left: var(--sp-3);
+  color: var(--c-violet-ink); font: 700 0.6875rem / 1 var(--font-text); letter-spacing: 0.08em; text-transform: uppercase;
+}
+
+.pj-row__act { display: flex; justify-content: flex-end; align-items: center; gap: var(--sp-1); }
+.pj-row__act .btn { min-height: 2.25rem; padding-inline: var(--sp-4); font-size: var(--fs-xs); }
+
+/* ---------- ··· 메뉴 (<details> — JS 없이 열고 닫힘. 바깥 클릭으로 닫기는 myproject.js) ---------- */
+.pj-menu { position: relative; }
+.pj-more {
+  display: grid; place-items: center; width: 2.25rem; height: 2.25rem;
+  border: 1px solid transparent; color: var(--c-ink-soft); cursor: pointer; list-style: none;
+  font: 700 1rem / 1 var(--font-text); letter-spacing: 0.05em;
+  transition: color var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out);
+}
+.pj-more::-webkit-details-marker { display: none; }
+.pj-more:hover,
+.pj-menu[open] > .pj-more { border-color: var(--c-rule); color: var(--c-ink); }
+.pj-pop {
+  position: absolute; z-index: 5; right: 0; top: calc(100% + 2px);
+  display: grid; min-width: 10rem; padding: var(--sp-1) 0;
+  background: var(--c-ground); border: 1px solid var(--c-rule);
+}
+.pj-pop button {
+  display: flex; justify-content: space-between; align-items: baseline; gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-4); border: 0; background: none; cursor: pointer;
+  color: var(--c-ink); text-align: left; font: 500 var(--fs-sm) / 1.4 var(--font-text);
+}
+.pj-pop button:hover { background: var(--c-ground-raised); }
+.pj-pop .pj-pop__danger { border-top: 1px solid var(--c-rule); color: var(--c-error); }
+.pj-pop button:disabled { color: var(--c-ink-faint); cursor: not-allowed; background: none; }
+.pj-pop small { color: var(--c-ink-faint); font-size: var(--fs-xs); }
+
+/* ---------- 빈 목록 · 검색 결과 없음 ---------- */
+.pj-empty { padding: var(--sp-12) 0; text-align: center; color: var(--c-ink-soft); font-size: var(--fs-sm); }
+
+/* ---------- 페이지 넘김 ---------- */
+.pj-pager { display: flex; justify-content: center; gap: var(--sp-1); margin-top: var(--sp-8); }
+.pj-pager__btn {
+  min-width: 2.5rem; padding: var(--sp-2) var(--sp-3); text-align: center; text-decoration: none;
+  color: var(--c-ink-soft); font: 600 var(--fs-sm) / 1.2 var(--font-text);
+  border-bottom: 2px solid transparent;
+}
+.pj-pager__btn:hover { color: var(--c-ink); }
+.pj-pager__btn[aria-current="page"] { color: var(--c-ink); border-bottom-color: var(--c-violet); }
+.pj-pager__btn[aria-disabled="true"] { opacity: 0.4; pointer-events: none; }
+
+/* ---------- 모달 (새 프로젝트 · 수정 · 삭제 확인) ---------- */
+.pj-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-6); }
+.pj-start { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); padding: 0; border: 0; }
+.pj-start legend { grid-column: 1 / -1; margin-bottom: var(--sp-2); }
+.pj-start__opt {
+  display: grid; grid-template-columns: auto 1fr; gap: 2px var(--sp-2);
+  padding: var(--sp-3); border: 1px solid var(--c-rule); cursor: pointer;
+  transition: border-color var(--dur) var(--ease-out);
+}
+.pj-start__opt input { grid-row: span 2; margin-top: 3px; accent-color: var(--c-violet); }
+.pj-start__opt b { font-size: var(--fs-sm); }
+.pj-start__opt span { color: var(--c-ink-soft); font-size: var(--fs-xs); }
+.pj-start__opt:has(input:checked) { border-color: var(--c-violet-ink); }
+.pj-start__opt:has(input:disabled) { opacity: 0.5; cursor: not-allowed; }
+
+/* ---------- 모바일 (960px 이하) ---------- */
+@media (max-width: 960px) {
+  .pj-tools { grid-template-columns: minmax(0, 1fr) auto; gap: var(--sp-4); }
+  .pj-tools__search { grid-column: 1 / -1; }
+  .pj-tools__new { grid-column: 2; grid-row: 2; }
+  .pj-tools__count { grid-row: 3; justify-self: start; padding-bottom: 0; }
+
+  /* 한 줄: 이름·설명 + ··· / 아래에 'BPM · 키 · 수정' 한 줄. Open 버튼 대신 이름을 누름 */
+  .pj-list { padding: var(--sp-1) var(--sp-4); }
+  .pj-row--label { display: none; }
+  .pj-row { grid-template-columns: minmax(0, 1fr) auto; gap: 0 var(--sp-2); padding-bottom: var(--sp-3); }
+  #project-list > .pj-row:first-child { border-top: 0; }
+  .pj-row__head { grid-column: 1; padding-bottom: var(--sp-1); }
+  .pj-row__act { grid-column: 2; grid-row: 1; }
+  .pj-row__act .btn { display: none; }
+  .pj-row__cell { display: none; }
+  .pj-row__when { grid-column: 1 / -1; display: block; padding-left: calc(var(--sp-3) + 3px); font-size: var(--fs-xs); }
+  .pj-row__when::before { content: attr(data-meta); }
+
+  .pj-form-row { gap: var(--sp-4); }
+}

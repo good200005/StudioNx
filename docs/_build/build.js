@@ -151,6 +151,7 @@ const PDFS = [
   { out: 'ai-notes/10_common_partials.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 10 — 공통 헤더·푸터·로그인 모달 통합', files: ['ai-notes/10_common_partials.md'], base: 'ai-notes' },
   { out: 'ai-notes/11_error_pages.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 11 — 오류 페이지', files: ['ai-notes/11_error_pages.md'], base: 'ai-notes' },
   { out: 'ai-notes/13_mypage.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 13 — 마이페이지 대시보드', files: ['ai-notes/13_mypage.md'], base: 'ai-notes' },
+  { out: 'ai-notes/14_myproject.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 14 — 나의 프로젝트', files: ['ai-notes/14_myproject.md'], base: 'ai-notes' },
 ];
 
 const mode = process.argv[2];

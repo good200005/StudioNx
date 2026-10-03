@@ -105,11 +105,11 @@ PC (960px 초과)                                  모바일 (960px 이하)
 | 할 일 | 위치 |
 |---|---|
 | 로그인 확인 → 안 했으면 `home.html#login?next=myPage.html` | `mypage.js` 맨 아래 TODO (`requireLogin`) |
-| 대시보드 API `GET /api/v1/me/dashboard` (응답 예시는 `loadDashboard` 주석) | 백엔드 |
+| 대시보드 API `GET /api/v1/me/dashboard` (응답 예시는 `loadDashboard` 주석) | 백엔드 P1-16 |
 | 값 채우기 4개 함수 + `formatDuration` | `mypage.js` |
 | 로그아웃 버튼 → `core/auth.js logout()` | `initLogoutButton` |
 | (Phase 2) 작업 세션 신호 API와 시퀀서 쪽 1분 신호 | PRD 02 FR-257 |
-| `userInfo.html`, `myProject.html` | P1-16 (메뉴 링크는 이미 걸려 있음) |
+| `userInfo.html`, `myProject.html` | P1-10, P1-14 (메뉴 링크는 이미 걸려 있음) |
 
 ## 7. 자주 받을 질문 대비
 | 질문 | 답 |
