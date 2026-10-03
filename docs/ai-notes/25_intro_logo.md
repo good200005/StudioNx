@@ -24,8 +24,8 @@
 | `static/assets/logo/favicon.svg` | 새 파일 | 파비콘. 밝은 탭은 진한 보라, 어두운 탭은 밝은 보라 (SVG 안의 `prefers-color-scheme`) |
 | `static/partials/header.html` | 수정 | 임시 초승달 → S2 마크 (`currentColor`라 테마 색을 따름) |
 | 모든 페이지 12개 (`*.html`, `errors/*.html`) | 수정 | 파비콘을 `static/assets/logo/favicon.svg`로 |
-| `home.html` | 수정 | 로딩 오버레이 `.intro` (body 맨 앞), `intro.css` 연결 |
-| `static/css/pages/intro.css` | 새 파일 | 로딩 애니메이션 전부 + 첫 화면 등장을 800ms 미루기 |
+| `home.html` | 수정 | 로딩 오버레이 `.intro` (body 맨 앞), `intro.css` 연결, Unbounded `display=block` |
+| `static/css/pages/intro.css` | 새 파일 | 로딩 애니메이션 전부(-INF → 0 dB 숫자 포함) + 첫 화면 등장을 800ms 미루기 |
 | `static/js/pages/home.js` | 템플릿 추가 | `initIntro()` — 첫 접속만 보이기 (TODO) |
 
 ## 3. 왜 이렇게 했나
@@ -50,7 +50,8 @@
 | 300 → 600 | "Studio Nx" 글자가 왼쪽부터 펼쳐짐 (`clip-path`) |
 | 380 → 560 | 초승달이 채워짐 |
 | 480 → 640 | 반짝임이 회전하며 튀어나옴 — 뿔과 겹친 곳은 비어 있음 |
-| 380 → 780 | 레벨 미터 16칸이 25ms 간격으로 켜짐 (끝 3칸 노랑·빨강 = 0 dB) |
+| 380 → 780 | 레벨 미터 16칸이 25ms 간격으로 켜짐 (끝 3칸 노랑·빨강) |
+| 0 → 755 | 태그 숫자: `-INF dB` → 380ms부터 미터 칸마다 3 dB씩 `-45 … 0 dB` (§3.4) |
 | 800 → 1020 | 살짝 커지며 사라짐, 끝나면 `visibility: hidden` (클릭을 막지 않음) |
 | 800 → | 첫 화면 등장 애니메이션 시작 (원래 지연값 + 800ms) |
 
@@ -63,6 +64,28 @@ JS 없이 CSS만으로 재생·사라짐까지 되므로, JS가 늦거나 실패
 | 같은 탭에서 두 번째 방문 | `<html data-intro="seen">`이면 숨기고 첫 화면은 원래 시간대로 — 이 값을 넣는 일은 `home.js initIntro` (직접 구현) |
 | 화면 읽기 프로그램 | `aria-hidden="true"` — 장식이라 읽지 않음 |
 
+### 3.4 -INF → 0 dB 숫자 (2026-10-03 추가)
+![태그 숫자 — 0·200·379·380·430·505·605·705·755·790ms](images/25_intro_logo/06_db_counter.png)
+
+| 부분 | 만드는 법 |
+|---|---|
+| 숫자 값 | `@property --db { syntax: "<integer>" }`로 **정수 변수**를 등록하고 `-48 → 0`으로 애니메이션 |
+| 미터와 박자 맞추기 | `steps(16, start)` 400ms — 미터가 한 칸 켜질 때(25ms)마다 3 dB씩: -45, -42 … 0 |
+| 화면에 표시 | `counter-reset: db var(--db)` + `::before { content: counter(db) }` — CSS 카운터가 정수를 글자로 바꿈 |
+| -INF | 미터가 켜지기 전(0~380ms)에는 `-INF` 글자, 380ms에 숫자로 교체 (두 글자를 같은 칸에 겹쳐 놓고 투명도만 바꿈) |
+| 흔들림 방지 | 겹쳐 놓은 칸의 너비 = 가장 넓은 `-INF` → 숫자가 바뀌어도 "dB" 위치가 그대로, 숫자는 오른쪽 맞춤 |
+
+> `@property`를 모르는 오래된 브라우저에서는 중간 숫자 없이 `-INF` 다음 `0`만 보입니다 (등록 안 된 변수는 처음·끝 값만 바뀜).
+
+### 3.5 글꼴이 중간에 바뀌던 문제 (2026-10-03 수정)
+| 항목 | 내용 |
+|---|---|
+| 증상 | 로딩 초반 "WARMING UP · 0 DB"가 한 번 바뀌어 보임 |
+| 원인 | 태그 줄이 Pretendard(외부 CDN, `font-display: swap`) → 웹폰트가 오기 전 **대체 글꼴(맑은 고딕)**로 먼저 그렸다가 도착하면 바꿈. 실시간 녹화 0.62초 프레임에서 글자 폭·위치가 뒤 프레임과 다름을 확인 |
+| 수정 1 | 태그 줄도 "Studio Nx"와 같은 **Unbounded** (`·`, `-INF`, 숫자 모두 Unbounded 글자 범위 안) |
+| 수정 2 | `home.html`만 Google Fonts 주소를 `display=block` — 받기 전에는 글자를 잠깐 숨기고(최대 3초), 대체 글꼴은 보여 주지 않음. 로딩이 첫 화면을 덮고 있어 숨김이 드러나지 않음 |
+| 확인 | `CSS.getPlatformFontsForNode`: 이름·태그·`-INF` 모두 `Unbounded (web)` / 실시간 녹화에서 처음 보이는 순간부터 같은 글꼴·같은 위치 |
+
 ## 4. 검증 결과 (2026-10-03)
 | 확인 | 결과 |
 |---|---|
@@ -73,6 +96,7 @@ JS 없이 CSS만으로 재생·사라짐까지 되므로, JS가 늦거나 실패
 | 움직임 줄이기 | 로딩 `display: none` |
 | 콘솔 오류 | 없음 |
 | 경로 확인 | 경로 하나로 그린 S2가 목업(마스크)과 같은 모양, 16·32px에서도 반짝임이 보임 |
+| 태그 글꼴·숫자 (수정 후) | 세 줄 모두 Unbounded 웹폰트, -INF → -45 … 0 dB가 미터 칸과 같은 박자 |
 
 ## 5. 남은 일 (사용자)
 | 할 일 | 파일 |

@@ -10,7 +10,8 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&display=swap">
+  <!-- display=block: Unbounded 를 받기 전엔 글자를 잠깐 숨김 → 로딩 중 대체 글꼴로 보였다가 바뀌지 않음 (다른 페이지는 swap) -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&display=block">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 
   <link rel="stylesheet" href="static/css/tokens.css">
@@ -39,7 +40,7 @@
       </svg>
       <p class="intro__name">Studio Nx</p>
       <div class="intro__meter"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-      <p class="intro__tag">Warming up · 0 dB</p>
+      <p class="intro__tag">WARMING UP · <span class="intro__db"><span class="intro__db-inf">-INF</span><span class="intro__db-num"></span></span> dB</p>
     </div>
   </div>
 
