@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>Sequencer wireframes</title>
+<style>
+  :root { --bg:#0b0a0f; --panel:#15131c; --raised:#1d1a27; --rule:rgb(244 243 247 / .14); --ink:#f4f3f7; --soft:#b9b6c4; --faint:#7f7b8c; --v:#6a24f6; --vi:#a383ff; --note:#ffd166; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #000; font: 13px/1.35 "Malgun Gothic", "Segoe UI", sans-serif; color: var(--ink); }
+  .frame { width: 1440px; height: 900px; background: var(--bg); position: relative; display: grid; overflow: hidden; }
+  .box { border: 1px solid var(--rule); background: var(--panel); position: relative; }
+  .lbl { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); font-weight: 700; }
+  .ann { position: absolute; background: var(--note); color: #1a1500; font-weight: 700; font-size: 12px; padding: 3px 8px; border-radius: 3px; z-index: 5; white-space: nowrap; }
+  .title { position: absolute; left: 16px; bottom: 12px; z-index: 6; background: rgb(106 36 246 / .92); padding: 8px 14px; font-weight: 800; font-size: 16px; }
+  .title small { display: block; font-weight: 400; font-size: 12px; color: #e8e0ff; }
+  /* 상단바 */
+  .top { display: flex; align-items: center; gap: 10px; padding: 0 14px; border-bottom: 1px solid var(--rule); background: var(--panel); }
+  .chip { border: 1px solid var(--rule); padding: 4px 9px; color: var(--soft); font-size: 12px; white-space: nowrap; }
+  .chip.v { border-color: var(--vi); color: var(--vi); }
+  .tp { display: flex; gap: 4px; } .tp i { width: 30px; height: 26px; border: 1px solid var(--rule); display: grid; place-items: center; font-style: normal; color: var(--soft); }
+  .tp i.rec { color: #ff6b6b; }
+  .sp { flex: 1; }
+  .proj { font-weight: 800; font-size: 15px; } .saved { color: var(--faint); font-size: 11px; }
+  /* 브라우저 */
+  .browser { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .search { border-bottom: 1px solid var(--rule); padding: 6px 2px; color: var(--faint); }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; } .tabs span { font-size: 11px; color: var(--soft); border: 1px solid var(--rule); padding: 2px 6px; }
+  .tabs span.on { color: var(--vi); border-color: var(--vi); }
+  .list div { padding: 5px 4px; border-bottom: 1px solid rgb(244 243 247 / .06); color: var(--soft); display: flex; justify-content: space-between; }
+  .list div b { font-weight: 400; color: var(--faint); font-size: 11px; }
+  /* 타임라인 */
+  .tl { display: grid; grid-template-rows: 28px 1fr; overflow: hidden; }
+  .ruler { display: grid; border-bottom: 1px solid var(--rule); background: var(--panel); color: var(--faint); font-size: 11px; }
+  .ruler .bars { display: grid; grid-template-columns: repeat(16, 1fr); } .ruler .bars span { border-left: 1px solid var(--rule); padding: 6px 4px; }
+  .tracks { overflow: hidden; }
+  .trk { display: grid; border-bottom: 1px solid var(--rule); }
+  .hd { padding: 7px 10px; background: var(--raised); border-right: 1px solid var(--rule); display: grid; grid-template-columns: 14px 1fr auto; gap: 6px; align-items: center; }
+  .hd .cap { width: 4px; height: 100%; }
+  .hd b { font-size: 13px; } .hd .ctl { display: flex; gap: 4px; align-items: center; color: var(--faint); font-size: 11px; }
+  .hd .ctl i { font-style: normal; border: 1px solid var(--rule); padding: 0 5px; }
+  .meter { width: 6px; height: 26px; background: linear-gradient(to top, #2ecc71 0 55%, #f1c40f 55% 75%, transparent 75%); border: 1px solid var(--rule); }
+  .lane { position: relative; background: repeating-linear-gradient(90deg, transparent 0 calc(100%/16 - 1px), rgb(244 243 247 / .05) calc(100%/16 - 1px) calc(100%/16)); }
+  .clip { position: absolute; top: 6px; bottom: 6px; border-radius: 3px; opacity: .85; font-size: 11px; padding: 2px 5px; color: #0b0a0f; font-weight: 700; overflow: hidden; }
+  .acc { grid-column: 1 / -1; background: #110f17; border-top: 1px dashed var(--rule); padding: 10px 12px; display: grid; gap: 8px; }
+  .acc .atabs { display: flex; gap: 6px; align-items: center; } .acc .atabs span { font-size: 11px; padding: 2px 8px; border: 1px solid var(--rule); color: var(--soft); }
+  .acc .atabs span.on { color: var(--vi); border-color: var(--vi); }
+  .chain { display: flex; gap: 8px; align-items: stretch; }
+  .dev { width: 150px; border: 1px solid var(--rule); background: var(--raised); padding: 6px 8px; font-size: 11px; color: var(--soft); }
+  .dev b { display: block; color: var(--ink); font-size: 12px; margin-bottom: 6px; }
+  .knobs { display: flex; gap: 8px; } .knobs i { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--vi); display: block; }
+  .arrow { align-self: center; color: var(--faint); }
+  .add { width: 90px; border: 1px dashed var(--rule); display: grid; place-items: center; color: var(--faint); font-size: 11px; }
+  .roll { height: 120px; display: grid; grid-template-columns: 34px 1fr; border: 1px solid var(--rule); }
+  .keys { background: repeating-linear-gradient(to bottom, #ddd 0 9px, #222 9px 15px, #ddd 15px 24px); }
+  .notes { position: relative; background: repeating-linear-gradient(90deg, transparent 0 39px, rgb(244 243 247 / .07) 39px 40px), repeating-linear-gradient(to bottom, transparent 0 11px, rgb(244 243 247 / .05) 11px 12px); }
+  .notes i { position: absolute; height: 10px; background: var(--vi); border-radius: 2px; }
+  .nyxi { position: absolute; width: 150px; height: 170px; border: 1px dashed var(--vi); background: rgb(106 36 246 / .12); display: grid; place-items: center; text-align: center; color: var(--vi); font-weight: 700; border-radius: 8px; z-index: 4; }
+  .bottom { border-top: 1px solid var(--rule); background: var(--panel); display: flex; align-items: center; gap: 8px; padding: 0 12px; }
+  .badge { background: #ff6b6b; color: #000; border-radius: 9px; padding: 0 6px; font-size: 10px; font-weight: 800; }
+  .rail { background: var(--panel); border-right: 1px solid var(--rule); display: flex; flex-direction: column; gap: 4px; padding: 8px 6px; }
+  .rail i { font-style: normal; height: 40px; border: 1px solid var(--rule); display: grid; place-items: center; font-size: 10px; color: var(--soft); }
+  .rail i.on { color: var(--vi); border-color: var(--vi); }
+  .sidepanel { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+</style></head><body>
+
+<!-- ================= A: PRD 기본 — 왼쪽 브라우저 ================= -->
+<section class="frame" id="A" style="grid-template-rows: 52px 1fr 34px; grid-template-columns: 250px 1fr;">
+  <header class="top" style="grid-column: 1 / -1;">
+    <span class="proj">Midnight Drive</span><span class="saved">저장됨 · 12:04</span>
+    <span class="sp"></span>
+    <span class="tp"><i>▶</i><i>■</i><i class="rec">●</i><i>⟲</i></span>
+    <span class="chip">128.00 BPM</span><span class="chip">4/4</span><span class="chip">A minor</span><span class="chip">메트로놈</span>
+    <span class="chip v">어레인지 ⇄ 런처</span>
+    <span class="sp"></span>
+    <span class="chip">💬 톡방</span><span class="chip v">Nyxi</span><span class="chip">⚙</span>
+  </header>
+  <aside class="box browser">
+    <span class="lbl">Browser</span>
+    <div class="search">⌕ 검색 / #태그</div>
+    <div class="tabs"><span class="on">샘플</span><span>패턴</span><span>디바이스</span><span>템플릿</span></div>
+    <div class="list">
+      <div>kick_808.wav <b>0:01</b></div><div>snare_tight.wav <b>0:01</b></div><div>pad_dusk.wav <b>0:08</b></div>
+      <div>vox_chop_A.wav <b>0:02</b></div><div>hat_loop_120.wav <b>0:04</b></div><div>bass_sub.wav <b>0:03</b></div>
+    </div>
+    <div style="margin-top:auto;border:1px dashed var(--rule);padding:14px;text-align:center;color:var(--faint);font-size:11px">파일을 여기로 끌어 놓으면 업로드</div>
+  </aside>
+  <main class="tl">
+    <div class="ruler" style="grid-template-columns: 250px 1fr;"><span style="padding:6px 10px;border-right:1px solid var(--rule)">트랙</span><div class="bars"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span></div></div>
+    <div class="tracks">
+      <div class="trk" style="grid-template-columns: 250px 1fr;">
+        <div class="hd"><span class="cap" style="background:#a383ff"></span><b>▼ 01 Synth Lead</b><span class="ctl"><i>M</i><i>S</i><i>●</i>-3dB<span class="meter"></span></span></div>
+        <div class="lane" style="height:46px"><span class="clip" style="left:12.5%;width:25%;background:#a383ff">Lead A</span><span class="clip" style="left:50%;width:25%;background:#a383ff">Lead A 🔗</span></div>
+        <div class="acc">
+          <div class="atabs"><span class="on">디바이스</span><span>노트</span><span>오토메이션</span><span class="sp"></span><span>체인 ⇄ 패처</span></div>
+          <div class="chain"><div class="dev"><b>Wavetable Synth</b><div class="knobs"><i></i><i></i><i></i><i></i></div></div><span class="arrow">→</span><div class="dev"><b>EQ Eight</b><div class="knobs"><i></i><i></i><i></i></div></div><span class="arrow">→</span><div class="dev"><b>Reverb</b><div class="knobs"><i></i><i></i></div></div><div class="add">+ 디바이스</div></div>
+        </div>
+      </div>
+      <div class="trk" style="grid-template-columns: 250px 1fr;"><div class="hd"><span class="cap" style="background:#2ecc71"></span><b>▶ 02 Drums</b><span class="ctl"><i>M</i><i>S</i>0dB<span class="meter"></span></span></div><div class="lane" style="height:46px"><span class="clip" style="left:0;width:100%;background:#2ecc71">Beat 1 · Beat 1 · Beat 1</span></div></div>
+      <div class="trk" style="grid-template-columns: 250px 1fr;"><div class="hd"><span class="cap" style="background:#f39c12"></span><b>▶ 03 Vocal</b><span class="ctl"><i>M</i><i>S</i><i>●</i>-6dB<span class="meter"></span></span></div><div class="lane" style="height:46px"><span class="clip" style="left:25%;width:31%;background:#f39c12">vox_take2</span></div></div>
+      <div class="trk" style="grid-template-columns: 250px 1fr;"><div class="hd"><span class="cap" style="background:#3498db"></span><b>▶ 04 Bass</b><span class="ctl"><i>M</i><i>S</i>-2dB<span class="meter"></span></span></div><div class="lane" style="height:46px"><span class="clip" style="left:0;width:50%;background:#3498db">Bass line</span></div></div>
+      <div class="trk" style="grid-template-columns: 250px 1fr;"><div class="hd"><span class="cap" style="background:#f4f3f7"></span><b>▶ MASTER</b><span class="ctl">Limiter · -1dB<span class="meter"></span></span></div><div class="lane" style="height:40px"></div></div>
+    </div>
+  </main>
+  <footer class="bottom" style="grid-column: 1 / -1;"><span class="chip">💬 톡방 <span class="badge">2</span></span><span class="chip">Nyxi</span><span class="saved">← 누르면 하단 패널이 올라옴 (평소 숨김)</span></footer>
+  <div class="nyxi" style="right:30px;bottom:60px">Nyxi<br>(떠 있는 창)<br>드래그·크기 조절</div>
+  <span class="ann" style="left:520px;top:470px">↑ 트랙 아코디언 (01 펼친 상태): 그 트랙 바로 밑에서 디바이스·노트·오토메이션 편집</span>
+  <span class="ann" style="left:20px;top:600px">↑ 브라우저 왼쪽 고정 (샘플·패턴·디바이스·템플릿)</span>
+  <div class="title" style="bottom:46px">A · PRD 기본 — 왼쪽 브라우저 고정<small>Ableton식. PRD 02 §6 그림 그대로. 브라우저를 늘 보면서 끌어다 놓기 쉬움</small></div>
+</section>
+
+<!-- ================= B: 아이콘 레일 + 오른쪽 패널 ================= -->
+<section class="frame" id="B" style="grid-template-rows: 44px 40px 1fr; grid-template-columns: 56px 1fr 280px;">
+  <header class="top" style="grid-column: 1 / -1;">
+    <span class="proj">Midnight Drive</span><span class="saved">저장됨</span>
+    <span class="sp"></span><span class="chip">💬 톡방 <span class="badge">2</span></span><span class="chip v">Nyxi</span><span class="chip">⚙</span>
+  </header>
+  <div class="top" style="grid-column: 1 / -1; justify-content:center; background:#110f17">
+    <span class="chip">A minor</span><span class="chip">128.00 BPM</span><span class="chip">4/4</span>
+    <span class="tp"><i>⟲</i><i>■</i><i style="width:44px;color:var(--vi);border-color:var(--vi)">▶</i><i class="rec">●</i></span>
+    <span class="chip">0:42.3 · 12.3.1</span><span class="chip">메트로놈</span><span class="chip v">어레인지 ⇄ 런처</span>
+  </div>
+  <nav class="rail"><i class="on">샘플</i><i>패턴</i><i>디바이스</i><i>템플릿</i><i style="margin-top:auto">AI 분석</i><i>코멘트</i></nav>
+  <main class="tl">
+    <div class="ruler" style="grid-template-columns: 300px 1fr;"><span style="padding:6px 10px;border-right:1px solid var(--rule)">트랙</span><div class="bars"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span></div></div>
+    <div class="tracks">
+      <div class="trk" style="grid-template-columns: 300px 1fr;"><div class="hd"><span class="cap" style="background:#a383ff"></span><b>▶ 01 Synth Lead</b><span class="ctl"><i>M</i><i>S</i><i>●</i>-3dB<span class="meter"></span></span></div><div class="lane" style="height:52px"><span class="clip" style="left:12.5%;width:25%;background:#a383ff">Lead A</span><span class="clip" style="left:50%;width:25%;background:#a383ff">Lead A 🔗</span></div></div>
+      <div class="trk" style="grid-template-columns: 300px 1fr;">
+        <div class="hd"><span class="cap" style="background:#3498db"></span><b>▼ 02 Bass</b><span class="ctl"><i>M</i><i>S</i>-2dB<span class="meter"></span></span></div>
+        <div class="lane" style="height:52px"><span class="clip" style="left:0;width:50%;background:#3498db">Bass line</span></div>
+        <div class="acc">
+          <div class="atabs"><span>디바이스</span><span class="on">노트</span><span>오토메이션</span><span class="sp"></span><span>스케일: A minor ✓</span></div>
+          <div class="roll"><div class="keys"></div><div class="notes"><i style="left:0;top:20px;width:80px"></i><i style="left:80px;top:44px;width:40px"></i><i style="left:120px;top:32px;width:80px"></i><i style="left:240px;top:20px;width:120px"></i><i style="left:400px;top:56px;width:80px"></i><i style="left:520px;top:44px;width:160px"></i></div></div>
+        </div>
+      </div>
+      <div class="trk" style="grid-template-columns: 300px 1fr;"><div class="hd"><span class="cap" style="background:#2ecc71"></span><b>▶ 03 Drums</b><span class="ctl"><i>M</i><i>S</i>0dB<span class="meter"></span></span></div><div class="lane" style="height:52px"><span class="clip" style="left:0;width:100%;background:#2ecc71">Beat 1 · Beat 1 · Beat 1</span></div></div>
+      <div class="trk" style="grid-template-columns: 300px 1fr;"><div class="hd"><span class="cap" style="background:#f4f3f7"></span><b>▶ MASTER</b><span class="ctl">Limiter · -1dB<span class="meter"></span></span></div><div class="lane" style="height:44px"></div></div>
+    </div>
+  </main>
+  <aside class="box sidepanel">
+    <span class="lbl">Samples</span>
+    <div class="search">⌕ 검색 / #태그</div>
+    <div class="list"><div>kick_808.wav <b>0:01</b></div><div>snare_tight.wav <b>0:01</b></div><div>pad_dusk.wav <b>0:08</b></div><div>vox_chop_A.wav <b>0:02</b></div><div>hat_loop_120.wav <b>0:04</b></div></div>
+  </aside>
+  <div class="nyxi" style="right:300px;bottom:24px">Nyxi<br>(떠 있는 창)</div>
+  <span class="ann" style="left:62px;top:560px">← 아이콘 레일: 누른 목록이 오른쪽 패널에 열림 (AI 분석·코멘트도 여기)</span>
+  <span class="ann" style="right:16px;top:400px">↑ 오른쪽 패널 (닫으면 타임라인이 넓어짐)</span>
+  <span class="ann" style="left:380px;top:510px">↑ 펼친 02 Bass: 노트(피아노롤) 탭 · 맨 위 둘째 줄 = 트랜스포트 전용</span>
+  <div class="title">B · 아이콘 레일 + 오른쪽 패널<small>Bitwig·Logic식. 트랜스포트 줄이 따로 있어 크게 보임. AI 분석·코멘트(Phase 5·6) 패널과 자리를 같이 씀</small></div>
+</section>
+
+<!-- ================= C: 브라우저 접이식(오버레이) + 넓은 타임라인 ================= -->
+<section class="frame" id="C" style="grid-template-rows: 52px 1fr 300px 30px; grid-template-columns: 1fr;">
+  <header class="top">
+    <span class="chip v">☰ 브라우저</span><span class="proj">Midnight Drive</span><span class="saved">저장됨</span>
+    <span class="sp"></span>
+    <span class="tp"><i>▶</i><i>■</i><i class="rec">●</i><i>⟲</i></span><span class="chip">128.00 BPM</span><span class="chip">4/4</span><span class="chip">A minor</span>
+    <span class="sp"></span>
+    <span class="chip">⌘P 명령</span><span class="chip">⚙</span>
+  </header>
+  <main class="tl">
+    <div class="ruler" style="grid-template-columns: 220px 1fr;"><span style="padding:6px 10px;border-right:1px solid var(--rule)">트랙</span><div class="bars"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span></div></div>
+    <div class="tracks">
+      <div class="trk" style="grid-template-columns: 220px 1fr;"><div class="hd"><span class="cap" style="background:#a383ff"></span><b>▼ 01 Synth Lead</b><span class="ctl"><i>M</i><i>S</i><span class="meter"></span></span></div><div class="lane" style="height:40px"><span class="clip" style="left:12.5%;width:25%;background:#a383ff">Lead A</span><span class="clip" style="left:50%;width:25%;background:#a383ff">Lead A 🔗</span></div>
+        <div class="acc"><div class="atabs"><span>디바이스</span><span>노트</span><span class="on">오토메이션</span><span class="sp"></span><span>Filter Cutoff ▾</span></div>
+          <div style="height:60px;border:1px solid var(--rule);position:relative"><svg width="100%" height="60" viewBox="0 0 1000 60" preserveAspectRatio="none"><polyline points="0,50 120,50 250,12 400,12 520,40 700,20 1000,30" fill="none" stroke="#a383ff" stroke-width="2"/></svg></div></div></div>
+      <div class="trk" style="grid-template-columns: 220px 1fr;"><div class="hd"><span class="cap" style="background:#2ecc71"></span><b>▶ 02 Drums</b><span class="ctl"><i>M</i><i>S</i><span class="meter"></span></span></div><div class="lane" style="height:40px"><span class="clip" style="left:0;width:100%;background:#2ecc71">Beat 1 · Beat 1 · Beat 1</span></div></div>
+      <div class="trk" style="grid-template-columns: 220px 1fr;"><div class="hd"><span class="cap" style="background:#f4f3f7"></span><b>▶ MASTER</b><span class="ctl">Limiter<span class="meter"></span></span></div><div class="lane" style="height:36px"></div></div>
+    </div>
+  </main>
+  <section class="box" style="padding:10px 14px;display:grid;grid-template-rows:auto 1fr;gap:8px">
+    <div style="display:flex;gap:8px;align-items:center"><span class="chip v">Nyxi</span><span class="chip">💬 톡방</span><span class="sp"></span><span class="saved">하단 패널 (열린 상태) — 위쪽 경계를 끌어 높이 조절 · ✕로 닫기</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div style="border:1px solid var(--rule);padding:10px;color:var(--soft)"><b style="color:var(--vi)">Nyxi</b><br>베이스가 킥과 60Hz에서 겹쳐요. 베이스 EQ에서 60Hz를 -3dB 낮춰 볼까요? <span class="chip v">적용</span></div>
+      <div style="border:1px solid var(--rule);padding:10px;color:var(--soft)"><b>톡방</b><br>mina: 2절 보컬 들어갈 자리 비워 둘게요<br>nightowl: 👍</div>
+    </div>
+  </section>
+  <footer class="bottom"><span class="saved">CPU 18% · 48kHz · 지연 12ms</span><span class="sp"></span><span class="saved">저장됨 12:04</span></footer>
+  <aside class="box browser" style="position:absolute;left:0;top:52px;width:300px;height:518px;z-index:3;box-shadow: 12px 0 30px rgb(0 0 0 / .5)">
+    <span class="lbl">Browser (오버레이)</span><div class="search">⌕ 검색</div>
+    <div class="tabs"><span class="on">샘플</span><span>패턴</span><span>디바이스</span><span>템플릿</span></div>
+    <div class="list"><div>kick_808.wav <b>0:01</b></div><div>pad_dusk.wav <b>0:08</b></div><div>vox_chop_A.wav <b>0:02</b></div><div>bass_sub.wav <b>0:03</b></div></div>
+  </aside>
+  <div class="nyxi" style="right:30px;top:120px">Nyxi<br>(떠 있는 창)</div>
+  <span class="ann" style="left:310px;top:64px">☰ 를 누를 때만 브라우저가 위에 덮여 열림 → 평소엔 타임라인을 끝까지 씀</span>
+  <span class="ann" style="left:310px;top:540px">하단 패널은 토글 — 이 그림은 열린 상태</span>
+  <div class="title" style="bottom:40px">C · 접이식 브라우저 + 최대 타임라인<small>FL Studio·노트북 화면에 유리. 브라우저를 덮어 쓰는 대신 끌어 놓을 때 한 번 더 누름</small></div>
+</section>
+</body></html>
