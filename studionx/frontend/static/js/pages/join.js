@@ -9,6 +9,8 @@ import { includePartials } from '../core/include.js';
  * - [data-check="nickname"] 버튼 → GET /api/v1/auth/check-nickname?nickname=
  * - 사용 가능: setFieldState(field, 'ok', '✓ Available')
  * - 사용 중:   setFieldState(field, 'error', 'This email is already in use.')
+ * - 탈퇴 후 3일 안 (응답 reason === 'REJOIN_TOO_SOON', FR-108):
+ *   setFieldState(field, 'error', `You can sign up again after ${available_at 을 'Oct 6' 형식으로}.`)
  * - 입력값이 바뀌면 확인 결과를 지움 (다시 확인해야 가입 가능)
  * - (권장) 입력을 멈추고 0.5초 뒤 자동 확인 — "실시간 중복 확인"
  */
