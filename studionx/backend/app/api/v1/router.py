@@ -3,7 +3,7 @@
 from fastapi import APIRouter
 from sqlalchemy import text
 
-from app.api.v1 import auth
+from app.api.v1 import auth, users
 from app.db.session import engine
 
 api_router = APIRouter()
@@ -27,4 +27,5 @@ def health_db() -> dict:
 
 
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
+api_router.include_router(users.router, prefix="/users", tags=["users"])
 # TODO(Phase 1): users, projects, inquiries ... 라우터도 같은 방식으로 추가
