@@ -162,6 +162,7 @@ const PDFS = [
   { out: 'ai-notes/22_dashboard_api_template.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 22 — 마이페이지 대시보드 API 템플릿', files: ['ai-notes/22_dashboard_api_template.md'], base: 'ai-notes' },
   { out: 'ai-notes/23_dev_notes_admin_template.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 23 — Development 공지 API · 관리자 화면 템플릿', files: ['ai-notes/23_dev_notes_admin_template.md'], base: 'ai-notes' },
   { out: 'ai-notes/24_ui_review.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 24 — Phase 1 화면 점검과 수정', files: ['ai-notes/24_ui_review.md'], base: 'ai-notes' },
+  { out: 'ai-notes/25_intro_logo.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 25 — 로고(S2) 확정과 첫 접속 로딩', files: ['ai-notes/25_intro_logo.md'], base: 'ai-notes' },
 ];
 
 const mode = process.argv[2];
