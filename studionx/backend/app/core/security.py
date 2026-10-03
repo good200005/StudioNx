@@ -53,6 +53,18 @@ def create_refresh_token(user_id: int) -> str:
     """Refresh Token 발급 (HttpOnly 쿠키에 담음, 자동 로그인 3일 — FR-109).
 
     TODO(P1-05): "type": "refresh", "exp": 지금 + jwt_refresh_days
+    - 자동 로그인을 체크하지 않아도 토큰 자체의 만료는 3일 그대로
+      (체크 안 하면 쿠키가 세션 쿠키라 브라우저를 닫으면 사라짐 — api/v1/auth.py set_refresh_cookie)
+    """
+    raise NotImplementedError
+
+
+def decode_refresh_token(token: str) -> int:
+    """Refresh Token 을 검사하고 user_id 를 돌려준다 (P1-05 /auth/refresh).
+
+    TODO(P1-05): decode_access_token 과 같고, "type" == "refresh" 인지 확인
+    - 실패하면 raise AppError(ErrorCode.UNAUTHORIZED, 401, "Please sign in again.")
+    - 두 함수의 공통 부분은 _decode(token, expected_type) 같은 내부 함수로 묶어도 됨
     """
     raise NotImplementedError
 
