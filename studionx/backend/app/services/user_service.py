@@ -37,9 +37,9 @@ def update_me(db: Session, user: User, data: MeUpdateRequest) -> User:
 
     TODO(P1-08):
     - changes = data.model_dump(exclude_unset=True)
-    - 닉네임이 있고 지금 닉네임과 다르면 auth_service.is_nickname_taken 으로 확인
-      → 사용 중이면
-        raise AppError(ErrorCode.NICKNAME_TAKEN, 409, "This nickname is already in use.")
+    - 닉네임이 있고 지금 닉네임과 다르면 auth_service.check_nickname 으로 확인 (P1-04)
+      → available=False 이면 reason 에 따라 NICKNAME_TAKEN / REJOIN_TOO_SOON 409
+        (예: raise AppError(ErrorCode.NICKNAME_TAKEN, 409, "This nickname is already in use."))
     - user.nickname = ... → db.commit() → db.refresh(user)
     - 동시에 같은 닉네임으로 바꾸는 경우: IntegrityError → rollback → 409 (P1-04 signup 과 같음)
     """

@@ -28,7 +28,7 @@ export async function loadMe() {
  * - #photo-input change: 파일 종류가 PHOTO_TYPES 가 아니거나 PHOTO_MAX_BYTES 를 넘으면
  *   #photo-msg 에 'Use a JPG, PNG or WebP image up to 2 MB.' (전송하지 않음)
  * - 통과하면 FormData 로 api.post('/users/me/profile-image', formData) → 성공하면 #profile-avatar 갱신
- * - #photo-remove: (API 정하기 — 예: DELETE /users/me/profile-image) 후 첫 글자로 되돌림
+ * - #photo-remove: api.delete('/users/me/profile-image') 후 첫 글자로 되돌림
  * - 같은 파일을 다시 고를 수 있게 끝나면 input.value = ''
  */
 export function initPhotoUpload() {

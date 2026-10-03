@@ -27,10 +27,10 @@
 | GET | `/users/me` | ✔ | 내 정보 `MeResponse` |
 | PATCH | `/users/me` | ✔ | 닉네임 변경 (이메일은 변경 불가, FR-106) |
 | POST | `/users/me/profile-image` | ✔ | multipart, 칸 이름 `file` |
-| DELETE | `/users/me/profile-image` | ✔ | 사진 지우기 — **PRD 01 §7 표에 없던 주소** (Remove 버튼용) |
-| GET | `/users/{user_id}/profile-image` | - | 사진 파일 — **PRD 01 §7 표에 없던 주소** (`<img src>`용) |
+| DELETE | `/users/me/profile-image` | ✔ | 사진 지우기 (Remove 버튼용) — 새로 추가 |
+| GET | `/users/{user_id}/profile-image` | - | 사진 파일 (`<img src>`용) — 새로 추가 |
 
-> 새로 넣은 두 주소는 화면(`userinfo.js`의 "API 정하기")에 맞춰 제안한 것입니다. 이대로 쓰기로 하면 PRD 01 §7 표에도 추가합니다.
+> 새로 넣은 두 주소는 화면(`userinfo.js`의 "API 정하기")에 맞춰 제안했고, 사용자 결정(2026-10-03)으로 PRD 01 §7 표에도 추가했습니다.
 
 ### 2.2 사진을 API로 내보내는 이유
 - `storage/`는 웹에 공개하지 않습니다. 정적 파일로 열어 두면 샘플·출력 파일까지 주소만 알면 받을 수 있습니다.
