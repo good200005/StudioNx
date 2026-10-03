@@ -7,7 +7,10 @@ DB 조회·규칙 검사·저장은 이 파일에서 한다.
 from sqlalchemy.orm import Session
 
 from app.models import User
-from app.schemas.auth import SignupRequest
+from app.schemas.auth import AvailabilityResponse, SignupRequest
+
+# 탈퇴 후 같은 이메일·닉네임으로 다시 가입할 수 있기까지 기다리는 기간 (FR-108, 2026-10-03 결정)
+REJOIN_WAIT_DAYS = 3
 
 
 def normalize_email(email: str) -> str:
@@ -19,22 +22,42 @@ def normalize_email(email: str) -> str:
     raise NotImplementedError
 
 
-def is_email_taken(db: Session, email: str) -> bool:
-    """이미 쓰고 있는 이메일인가 (FR-101).
+def release_withdrawn(db: Session, user: User) -> None:
+    """탈퇴 후 3일이 지난 계정의 이메일·닉네임을 비워 새 가입에 쓸 수 있게 한다 (FR-108).
+
+    email·nickname 은 UNIQUE 라서, 탈퇴한 행이 그대로 쥐고 있으면 같은 값으로 가입할 수 없음.
+    그래서 다시 쓰려는 사람이 나타났을 때(가입·중복 확인) 예전 행의 값을 바꿔 둔다.
 
     TODO(P1-04):
-    - stmt = select(User.user_id).where(User.email == normalize_email(email))
-    - return db.scalar(stmt) is not None
-    - 탈퇴(status='DELETED') 계정의 이메일도 UNIQUE 라서 "사용 중"으로 봄
-      (다시 쓸 수 있게 할지는 FR-108 탈퇴 처리에서 정함 — 예: 탈퇴 시 email 을 바꿔 두기)
+    - user.email    = f"deleted+{user.user_id}@withdrawn.invalid"   (.invalid = 실제로 없는 도메인)
+    - user.nickname = f"deleted_{user.user_id}"                     (50자 이내)
+    - db.flush()  — 같은 트랜잭션 안에서 새 행을 넣기 전에 UNIQUE 충돌을 먼저 없앰
+    - 행 자체·deleted_at·남겨 둔 프로젝트(owner_id)는 그대로
     """
     raise NotImplementedError
 
 
-def is_nickname_taken(db: Session, nickname: str) -> bool:
-    """이미 쓰고 있는 닉네임인가 (FR-101). 회원 정보 수정(P1-08)에서도 같이 사용.
+def check_email(db: Session, email: str) -> AvailabilityResponse:
+    """이메일을 쓸 수 있는가 (FR-101 + FR-108 재가입 규칙). 중복 확인 API·가입에서 함께 사용.
 
-    TODO(P1-04): is_email_taken 과 같은 방식 (nickname.strip() 으로 비교)
+    TODO(P1-04):
+    - user = 이메일(normalize_email)이 같은 행
+    - 없으면                                   → available=True
+    - status 가 'ACTIVE' 또는 'SUSPENDED'      → available=False, reason='TAKEN'
+    - status 가 'DELETED' 이고
+        deleted_at + REJOIN_WAIT_DAYS 일 > 지금  → available=False, reason='REJOIN_TOO_SOON',
+                                                   available_at=deleted_at + 3일
+        그 외(3일 지남)                          → release_withdrawn(db, user) 후 available=True
+          (중복 확인 API 에서는 바꾸지 않고 available=True 만 돌려줘도 됨 — 실제 해제는 가입 때)
+    """
+    raise NotImplementedError
+
+
+def check_nickname(db: Session, nickname: str) -> AvailabilityResponse:
+    """닉네임을 쓸 수 있는가. 회원 정보 수정(P1-08)에서도 같이 사용.
+
+    TODO(P1-04): check_email 과 같은 규칙 (nickname.strip() 으로 비교)
+    - 탈퇴 후 3일 안이면 reason='REJOIN_TOO_SOON' — 탈퇴한 사람인 척 바로 같은 이름을 쓰는 것을 막음
     """
     raise NotImplementedError
 
@@ -47,10 +70,14 @@ def signup(db: Session, data: SignupRequest) -> User:
        failed 가 있으면
        raise AppError(ErrorCode.VALIDATION_ERROR, 422, "Check the password requirements.",
                       details={"password": failed})
-    2. is_email_taken
-         → raise AppError(ErrorCode.EMAIL_TAKEN, 409, "This email is already in use.")
-       is_nickname_taken
-         → raise AppError(ErrorCode.NICKNAME_TAKEN, 409, "This nickname is already in use.")
+    2. check_email 결과가 available=False 이면
+         reason 'TAKEN'
+           → AppError(ErrorCode.EMAIL_TAKEN, 409, "This email is already in use.")
+         reason 'REJOIN_TOO_SOON' → AppError(ErrorCode.REJOIN_TOO_SOON, 409,
+                                    "You can sign up with this email again after <날짜>.",
+                                    details={"available_at": ...})
+       check_nickname 도 같은 방식 (NICKNAME_TAKEN / REJOIN_TOO_SOON)
+       - 3일이 지난 탈퇴 행은 check_* 안에서 release_withdrawn 으로 이미 비워짐
     3. user = User(email=normalize_email(data.email), nickname=data.nickname.strip(),
                    password_hash=hash_password(data.password))
        - role·status·용량 등은 DB 기본값('USER', 'ACTIVE', 5GB)을 그대로 씀

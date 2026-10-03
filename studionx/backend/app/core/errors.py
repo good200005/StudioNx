@@ -21,6 +21,7 @@ class ErrorCode(StrEnum):
     NOT_FOUND = "NOT_FOUND"  # 404
     EMAIL_TAKEN = "EMAIL_TAKEN"  # 409 (P1-04)
     NICKNAME_TAKEN = "NICKNAME_TAKEN"  # 409 (P1-04)
+    REJOIN_TOO_SOON = "REJOIN_TOO_SOON"  # 409 탈퇴 후 3일이 지나지 않은 이메일 (FR-108)
     ACCOUNT_DISABLED = "ACCOUNT_DISABLED"  # 403 탈퇴·정지 계정 (FR-108)
     TOO_MANY_REQUESTS = "TOO_MANY_REQUESTS"  # 429 문의 반복 전송 (FR-113)
     INTERNAL_ERROR = "INTERNAL_ERROR"  # 500 (자세한 내용은 Sentry로만)

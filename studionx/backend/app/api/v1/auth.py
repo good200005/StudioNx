@@ -43,7 +43,8 @@ def signup(data: SignupRequest, db: Db) -> SignupResponse:
 def check_email(db: Db, email: Annotated[str, Query(max_length=255)]) -> AvailabilityResponse:
     """이메일 중복 확인 (FR-101 실시간 확인).
 
-    TODO(P1-04): return AvailabilityResponse(available=not auth_service.is_email_taken(db, email))
+    TODO(P1-04): return auth_service.check_email(db, email)
+    - 탈퇴 후 3일 안이면 available=false, reason='REJOIN_TOO_SOON', available_at (FR-108)
     - 형식이 틀린 이메일은 422 로 돌려줄지, available=false 로 돌려줄지 정하기
       (화면은 형식을 먼저 검사하므로 422 권장)
     """
@@ -57,8 +58,6 @@ def check_nickname(
 ) -> AvailabilityResponse:
     """닉네임 중복 확인 (FR-101). 회원 정보 화면(userinfo.js)도 같은 API 사용.
 
-    TODO(P1-04):
-    - taken = auth_service.is_nickname_taken(db, nickname)
-    - return AvailabilityResponse(available=not taken)
+    TODO(P1-04): return auth_service.check_nickname(db, nickname)
     """
     raise NotImplementedError

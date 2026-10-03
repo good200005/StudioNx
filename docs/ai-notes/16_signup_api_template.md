@@ -16,7 +16,7 @@
 | `app/api/v1/auth.py` | 템플릿 | `POST /auth/signup`, `GET /auth/check-email`, `GET /auth/check-nickname` — 경로·상태 코드·응답 모양 완성, 본문은 TODO |
 | `app/api/v1/router.py` | 수정 | `auth.router`를 `/auth`로 연결 |
 | `app/schemas/auth.py` | 완성 + TODO | `SignupRequest`, `SignupResponse`, `AvailabilityResponse`, `NICKNAME_MIN/MAX`. 이메일 형식 검사만 TODO |
-| `app/services/auth_service.py` | 템플릿 | `normalize_email`, `is_email_taken`, `is_nickname_taken`, `signup` — 순서를 TODO로 |
+| `app/services/auth_service.py` | 템플릿 | `normalize_email`, `check_email`, `check_nickname`, `release_withdrawn`, `signup` — 순서를 TODO로 |
 | `tests/test_auth_routes.py` | 완성 | 세 주소가 `/api/v1/auth`에 연결됐는지 확인 (구현 전에도 통과) |
 
 > 이미 있던 `core/security.py`의 `check_password_rules`, `hash_password`(P1-04 TODO)도 이번 작업에서 채웁니다.
@@ -28,13 +28,13 @@
 | 라우터 (`api/v1/auth.py`) | 요청을 받고 서비스 결과를 응답 스키마로 바꿈 |
 | 서비스 (`services/auth_service.py`) | DB 조회, 규칙 검사, 저장, `AppError` 던지기 |
 
-`is_nickname_taken`은 회원 정보 수정(P1-08)에서도 그대로 다시 씁니다.
+`check_nickname`은 회원 정보 수정(P1-08)에서도 그대로 다시 씁니다.
 
 ### 2.2 API 모양
 | Method | Path | 성공 | 실패 |
 |---|---|---|---|
 | POST | `/auth/signup` | 201 `{user_id, email, nickname}` | 409 `EMAIL_TAKEN` / `NICKNAME_TAKEN`, 422 `VALIDATION_ERROR` |
-| GET | `/auth/check-email?email=` | 200 `{"available": true}` | 422 (형식 오류, 선택) |
+| GET | `/auth/check-email?email=` | 200 `{"available": true}` 또는 `{"available": false, "reason": …}` | 422 (형식 오류, 선택) |
 | GET | `/auth/check-nickname?nickname=` | 200 `{"available": false}` | 422 (길이 초과) |
 
 - 화면(`join.js`)이 보내는 JSON `{ email, nickname, password }`와 이름을 맞췄습니다.
@@ -48,7 +48,19 @@
 | 이메일·닉네임 중복 | 서비스 | DB 조회가 필요 |
 | 동시 가입 | `db.commit()`의 `IntegrityError` | 중복 확인 직후 다른 사람이 같은 값으로 가입할 수 있음 → DB UNIQUE가 최종 방어 |
 
-### 2.4 이메일 정규화
+### 2.4 탈퇴 후 재가입 (2026-10-03 결정)
+| 이메일·닉네임을 가진 행 | 결과 |
+|---|---|
+| 없음 | 사용 가능 |
+| `ACTIVE`, `SUSPENDED` | 사용 중 — 409 `EMAIL_TAKEN` / `NICKNAME_TAKEN` |
+| `DELETED`, 탈퇴 후 3일 안 | 409 `REJOIN_TOO_SOON` + `available_at` (다시 쓸 수 있는 시각) |
+| `DELETED`, 3일 지남 | `release_withdrawn`으로 예전 행의 값을 `deleted+{id}@withdrawn.invalid`, `deleted_{id}`로 바꾼 뒤 가입 |
+
+- `email`·`nickname`은 UNIQUE라서, 탈퇴한 행이 값을 쥐고 있으면 새 행을 넣을 수 없습니다. 그래서 다시 쓰려는 사람이 나타난 시점에 예전 행의 값을 비웁니다. DB 구조는 바꾸지 않습니다.
+- 기다리는 기간은 `REJOIN_WAIT_DAYS = 3` 한 곳에서 정합니다. 닉네임도 같은 규칙을 적용해, 탈퇴 직후 다른 사람이 같은 이름을 쓰지 못하게 했습니다.
+- 중복 확인 응답에 `reason`, `available_at`을 더해 화면이 "Oct 6 이후 다시 가입할 수 있어요"처럼 안내할 수 있게 했습니다.
+
+### 2.5 이메일 정규화
 `normalize_email`(앞뒤 공백 제거 + 소문자)을 중복 확인과 저장에 모두 거치게 했습니다. `A@x.com`과 `a@x.com`이 서로 다른 계정이 되는 것을 막기 위해서입니다.
 
 ## 3. 검증 결과 (2026-10-03)

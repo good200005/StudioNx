@@ -1,5 +1,7 @@
 """인증 API 요청·응답 스키마 (PRD 01 §7). 회원가입·중복 확인 = P1-04, 로그인 = P1-05."""
 
+from datetime import datetime
+
 from pydantic import BaseModel, Field
 
 # 닉네임 길이 (PRD 01 FR-101) — 화면(join.html, userInfo.html)과 같은 규칙
@@ -38,8 +40,12 @@ class SignupResponse(BaseModel):
 class AvailabilityResponse(BaseModel):
     """GET /auth/check-email, /auth/check-nickname
 
-    {"available": true}  → 화면: '✓ Available'
-    {"available": false} → 화면: 'This email is already in use.' 등
+    {"available": true}                                → 화면: '✓ Available'
+    {"available": false, "reason": "TAKEN"}            → 'This email is already in use.' 등
+    {"available": false, "reason": "REJOIN_TOO_SOON",
+     "available_at": "2026-10-06T09:00:00Z"}           → 'You can sign up again after Oct 6.'
     """
 
     available: bool
+    reason: str | None = None  # 'TAKEN' | 'REJOIN_TOO_SOON' (available=false 일 때만)
+    available_at: datetime | None = None  # REJOIN_TOO_SOON 일 때 다시 쓸 수 있는 시각 (UTC)
