@@ -69,7 +69,7 @@ PRD의 Phase는 **기능 묶음**이고, 이 문서의 단계는 **구현 순서
 | P1-17 | 마이페이지 | `myPage.html`: 좌측 메뉴, 프로필 카드, 최근 프로젝트, 위젯 자리 | FR-121 | AI(화면) / 직접(JS) | 1.5일 | `feature/phase1/p1-17-mypage` |
 | P1-18 | 마무리 | 테스트(pytest): 가입·로그인·재발급, 다른 사람 프로젝트 접근 차단, 탈퇴 계정 로그인 | §10 | 직접 (요청 시 AI) | 2일 | `feature/phase1/p1-18-tests` |
 | P1-19 | 마무리 | `docs/ai-notes/` 설명 문서, `develop`으로 PR | — | AI / 직접 | 0.5일 | `feature/phase1/p1-19-ai-notes-pr` |
-| P1-20 | 홈 · 문의 | `home.html` 첫 접속 로딩(인트로) 애니메이션 약 1초 → 첫 화면 전환, 건너뛰기 없음 — **보류: 사용자 레퍼런스 대기** | FR-111 | AI | 0.5일 | `feature/phase1/p1-20-intro-loader` |
+| P1-20 | 홈 · 문의 | `home.html` 첫 접속 로딩(인트로) 애니메이션 약 1초 → 첫 화면 전환, 건너뛰기 없음 — 로딩 C "Crescent" + 로고 S2 (2026-10-03, [ai-notes 25](ai-notes/25_intro_logo.md)) | FR-111 | AI(화면) / 직접(첫 접속만 JS) | 0.5일 | `feature/phase1/p1-20-intro-loader` |
 | P1-21 | 홈 · 문의 | Development 공지 API(`GET /dev-notes`) + **SQLAdmin 관리자 화면**(`/admin`, ADMIN만) — 공지 작성·문의 답변 | FR-114~115 | 직접 (요청 시 AI) | 2일 | `feature/phase1/p1-21-dev-notes-admin` |
 | P1-22 | 공통 기반 | **오류 페이지** 7종(404·500·403·503·429·400·504, F-2 "숫자 자체가 신호" 디자인) + 페이지 요청 오류 시 HTML·API 요청 오류 시 JSON 응답 | FR-116 | AI(화면) / 직접(백엔드 연결) | 1일 | `feature/phase1/p1-22-error-pages` |
 
@@ -81,7 +81,8 @@ PRD의 Phase는 **기능 묶음**이고, 이 문서의 단계는 **구현 순서
 | 화면(AI) 완료 | P1-01, 06, 10, 11, 14, 17, 22 화면 + 화면 점검([ai-notes 24](ai-notes/24_ui_review.md)) | ✅ |
 | 템플릿(AI) 완료 | P1-02·03 뼈대, P1-04·05·08·09·12·13·16·21 템플릿 (PR #24~31, [ai-notes 16~23](ai-notes/)) | ✅ — YouTrack In Progress |
 | 직접 구현 | 아래 5단계 순서 | 다음 주부터 |
-| 보류 | P1-15 시퀀서 틀, P1-20 로딩 애니메이션 | ⏸ 레퍼런스 대기 |
+| 로딩·로고 | P1-20 로딩 C + 로고 S2 (헤더·파비콘 교체) | ✅ 화면 — 첫 접속만 보이기 JS는 직접 |
+| 보류 | P1-15 시퀀서 틀 | ⏸ 사용자 설계 문서 대기 |
 
 직접 구현 순서 (각 템플릿 `.py` 파일 맨 위 주석에도 같은 내용):
 

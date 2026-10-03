@@ -6,7 +6,7 @@
   <title>Studio Nx — Make your noise</title>
   <meta name="description" content="A DAW sequencer that runs in your browser. Give it a track you love and its AI suggests presets, mixing and mastering settings.">
   <meta name="theme-color" content="#0b0a0f">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23a383ff' d='M20.6 3.2A13 13 0 1 0 28.8 22 10.5 10.5 0 1 1 20.6 3.2Z'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="static/assets/logo/favicon.svg">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,9 +18,31 @@
   <link rel="stylesheet" href="static/css/forms.css">
   <link rel="stylesheet" href="static/css/auth.css">
   <link rel="stylesheet" href="static/css/pages/home.css">
+  <link rel="stylesheet" href="static/css/pages/intro.css">
   <link rel="preload" as="image" href="static/characters/nyxi/hero.png" fetchpriority="high">
 </head>
 <body>
+  <!-- 첫 접속 로딩 (P1-20, 로딩 C "Crescent") — 약 1초, 건너뛰기 없음. 끝나면 첫 화면 등장 애니메이션이 이어짐
+       - CSS만으로 재생·사라짐 (static/css/pages/intro.css). 화면 읽기 프로그램에는 숨김
+       - 첫 접속만 보이기: <html data-intro="seen"> 이면 숨김 → home.js initIntro (TODO, 직접 구현)
+       - 움직임 줄이기 설정이면 보이지 않음 -->
+  <div class="intro" aria-hidden="true">
+    <div class="intro__stack">
+      <svg class="intro__mark" viewBox="-1 -5 98 98">
+        <defs>
+          <clipPath id="intro-moon"><path d="M73.76 16.83A42 42 0 1 0 88.14 62.36A28 28 0 1 1 73.76 16.83Z"/></clipPath>
+          <clipPath id="intro-star"><path d="M64 -2Q66.66 14.34 83 17Q66.66 19.66 64 36Q61.34 19.66 45 17Q61.34 14.34 64 -2Z"/></clipPath>
+        </defs>
+        <path class="intro__line" d="M73.76 16.83A42 42 0 1 0 88.14 62.36A28 28 0 1 1 73.76 16.83Z" pathLength="100"/>
+        <path class="intro__moon" clip-path="url(#intro-moon)" fill-rule="evenodd" d="M73.76 16.83A42 42 0 1 0 88.14 62.36A28 28 0 1 1 73.76 16.83ZM64 -2Q66.66 14.34 83 17Q66.66 19.66 64 36Q61.34 19.66 45 17Q61.34 14.34 64 -2Z"/>
+        <path class="intro__star" clip-path="url(#intro-star)" fill-rule="evenodd" d="M73.76 16.83A42 42 0 1 0 88.14 62.36A28 28 0 1 1 73.76 16.83ZM64 -2Q66.66 14.34 83 17Q66.66 19.66 64 36Q61.34 19.66 45 17Q61.34 14.34 64 -2Z"/>
+      </svg>
+      <p class="intro__name">Studio Nx</p>
+      <div class="intro__meter"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <p class="intro__tag">Warming up · 0 dB</p>
+    </div>
+  </div>
+
   <a class="skip-link" href="#main">Skip to content</a>
 
   <!-- 공통 헤더: static/partials/header.html (core/include.js 가 끼움) -->

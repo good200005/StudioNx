@@ -1,0 +1,87 @@
+/* 첫 접속 로딩 (P1-20) — 로딩 C "Crescent" (목업: docs/page_mockups/loader/03_C_crescent.gif)
+   시간표 (ms)    0 ─ 초승달 윤곽선 그리기 ─ 400
+                     300 ─ "Studio Nx" 글자 펼침 ─ 600
+                        380 ─ 초승달 채움 ─ 560 · 480 ─ 반짝임 ─ 640
+                        380 ─ 레벨 미터 16칸 (25ms 간격) ─ 780
+                                                 800 ─ 살짝 커지며 사라짐 ─ 1020
+   - 첫 화면 등장 애니메이션(home.css)은 800ms 뒤에 시작 → 로딩이 사라지는 순간 이어짐
+   - <html data-intro="seen"> 이면 로딩을 숨기고 첫 화면은 원래 시간대로 (첫 접속만 보이기 — home.js initIntro)
+   - 움직임 줄이기 설정이면 로딩 자체를 보이지 않음 */
+
+.intro { display: none; }
+
+@media (prefers-reduced-motion: no-preference) {
+  :root:not([data-intro="seen"]) .intro {
+    position: fixed; inset: 0; z-index: 1000;
+    display: grid; place-items: center;
+    background: var(--c-ground);
+    animation: intro-out 220ms ease-in 800ms both;
+  }
+
+  .intro__stack { display: grid; justify-items: center; gap: var(--sp-4, 1.25rem); }
+
+  /* 로고 마크 S2: 윤곽선이 그려지고 → 초승달이 채워지고 → 반짝임이 튀어나옴 (겹친 곳은 비어 있음) */
+  .intro__mark { width: clamp(5.5rem, 9vw, 7.5rem); height: auto; overflow: visible; }
+  .intro__line {
+    fill: none; stroke: var(--c-violet-ink); stroke-width: 1.2;
+    stroke-dasharray: 100; stroke-dashoffset: 100;
+    animation: intro-draw 400ms cubic-bezier(.3, 0, .2, 1) both, intro-fade 120ms linear 560ms both;
+  }
+  .intro__moon { fill: var(--c-violet-ink); opacity: 0; animation: intro-fill 180ms ease-out 380ms both; }
+  .intro__star {
+    fill: var(--c-ink); opacity: 0; transform-box: fill-box; transform-origin: 50% 50%;
+    animation: intro-pop 160ms var(--ease-out) 480ms both;
+  }
+
+  .intro__name {
+    font: 800 clamp(1.6rem, 2.6vw, 2.2rem) / 1 var(--font-display); letter-spacing: -0.01em; color: var(--c-ink);
+    clip-path: inset(0 100% 0 0);
+    animation: intro-wipe 300ms cubic-bezier(.3, 0, .2, 1) 300ms both;
+  }
+
+  /* 레벨 미터: 왼쪽부터 25ms 간격으로 켜짐, 끝의 세 칸은 노랑·빨강 (0 dB) */
+  .intro__meter { display: flex; gap: 4px; }
+  .intro__meter i { width: 14px; height: 10px; background: color-mix(in srgb, var(--c-ink) 10%, transparent); animation: intro-lit 1ms linear both; }
+  .intro__meter i:nth-child(1)  { animation-delay: 380ms; }
+  .intro__meter i:nth-child(2)  { animation-delay: 405ms; }
+  .intro__meter i:nth-child(3)  { animation-delay: 430ms; }
+  .intro__meter i:nth-child(4)  { animation-delay: 455ms; }
+  .intro__meter i:nth-child(5)  { animation-delay: 480ms; }
+  .intro__meter i:nth-child(6)  { animation-delay: 505ms; }
+  .intro__meter i:nth-child(7)  { animation-delay: 530ms; }
+  .intro__meter i:nth-child(8)  { animation-delay: 555ms; }
+  .intro__meter i:nth-child(9)  { animation-delay: 580ms; }
+  .intro__meter i:nth-child(10) { animation-delay: 605ms; }
+  .intro__meter i:nth-child(11) { animation-delay: 630ms; }
+  .intro__meter i:nth-child(12) { animation-delay: 655ms; }
+  .intro__meter i:nth-child(13) { animation-delay: 680ms; }
+  .intro__meter i:nth-child(14) { animation-delay: 705ms; --lit: #ffd166; }
+  .intro__meter i:nth-child(15) { animation-delay: 730ms; --lit: #ffd166; }
+  .intro__meter i:nth-child(16) { animation-delay: 755ms; --lit: #ff6b6b; }
+
+  .intro__tag {
+    font: 700 var(--fs-xs, .75rem) / 1 var(--font-text); letter-spacing: .24em; text-transform: uppercase;
+    color: var(--c-ink-faint);
+  }
+
+  /* 첫 화면 등장(home.css)을 로딩 뒤로 800ms 미룸 — 원래 지연값 + 800ms */
+  :root:not([data-intro="seen"]) .hero__band { animation-delay: 800ms; }
+  :root:not([data-intro="seen"]) .hero__echo--1 { animation-delay: 1150ms; }
+  :root:not([data-intro="seen"]) .hero__echo--2 { animation-delay: 1300ms; }
+  :root:not([data-intro="seen"]) .hero__echo--3 { animation-delay: 1450ms; }
+  :root:not([data-intro="seen"]) .hero__title span { animation-delay: 800ms; }
+  :root:not([data-intro="seen"]) .hero__title span:nth-child(2) { animation-delay: 890ms; }
+  :root:not([data-intro="seen"]) .hero__title span:nth-child(3) { animation-delay: 980ms; }
+  :root:not([data-intro="seen"]) :is(.hero__lede, .hero__sub) { animation-delay: 1120ms; }
+  :root:not([data-intro="seen"]) .hero__nyxi { animation-delay: 920ms; }
+  :root:not([data-intro="seen"]) .hero__scroll::after { animation-delay: 2s; }
+}
+
+@keyframes intro-draw { to { stroke-dashoffset: 0; } }
+@keyframes intro-fade { to { opacity: 0; } }
+@keyframes intro-fill { to { opacity: 1; } }
+@keyframes intro-pop  { from { opacity: 0; transform: scale(.3) rotate(-45deg); } to { opacity: 1; transform: none; } }
+@keyframes intro-wipe { to { clip-path: inset(0); } }
+@keyframes intro-lit  { to { background: var(--lit, var(--c-violet-ink)); } }
+/* 사라진 뒤에는 클릭을 막지 않고, 화면에서도 완전히 빠짐 */
+@keyframes intro-out  { to { opacity: 0; transform: scale(1.06); visibility: hidden; pointer-events: none; } }
