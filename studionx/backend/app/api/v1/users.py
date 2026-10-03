@@ -6,12 +6,17 @@ P1-09: PUT /users/me/password, DELETE /users/me (이 파일에 이어서 추가)
 화면 쪽: static/js/pages/userinfo.js (P1-10), mypage.js
 """
 
-from fastapi import APIRouter, UploadFile
+from fastapi import APIRouter, Response, UploadFile, status
 from fastapi.responses import FileResponse
 
 from app.api.deps import CurrentUser, Db
 from app.schemas.common import ErrorResponse
-from app.schemas.user import MeResponse, MeUpdateRequest
+from app.schemas.user import (
+    MeResponse,
+    MeUpdateRequest,
+    PasswordChangeRequest,
+    WithdrawRequest,
+)
 
 router = APIRouter()
 
@@ -72,5 +77,38 @@ def read_profile_image(user_id: int, db: Db) -> FileResponse:
     TODO(P1-08): return FileResponse(user_service.profile_image_file(db, user_id))
     - <img> 요청에는 Authorization 헤더를 붙일 수 없으므로 로그인 확인을 하지 않음
     - (선택) headers={"Cache-Control": "public, max-age=86400"} — 주소에 ?v= 가 붙어 있어 안전
+    """
+    raise NotImplementedError
+
+
+# ── P1-09 비밀번호 변경 · 회원 탈퇴 ──────────────────────────────
+
+
+@router.put(
+    "/me/password",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={400: {"model": ErrorResponse}, 422: {"model": ErrorResponse}},
+)
+def change_password(data: PasswordChangeRequest, user: CurrentUser, db: Db) -> None:
+    """비밀번호 변경 (FR-107).
+
+    TODO(P1-09): user_service.change_password(db, user, data.current_password, data.new_password)
+    - 화면: 400 WRONG_PASSWORD → 'Current password is incorrect.' (#pw-current-field)
+    """
+    raise NotImplementedError
+
+
+@router.delete(
+    "/me",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={400: {"model": ErrorResponse}},
+)
+def withdraw(data: WithdrawRequest, response: Response, user: CurrentUser, db: Db) -> None:
+    """회원 탈퇴 (FR-108) — 본문 {"password": "..."}.
+
+    TODO(P1-09):
+    - user_service.withdraw(db, user, data.password)
+    - 리프레시 쿠키도 지움: auth.clear_refresh_cookie(response)  (api/v1/auth.py, P1-05)
+    - 화면: 성공하면 clearAccessToken() → home.html
     """
     raise NotImplementedError

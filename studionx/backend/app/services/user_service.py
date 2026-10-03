@@ -85,3 +85,49 @@ def profile_image_file(db: Session, user_id: int) -> Path:
     - return path
     """
     raise NotImplementedError
+
+
+# ── P1-09 비밀번호 변경 · 회원 탈퇴 ──────────────────────────────
+
+
+def check_current_password(user: User, password: str) -> None:
+    """로그인한 사용자의 비밀번호 재확인 (비밀번호 변경·탈퇴 공통).
+
+    TODO(P1-09):
+    - verify_password(password, user.password_hash) 가 False 이면
+      raise AppError(ErrorCode.WRONG_PASSWORD, 400, "Password is incorrect.")
+    - 401 을 쓰지 않는 이유: 화면(api.js)은 401 을 받으면 토큰 재발급을 시도하기 때문
+    """
+    raise NotImplementedError
+
+
+def change_password(db: Session, user: User, current_password: str, new_password: str) -> None:
+    """비밀번호 변경 (FR-107).
+
+    TODO(P1-09):
+    1. check_current_password(user, current_password)
+    2. failed = check_password_rules(new_password) → 있으면 422 (P1-04 signup 과 같은 모양,
+       details={"new_password": failed})
+    3. (선택) 새 비밀번호가 지금 비밀번호와 같으면 422 "Use a different password."
+    4. user.password_hash = hash_password(new_password) → commit
+    5. (선택) 다른 기기 로그아웃 — 리프레시 토큰을 DB에 두지 않으므로 지금은 불가 (ai-notes 17 §2.4)
+    """
+    raise NotImplementedError
+
+
+def withdraw(db: Session, user: User, password: str) -> None:
+    """회원 탈퇴 — 소프트 삭제 (FR-108).
+
+    TODO(P1-09):
+    1. check_current_password(user, password)
+    2. user.status = 'DELETED', user.deleted_at = 지금(UTC)
+    3. 이후 로그인 차단: authenticate(P1-05)·get_current_user(P1-03)·get_active_user 가
+       status != 'ACTIVE' 를 막으므로 여기서 따로 할 일 없음
+    4. 정하기 (사용자 결정):
+       - 같은 이메일·닉네임으로 다시 가입할 수 있게 할지
+         (UNIQUE 라서 그대로 두면 다시 못 씀 → 예: email 을 f"deleted+{user_id}@..." 로 바꿔 두기)
+       - 내가 OWNER 인 프로젝트: 함께 소프트 삭제(projects.deleted_at) 할지
+       - 프로필 사진 파일 지우기 (delete_profile_image 재사용)
+    5. db.commit()
+    """
+    raise NotImplementedError

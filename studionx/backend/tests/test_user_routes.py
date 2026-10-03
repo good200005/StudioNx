@@ -9,3 +9,10 @@ def test_profile_routes_registered():
     assert {"get", "patch"} <= paths["/api/v1/users/me"].keys()
     assert {"post", "delete"} <= paths["/api/v1/users/me/profile-image"].keys()
     assert "get" in paths["/api/v1/users/{user_id}/profile-image"]
+
+
+def test_password_withdraw_routes_registered():
+    paths = app.openapi()["paths"]
+
+    assert "put" in paths["/api/v1/users/me/password"]
+    assert "delete" in paths["/api/v1/users/me"]
