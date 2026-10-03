@@ -9,6 +9,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.admin import setup_admin
 from app.api.v1.router import api_router
 from app.core.config import ROOT_DIR, get_settings
 from app.core.errors import register_exception_handlers
@@ -30,6 +31,7 @@ app.add_middleware(
 )
 
 app.include_router(api_router, prefix=settings.api_prefix)
+setup_admin(app)  # 관리자 화면 /admin (app/admin.py, P1-21) — 프론트 마운트보다 먼저
 
 # 프론트엔드 정적 파일 — API 라우터보다 뒤에 마운트해야 /api 경로를 가리지 않는다
 # 없는 페이지 → errors/404.html (상태 404), 없는 API → JSON 404 (core/site_files.py)
