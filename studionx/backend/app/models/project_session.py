@@ -1,3 +1,15 @@
+# ──────────────────────────────────────────────────────────────────────
+# [직접 구현 안내] 단계 순서: 1) P1-03 → 2) P1-04·05 → 3) P1-08·09·12·13 → 4) P1-16 → 5) P1-21·22
+#
+# P1-16 마이페이지 대시보드
+#   브랜치  : feature/phase1/p1-16-dashboard-api
+#   순서    : 4단계 — P1-08·P1-13 병합 후
+#
+# 시작 전 : git switch feature/phase1/p1-16-dashboard-api
+#           git merge feature/phase1-account   ← 앞 단계 구현을 받아 오기 (꼭)
+# 끝나면  : PR → feature/phase1-account  (병합되면 YouTrack Closed)
+# 설명 문서: docs/ai-notes/ (작업별 템플릿 설명) · 순서 원본: docs/Implementation_Plan.md §2.1
+# ──────────────────────────────────────────────────────────────────────
 """project_sessions 테이블 (DB.md §3.1) — 뼈대: 구현은 직접 (P1-16 읽기, 기록은 Phase 2 FR-257)."""
 
 from sqlalchemy import BigInteger, ForeignKey
