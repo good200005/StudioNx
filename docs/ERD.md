@@ -1,6 +1,6 @@
 # Studio Nx — ERD (관계 설명)
 
-> 그림: [`ERD.png`](ERD.png) · 컬럼 상세: [`DB.md`](DB.md) §3 · DBMS: MySQL 8.0 (`studionx`) · 테이블 34개
+> 그림: [`ERD.png`](ERD.png) · 컬럼 상세: [`DB.md`](DB.md) §3 · DBMS: MySQL 8.0 (`studionx`) · 테이블 35개
 
 ![Studio Nx ERD](ERD.png)
 
@@ -23,7 +23,7 @@
 | 영역 | 테이블 | 핵심 역할 |
 |---|---|---|
 | 계정 · 사이트 운영 | `users`, `user_settings`, `inquiries`, `dev_notes` | 회원(+저장 용량), UI 설정(테마·단축키·캐릭터·튜토리얼), 문의, 메인 페이지 Development 공지 |
-| 프로젝트 · 협업 | `projects`, `project_members`, `invitations`, `project_change_logs`, `chat_messages`, `timeline_comments`, `project_snapshots` | 프로젝트와 참여자·초대·편집이력·톡방·코멘트·스냅샷 |
+| 프로젝트 · 협업 | `projects`, `project_members`, `project_sessions`, `invitations`, `project_change_logs`, `chat_messages`, `timeline_comments`, `project_snapshots` | 프로젝트와 참여자·작업 세션·초대·편집이력·톡방·코멘트·스냅샷 |
 | 시퀀서 | `tracks`, `track_plugins`, `track_plugin_links`, `patterns`, `launcher_scenes`, `clips`, `midi_notes`, `automation_lanes`, `automation_points` | 곡의 실제 내용 (트랙·디바이스·라우팅·패턴·런처·클립·노트·오토메이션) |
 | 라이브러리 · 플러그인 · 템플릿 | `samples`, `tags`, `sample_tags`, `plugins`, `plugin_presets`, `project_templates` | 샘플 라이브러리, 태그, 웹 플러그인 목록·프리셋, 프로젝트 템플릿 |
 | 출력 · 분리 | `export_jobs`, `separation_jobs`, `separation_stems` | 오디오 출력 작업, 악기 분리 작업과 결과 |
@@ -46,6 +46,7 @@
 | 부모 → 자식 | 관계 | 연결 컬럼 | 설명 |
 |---|---|---|---|
 | projects ↔ users | N : M | `project_members(project_id, user_id)` | 참여자와 권한(OWNER/EDITOR/VIEWER). 소유자도 OWNER로 들어감 |
+| projects → project_sessions | 1 : N | `project_sessions.project_id` | 작업 세션 (작업한 사람 `user_id` → users). 마이페이지 최근 7일 작업 시간 |
 | projects → invitations | 1 : N | `invitations.project_id` | 초대 (inviter·invitee → users) |
 | projects → project_change_logs | 1 : N | `project_change_logs.project_id` | 실시간 편집 이력, `(project_id, revision)` 유일 |
 | projects → chat_messages | 1 : N | `chat_messages.project_id` | 프로젝트 = 톡방 |

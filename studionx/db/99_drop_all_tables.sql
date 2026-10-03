@@ -35,6 +35,7 @@ DROP TABLE IF EXISTS plugins;
 DROP TABLE IF EXISTS sample_tags;
 DROP TABLE IF EXISTS tags;
 DROP TABLE IF EXISTS samples;
+DROP TABLE IF EXISTS project_sessions;
 DROP TABLE IF EXISTS project_members;
 DROP TABLE IF EXISTS projects;
 DROP TABLE IF EXISTS dev_notes;

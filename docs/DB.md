@@ -97,6 +97,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | 32 | `timeline_comments` | 타임라인 코멘트 (위치 댓글·답글·해결) | 6 |
 | 33 | `project_snapshots` | 버전 스냅샷 | 6 |
 | 34 | `dev_notes` | 메인 페이지 Development 공지 (관리자만 작성) | 1 |
+| 35 | `project_sessions` | 프로젝트 작업 세션 (마이페이지 최근 7일 작업 시간) | 1 (표시) / 2 (기록) |
 
 ---
 
@@ -175,6 +176,19 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | created_at | DATETIME(3) | N | CURRENT | | |
 | updated_at | DATETIME(3) | N | CURRENT (ON UPDATE) | IDX | 최근 수정순 정렬용 |
 | deleted_at | DATETIME(3) | Y | NULL | | 소프트 삭제 |
+
+#### `project_sessions` — 작업 세션 (마이페이지 작업 시간)
+| 컬럼 | 타입 | NULL | 기본값 | 키 | 설명 |
+|---|---|---|---|---|---|
+| session_id | BIGINT UNSIGNED | N | AUTO_INCREMENT | PK | |
+| project_id | BIGINT UNSIGNED | N | | FK → projects, IDX(project_id, started_at) | 작업한 프로젝트 |
+| user_id | BIGINT UNSIGNED | N | | FK → users, IDX(user_id, started_at) | 작업한 사람 (협업 프로젝트도 **본인 시간만** 셈) |
+| started_at | DATETIME(3) | N | CURRENT | | 시퀀서에서 프로젝트를 연 시각 |
+| last_seen_at | DATETIME(3) | N | CURRENT | | 마지막 신호 시각 (시퀀서가 1분마다 보냄). 신호가 끊긴 시각 = 세션 끝 |
+| active_seconds | INT UNSIGNED | N | 0 | | 실제 작업 시간(초). 마우스·키보드 입력이 **5분 넘게 없는 구간은 빼고** 더함 |
+
+> - 기록: 시퀀서(Phase 2)가 프로젝트를 열면 행을 만들고, 1분마다 `last_seen_at`과 `active_seconds`를 갱신합니다. 마지막 신호가 10분 넘게 지났으면 새 세션을 만듭니다.
+> - 표시: 마이페이지(Phase 1)가 `user_id` 기준 최근 7일 행을 읽어 요일별 막대와 합계를 그립니다. 날짜는 UTC로 저장하고, 요일 구분은 브라우저 시간대로 합니다. 자정을 넘긴 세션은 시작한 날에 표시합니다.
 
 ---
 
@@ -634,6 +648,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | separation_jobs → separation_stems | CASCADE | |
 | ai_analyses → ai_recommendations | CASCADE | |
 | projects → project_members / invitations / change_logs / chat_messages | CASCADE | |
+| projects → project_sessions | CASCADE | 작업 시간 기록은 프로젝트와 함께 삭제 (프로젝트는 소프트 삭제라 실제로는 남음) |
 | users → (각종 FK) | RESTRICT | 회원은 소프트 삭제만 하므로 실제 DELETE가 일어나지 않음 |
 | *.project_id (NULL 허용: reference_tracks, ai_recommendations, assistant_messages) | SET NULL | 프로젝트가 지워져도 분석 기록은 남김 |
 
@@ -736,6 +751,21 @@ CREATE TABLE project_members (
   KEY idx_project_members_user (user_id),
   CONSTRAINT fk_pm_project FOREIGN KEY (project_id) REFERENCES projects (project_id) ON DELETE CASCADE,
   CONSTRAINT fk_pm_user    FOREIGN KEY (user_id)    REFERENCES users (user_id)
+) ENGINE=InnoDB;
+
+-- 작업 세션: 시퀀서(Phase 2)가 기록, 마이페이지(Phase 1)가 최근 7일 작업 시간으로 표시
+CREATE TABLE project_sessions (
+  session_id     BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  project_id     BIGINT UNSIGNED NOT NULL,
+  user_id        BIGINT UNSIGNED NOT NULL,
+  started_at     DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  last_seen_at   DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  active_seconds INT UNSIGNED    NOT NULL DEFAULT 0,
+  PRIMARY KEY (session_id),
+  KEY idx_project_sessions_user (user_id, started_at),
+  KEY idx_project_sessions_project (project_id, started_at),
+  CONSTRAINT fk_ps_project FOREIGN KEY (project_id) REFERENCES projects (project_id) ON DELETE CASCADE,
+  CONSTRAINT fk_ps_user    FOREIGN KEY (user_id)    REFERENCES users (user_id)
 ) ENGINE=InnoDB;
 
 -- ========== Phase 2 ==========
@@ -1253,4 +1283,5 @@ CREATE TABLE project_snapshots (
 | 2026-10-01 | 트랙 아코디언(체인+패처): `tracks.routing_mode`, `track_plugins.node_x/node_y`, `track_plugin_links` 추가 · 캐릭터/하단 패널: `user_settings` 추가 · Gopher: `assistant_messages` 추가 · ERD를 직선 이미지(`ERD.png`)로 교체 (총 26개 테이블) |
 | 2026-10-01 | AI 제안 채택 반영: `patterns`·`launcher_scenes`(패턴·클립 런처, **`midi_notes.clip_id` → `pattern_id`**), `automation_lanes`·`automation_points`, `project_templates`, `timeline_comments`, `project_snapshots` 추가 / `tracks`: MASTER 타입·담당자·잠금 / `projects`: `scale_mode`·`template_id` / `users`: 저장 용량 / `user_settings`: 테마·배율·단축키·튜토리얼 / Gopher → Nyxi(가칭) (총 33개 테이블) |
 | 2026-10-02 | `dev_notes`(메인 페이지 Development 공지, 관리자만 작성) 추가 · `inquiries.name` NULL 허용, `inquiries.privacy_agreed_at` 추가 (총 34개 테이블). 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-02_contact_devnotes.sql` · §2.1에 남아 있던 옛 테이블 목록 삭제 |
+| 2026-10-03 | `project_sessions`(프로젝트 작업 세션) 추가 — 마이페이지 Recent Projects의 최근 7일 작업 시간 (P1-17). 총 35개 테이블. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-03_project_sessions.sql` |
 | 2026-10-01 | 이름 **Nyxi** 확정 · `user_settings.tips_level`/`tips_state`(Nyxi 팁) · `plugins.card_asset` 및 `param_schema`의 `primary`/`group`(카드 UI·상세 모달) 추가 |

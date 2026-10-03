@@ -65,7 +65,8 @@
 ### 4.3 마이페이지 / 프로젝트 (projects)
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
-| FR-121 | 마이페이지 대시보드: 프로필 요약, 최근 수정 프로젝트 5개, 샘플 라이브러리 개수(Phase 2 이후 표시), **저장 용량·AI 사용량 위젯**(§4.4) | 필수 |
+| FR-121 | 마이페이지 대시보드: 프로필 요약, 최근 수정 프로젝트 5개, 샘플 라이브러리 개수(Phase 2 이후 표시), **저장 용량·AI 사용량 위젯**(§4.4). 디자인은 M-2 믹서 콘솔형(시안 `docs/page_mockups/mypage/05~06`) | 필수 |
+| FR-128 | 최근 프로젝트의 **최근 7일 작업 시간**: PC는 요일별 세션 막대(하루 8시간 = 칸 가득) + 7일 합계, 모바일은 7일 합계만. 내 시간만 셈(`project_sessions`, 기록은 PRD 02 FR-257). 기록이 없으면 빈 칸과 `0h 00m` | 필수 |
 | FR-122 | 프로젝트 생성: 제목(필수), 설명, BPM(기본 120), 박자(기본 4/4) 입력. 생성 시 `project_members`에 본인을 `OWNER`로 함께 등록하고, **MASTER 트랙 1개를 자동 생성** | 필수 |
 | FR-127 | 생성 방식 선택: [빈 프로젝트] / [템플릿으로 시작](PRD 02 §4.14). 템플릿 선택 시 **확인창**에 BPM·트랙 구성 등 생성 내용 요약 후 [만들기] | 필수 (2단계부터) |
 | FR-123 | 프로젝트 목록: 최근 수정순 정렬, 제목 검색, 페이지네이션 | 필수 |
@@ -132,7 +133,7 @@
 | GET | `/projects/{project_id}` | 프로젝트 기본 정보 | ✔ 멤버 |
 | PATCH | `/projects/{project_id}` | 제목·설명 수정 | ✔ OWNER/EDITOR |
 | DELETE | `/projects/{project_id}` | 프로젝트 삭제 | ✔ OWNER |
-| GET | `/me/dashboard` | 대시보드 요약 (용량·AI 사용량 포함) | ✔ |
+| GET | `/me/dashboard` | 대시보드 요약 (용량·AI 사용량, 최근 프로젝트 5개 + 최근 7일 작업 세션 포함) | ✔ |
 | GET | `/me/storage` | 저장 용량 상세 (종류별 사용량, 큰 파일 목록) | ✔ |
 | GET | `/users/me/settings` · PATCH | 환경 설정 조회·저장 (PRD 02 §7) | ✔ |
 
@@ -143,6 +144,7 @@
 - `dev_notes` (Development 공지)
 - `projects`
 - `project_members` (프로젝트 생성 시 OWNER 행 등록용 — 협업 기능 자체는 Phase 6)
+- `project_sessions` (마이페이지 최근 7일 작업 시간 — 읽기만, 기록은 Phase 2 시퀀서)
 - `tracks` (프로젝트 생성 시 MASTER 트랙 자동 생성)
 - `user_settings` (환경 설정), `users.storage_quota_bytes` / `storage_used_bytes` (용량)
 

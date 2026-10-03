@@ -127,6 +127,7 @@
 | FR-254 | 프로젝트 불러오기: 트랙·클립·패턴·노트·디바이스·오토메이션 상태를 한 번에 로드하고 오디오 그래프 재구성 | 필수 |
 | FR-255 | Undo/Redo: 클라이언트에서 명령(Command) 단위로 이력 관리 (최소 100단계) | 필수 |
 | FR-256 | 저장하지 않은 변경이 있을 때 페이지를 떠나면 경고 | 필수 |
+| FR-257 | 작업 시간 기록: 프로젝트를 열면 `project_sessions` 행 생성, 1분마다 신호를 보내 `last_seen_at`·`active_seconds` 갱신. 마우스·키보드 입력이 5분 넘게 없는 구간은 빼고, 신호가 10분 넘게 끊기면 다음 신호부터 새 세션. 마이페이지(PRD 01 FR-128)가 표시 | 필수 |
 
 ### 4.6 WASM 플러그인 인터페이스 (C++ 연동 규격 초안)
 > C++ 구현은 사용자가 직접 합니다. AI는 아래 **입출력 규격**만 문서로 정의합니다.
@@ -354,6 +355,7 @@
 | GET | `/projects/{id}/full` | 프로젝트 전체 상태(트랙, 클립, 패턴, 노트, 디바이스, 연결선, 오토메이션, 씬) 한 번에 조회 |
 | PUT | `/projects/{id}/full` | 프로젝트 전체 상태 저장 (트랜잭션으로 일괄 반영) |
 | PATCH | `/projects/{id}/settings` | BPM, 박자, 키, 스케일 |
+| POST | `/projects/{id}/sessions/heartbeat` | 작업 세션 신호 (body: 지난 신호 이후 입력이 있었던 초). 세션이 없거나 끊겼으면 새로 만듦 |
 | POST | `/samples` | 샘플 업로드 (multipart, 다중 파일, 녹음 포함 `source`) — 용량 초과 시 413 |
 | GET | `/samples?query=&tag=&page=` | 내 라이브러리 목록 |
 | GET | `/samples/{id}/file` | 오디오 파일 스트리밍 (본인/프로젝트 멤버만, ETag로 캐시 검증) |
@@ -390,6 +392,7 @@
 - `projects` (bpm, time_sig_*, music_key, scale_mode, template_id)
 - `users` (storage_quota_bytes, storage_used_bytes)
 - `user_settings` (테마·배율·단축키·캐릭터·하단 패널·튜토리얼)
+- `project_sessions` (작업 시간 기록 — 마이페이지 표시용)
 
 ## 9. AI 역할 구분
 | 영역 | 이 Phase에서 AI가 하는 일 |
