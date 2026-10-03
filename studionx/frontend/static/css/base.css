@@ -77,20 +77,21 @@ a {
 .btn--primary {
   background: var(--c-ground); border-color: var(--c-violet-ink); color: var(--c-violet-ink);
 }
-.btn--primary:hover { background: #ffffff; border-color: #ffffff; color: var(--c-violet); }
+.btn--primary:hover { background: var(--c-invert); border-color: var(--c-invert); color: var(--c-invert-accent); }
 .btn--ghost { background: var(--c-ground); border-color: var(--c-rule); color: var(--c-ink); }
-.btn--ghost:hover { background: #ffffff; border-color: #ffffff; color: var(--c-ground); }
+.btn--ghost:hover { background: var(--c-invert); border-color: var(--c-invert); color: var(--c-ground); }
 /* 되돌릴 수 없는 행동 (프로젝트 삭제, 회원 탈퇴 …)
    - .btn--danger        확인창의 최종 버튼: 빨간 면 + 바탕색 글자
    - .btn--danger-ghost  확인창을 여는 버튼: 빨간 윤곽·글자 */
 .btn--danger { background: var(--c-error); border-color: var(--c-error); color: var(--c-ground); }
-.btn--danger:hover { background: #ffffff; border-color: #ffffff; color: var(--c-ground); }
+.btn--danger:hover { background: var(--c-invert); border-color: var(--c-invert); color: var(--c-ground); }
 .btn--danger-ghost { background: none; border-color: var(--c-error); color: var(--c-error); }
 .btn--danger-ghost:hover { background: var(--c-error); color: var(--c-ground); }
 
 /* 버튼 모양이 아닌 글자 링크형 행동 (+ View More, 개인정보정책 등) */
 .text-link {
   padding: 0; border: 0; background: none; cursor: pointer;
+  display: inline-flex; align-items: center; min-height: 24px;   /* 누르는 영역 24px 이상 (WCAG 2.5.8) */
   color: var(--c-ink-soft); text-decoration: none;
   font: 600 var(--fs-sm) / 1.4 var(--font-text); letter-spacing: 0.04em;
   transition: color var(--dur) var(--ease-out);

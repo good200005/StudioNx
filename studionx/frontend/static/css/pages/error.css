@@ -22,7 +22,7 @@ body { display: flex; flex-direction: column; min-height: 100svh; }
 .err__mid { position: relative; color: transparent; -webkit-text-stroke: 3px var(--c-violet); }   /* 가운데 0: 보라 윤곽 */
 
 /* 404 신호 없음: 바랜 숫자 + 아래 평평한 선 */
-.err--404 .err__num { color: rgb(244 243 247 / .14); }
+.err--404 .err__num { color: color-mix(in srgb, var(--c-ink) 14%, transparent); }
 .err__line { position: absolute; left: -2%; width: 104%; bottom: 0; height: .14em; overflow: visible; }
 .err__line path { fill: none; stroke: var(--c-violet-ink); stroke-width: 3; vector-effect: non-scaling-stroke; }
 
@@ -37,7 +37,7 @@ body { display: flex; flex-direction: column; min-height: 100svh; }
 
 /* 403 잠김: 흐린 숫자 + 0 의 바깥 고리에 정확히 닿는 사선
    inset 은 Unbounded 0 글자의 고리 범위를 측정한 값 (글꼴을 바꾸면 다시 측정) */
-.err--403 .err__num { color: rgb(244 243 247 / .32); }
+.err--403 .err__num { color: color-mix(in srgb, var(--c-ink) 32%, transparent); }
 .err--403 .err__mid::after {
   content: ""; position: absolute; inset: .004em .02em .02em .035em;
   background: linear-gradient(to bottom right, transparent calc(50% - .04em), var(--c-violet) calc(50% - .04em),
