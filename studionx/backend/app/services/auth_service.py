@@ -1,4 +1,4 @@
-"""회원가입 · 중복 확인 서비스 — 템플릿: 구현은 직접 (P1-04).
+"""회원가입 · 중복 확인 (P1-04) · 로그인 (P1-05) 서비스 — 템플릿: 구현은 직접.
 
 라우터(api/v1/auth.py)는 요청을 받아 여기 함수를 부르기만 하고,
 DB 조회·규칙 검사·저장은 이 파일에서 한다.
@@ -86,5 +86,36 @@ def signup(db: Session, data: SignupRequest) -> User:
        → db.commit() 에서 sqlalchemy.exc.IntegrityError 를 잡아 db.rollback() 후 409
          (어느 칸인지는 오류 메시지의 uq_users_email / uq_users_nickname 으로 구분)
     6. return user
+    """
+    raise NotImplementedError
+
+
+def authenticate(db: Session, email: str, password: str) -> User:
+    """로그인 확인 (FR-103). 맞으면 User, 틀리면 401.
+
+    TODO(P1-05):
+    1. user = 이메일(normalize_email)로 조회
+    2. user 가 없거나 verify_password(password, user.password_hash) 가 False 이면
+       raise AppError(ErrorCode.INVALID_CREDENTIALS, 401, "Email or password is incorrect.")
+       - 어느 쪽이 틀렸는지 알려주지 않음 (FR-103 통일 문구)
+       - (권장) user 가 없을 때도 가짜 해시로 verify_password 를 한 번 돌려 응답 시간 차이를 줄임
+    3. user.status 확인 (FR-108)
+       - 'DELETED'   → 위와 같은 INVALID_CREDENTIALS (탈퇴한 계정이 있었는지도 알려주지 않음)
+       - 'SUSPENDED' → raise AppError(ErrorCode.ACCOUNT_DISABLED, 403, "This account is disabled.")
+    4. user.last_login_at = 지금 (UTC) → db.commit()
+    5. return user
+    """
+    raise NotImplementedError
+
+
+def get_active_user(db: Session, user_id: int) -> User:
+    """재발급(/auth/refresh)용: 토큰의 user_id 가 아직 로그인할 수 있는 계정인지.
+
+    TODO(P1-05):
+    - user = db.get(User, user_id)
+    - 없거나 status != 'ACTIVE' 이면
+      raise AppError(ErrorCode.UNAUTHORIZED, 401, "Please sign in again.")
+      (탈퇴 직후 남아 있던 리프레시 쿠키로 다시 들어오는 것을 막음)
+    - get_current_user(api/deps.py)와 검사가 같으므로 한쪽에서 이 함수를 불러 써도 됨
     """
     raise NotImplementedError

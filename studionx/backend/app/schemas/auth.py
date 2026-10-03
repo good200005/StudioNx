@@ -49,3 +49,25 @@ class AvailabilityResponse(BaseModel):
     available: bool
     reason: str | None = None  # 'TAKEN' | 'REJOIN_TOO_SOON' (available=false 일 때만)
     available_at: datetime | None = None  # REJOIN_TOO_SOON 일 때 다시 쓸 수 있는 시각 (UTC)
+
+
+class LoginRequest(BaseModel):
+    """POST /auth/login  — 로그인 모달(auth-ui.js)이 보내는 JSON { email, password, remember }
+
+    remember: [자동 로그인] 체크 여부 (FR-109) → 리프레시 쿠키 유지 기간이 달라짐
+    """
+
+    email: str = Field(max_length=255)
+    password: str = Field(min_length=1, max_length=100)
+    remember: bool = False
+
+
+class TokenResponse(BaseModel):
+    """로그인·재발급 성공 (200). Refresh Token 은 본문이 아니라 HttpOnly 쿠키로만 보냄.
+
+    {"access_token": "eyJ...", "token_type": "bearer", "expires_in": 1800}
+    """
+
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int  # 초 단위 (jwt_access_minutes * 60) — 화면에서 미리 재발급할 때 참고
