@@ -123,11 +123,12 @@ def withdraw(db: Session, user: User, password: str) -> None:
     2. user.status = 'DELETED', user.deleted_at = 지금(UTC)
     3. 이후 로그인 차단: authenticate(P1-05)·get_current_user(P1-03)·get_active_user 가
        status != 'ACTIVE' 를 막으므로 여기서 따로 할 일 없음
-    4. 정하기 (사용자 결정):
-       - 같은 이메일·닉네임으로 다시 가입할 수 있게 할지
-         (UNIQUE 라서 그대로 두면 다시 못 씀 → 예: email 을 f"deleted+{user_id}@..." 로 바꿔 두기)
-       - 내가 OWNER 인 프로젝트: 함께 소프트 삭제(projects.deleted_at) 할지
-       - 프로필 사진 파일 지우기 (delete_profile_image 재사용)
-    5. db.commit()
+    4. 이메일·닉네임은 **바꾸지 않음** (2026-10-03 결정)
+       - 탈퇴 3일 안에는 같은 값으로 다시 가입하지 못하게 막는 데 그대로 씀
+       - 3일이 지난 뒤 누가 그 값으로 가입하면 auth_service.release_withdrawn 이 그때 비움 (P1-04)
+    5. 내가 OWNER 인 프로젝트는 **그대로 남김** (2026-10-03 결정) — projects 는 건드리지 않음
+       - 목록 화면은 탈퇴한 OWNER 를 'Deleted user' 처럼 표시 (Phase 6 협업에서 멤버가 볼 때)
+    6. 프로필 사진 파일 지우기 (delete_profile_image 재사용, commit 은 마지막에 한 번)
+    7. db.commit()
     """
     raise NotImplementedError

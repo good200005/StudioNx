@@ -34,12 +34,14 @@
 | 로그인 차단 | `authenticate`, `get_current_user`, `get_active_user`가 모두 `ACTIVE`만 통과시키므로 추가 작업 없음 |
 | 쿠키 | 라우터에서 `clear_refresh_cookie` (P1-05) |
 
-### 2.3 사용자가 정할 것
-| 항목 | 선택지 |
-|---|---|
-| 같은 이메일·닉네임으로 다시 가입 | 그대로 두면 UNIQUE 때문에 다시 못 씀 / 탈퇴 시 `email`을 `deleted+{user_id}@…`처럼 바꿔 둠 |
-| 내가 OWNER인 프로젝트 | 함께 소프트 삭제 / 남겨 둠 (협업 멤버가 있을 수 있음, Phase 6) |
-| 프로필 사진 파일 | 탈퇴 시 삭제 권장 (`delete_profile_image` 재사용) |
+### 2.3 사용자 결정 (2026-10-03)
+| 항목 | 결정 | 템플릿 반영 |
+|---|---|---|
+| 같은 이메일·닉네임으로 다시 가입 | **탈퇴 3일 뒤부터 가능**, 그 전에는 다시 쓸 수 있는 날짜 안내 | 탈퇴할 때는 값을 그대로 둠. 가입·중복 확인에서 3일 안이면 409 `REJOIN_TOO_SOON`, 지났으면 `release_withdrawn`이 예전 행의 값을 비움 (P1-04, [16](16_signup_api_template.md) §2.4) |
+| 내가 OWNER인 프로젝트 | **남겨 둠** | `withdraw`는 `projects`를 건드리지 않음 |
+| 프로필 사진 파일 | 탈퇴 시 삭제 | `delete_profile_image` 재사용 |
+
+> 기다리는 기간 3일은 `auth_service.REJOIN_WAIT_DAYS` 한 곳에서 바꿉니다. PRD 01 FR-108에도 반영했습니다.
 
 ## 3. 검증 결과 (2026-10-03)
 | 확인 | 결과 |
@@ -53,9 +55,8 @@
 |---|---|---|
 | 1 | 서비스 함수 3개 | `app/services/user_service.py` |
 | 2 | 라우터 본문 2개 | `app/api/v1/users.py` |
-| 3 | §2.3 결정 | — |
-| 4 | 화면 연결 `initPasswordForm`, `initWithdrawForm` | `static/js/pages/userinfo.js` |
-| 5 | 테스트: 탈퇴한 계정으로 로그인하면 실패 (P1-18) | `tests/` |
+| 3 | 화면 연결 `initPasswordForm`, `initWithdrawForm` | `static/js/pages/userinfo.js` |
+| 4 | 테스트: 탈퇴한 계정으로 로그인하면 실패, 3일 안 재가입 409 (P1-18) | `tests/` |
 
 ## 5. 자주 받을 질문 대비
 - **Q. DELETE 요청에 본문을 넣어도 되나?** HTTP 규칙상 금지는 아니고 FastAPI도 받습니다. 비밀번호를 주소(쿼리)에 넣으면 서버 로그에 남을 수 있어 본문으로 받습니다.
