@@ -1,0 +1,93 @@
+/* 마이페이지 공통 틀 — myPage.html · myProject.html · userInfo.html
+   왼쪽 메뉴(모바일: 위쪽 가로 탭) + 로그아웃, 카드, 준비 중 칸, 프로필 사진 동그라미, 순서 색 5가지
+   페이지별 내용은 pages/mypage.css · myproject.css · userinfo.css */
+
+/* ---------- 순서 색 5가지 ----------
+   사용량 종류 색(샘플·출력·stem·스냅샷), 프로젝트 줄 색. 라이트 테마는 흰 바탕에서 보이게 진하게 */
+:root {
+  --mp-c1: #a383ff;   /* 보라 (= --c-violet-ink) */
+  --mp-c2: #7fe0a8;   /* 초록 */
+  --mp-c3: #ffb86b;   /* 주황 */
+  --mp-c4: #ff8a8a;   /* 빨강 */
+  --mp-c5: #8fc8ff;   /* 파랑 */
+}
+:root[data-theme="light"] {
+  --mp-c1: #6a24f6; --mp-c2: #1f9d5c; --mp-c3: #d27a12; --mp-c4: #d43d3d; --mp-c5: #2b7bd0;
+}
+@media (prefers-color-scheme: light) {
+  :root[data-theme="system"] {
+    --mp-c1: #6a24f6; --mp-c2: #1f9d5c; --mp-c3: #d27a12; --mp-c4: #d43d3d; --mp-c5: #2b7bd0;
+  }
+}
+
+body { display: flex; flex-direction: column; min-height: 100svh; }
+
+/* ---------- 공통 헤더: 메인 페이지와 달리 첫 화면 위에 겹치지 않고 일반 흐름 ---------- */
+.site-header { position: static; }
+[data-include$="header.html"] { min-height: var(--header-h); }   /* 헤더를 받기 전 자리 확보 */
+
+/* ---------- 전체 배치: 왼쪽 메뉴 13rem + 본문 ---------- */
+.mp {
+  flex: 1;
+  display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: var(--sp-12);
+  padding: var(--sp-8) var(--gutter) var(--sp-16);
+}
+.mp-body { min-width: 0; }   /* 격자 칸이 내용 너비만큼 늘어나지 않게 */
+.mp-title {
+  margin-bottom: var(--sp-8);
+  font: 800 var(--fs-xl) / 1.05 var(--font-display); letter-spacing: 0.06em; text-transform: uppercase;
+}
+
+/* ---------- 왼쪽 메뉴 + 로그아웃 ---------- */
+.mp-menu { position: sticky; top: var(--sp-8); align-self: start; display: flex; flex-direction: column; gap: var(--sp-1); }
+.mp-menu__link,
+.mp-menu__logout {
+  padding: var(--sp-3) var(--sp-4);
+  color: var(--c-ink-soft); text-decoration: none;
+  font: 600 var(--fs-sm) / 1.2 var(--font-text); letter-spacing: 0.04em;
+  transition: color var(--dur) var(--ease-out);
+}
+.mp-menu__link { border-left: 2px solid transparent; }
+.mp-menu__link:hover { color: var(--c-ink); }
+.mp-menu__link[aria-current="page"] { color: var(--c-ink); border-left-color: var(--c-violet); background: var(--c-ground-raised); }
+.mp-menu__logout {
+  margin-top: var(--sp-8); text-align: left; cursor: pointer;
+  border: 0; border-top: 1px solid var(--c-rule); background: none;
+}
+.mp-menu__logout:hover { color: var(--c-error); }
+
+/* ---------- 카드 공통 ---------- */
+.mp-card { min-width: 0; padding: var(--sp-6); background: var(--c-ground-raised); }
+.mp-card__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-4); margin-bottom: var(--sp-4); }
+.mp-card__head .btn { min-height: 2.25rem; padding-inline: var(--sp-4); font-size: var(--fs-xs); }
+.mp-card__title { font: 700 var(--fs-sm) / 1.2 var(--font-text); letter-spacing: 0.14em; text-transform: uppercase; }
+.mp-card__value { color: var(--c-ink-soft); font-size: var(--fs-sm); }
+.mp-card__note { margin-top: var(--sp-4); color: var(--c-ink-soft); font-size: var(--fs-xs); }
+
+/* 아직 없는 기능의 자리: 점선 + 오른쪽 위 Phase 표시 */
+.mp-card--soon { position: relative; border: 1px dashed var(--c-rule-violet); background: none; }
+.soon {
+  position: absolute; top: var(--sp-6); right: var(--sp-6);
+  color: var(--c-violet-ink); font: 700 var(--fs-xs) / 1 var(--font-text); letter-spacing: 0.14em; text-transform: uppercase;
+}
+
+/* ---------- 프로필 사진 (사진이 없으면 닉네임 첫 글자) ---------- */
+.avatar {
+  display: grid; place-items: center; overflow: hidden;
+  width: 4.5rem; height: 4.5rem; border-radius: 50%;
+  background: var(--c-violet); color: var(--c-on-violet); font: 800 1.75rem / 1 var(--font-display);
+}
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ---------- 모바일 (960px 이하) ---------- */
+@media (max-width: 960px) {
+  .mp { grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); }
+  .mp-title { margin-bottom: var(--sp-4); }
+
+  /* 메뉴 → 위쪽 가로 탭, 로그아웃은 오른쪽 끝 */
+  .mp-menu { position: static; flex-direction: row; gap: 0; overflow-x: auto; border-bottom: 1px solid var(--c-rule); }
+  .mp-menu__link, .mp-menu__logout { padding-inline: var(--sp-3); white-space: nowrap; }
+  .mp-menu__link { border-left: 0; border-bottom: 2px solid transparent; }
+  .mp-menu__link[aria-current="page"] { border-bottom-color: var(--c-violet); background: none; }
+  .mp-menu__logout { margin: 0 0 0 auto; padding-right: 0; border-top: 0; }   /* 390px 화면에서도 탭 4개가 한 줄에 */
+}

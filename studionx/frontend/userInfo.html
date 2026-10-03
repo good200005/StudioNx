@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Profile — Studio Nx</title>
+  <meta name="description" content="Manage your Studio Nx profile, password and account.">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0b0a0f">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23a383ff' d='M20.6 3.2A13 13 0 1 0 28.8 22 10.5 10.5 0 1 1 20.6 3.2Z'/%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+
+  <link rel="stylesheet" href="static/css/tokens.css">
+  <link rel="stylesheet" href="static/css/base.css">
+  <link rel="stylesheet" href="static/css/forms.css">
+  <link rel="stylesheet" href="static/css/auth.css">
+  <link rel="stylesheet" href="static/css/account.css">
+  <link rel="stylesheet" href="static/css/pages/userinfo.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- 공통 헤더: static/partials/header.html (core/include.js 가 끼움) -->
+  <div data-include="static/partials/header.html"></div>
+
+  <!-- 회원 정보 (P1-10, PRD 01 FR-106~108) — 시안 docs/page_mockups/userinfo/03~05 (U-2 2열 설정형)
+       로그인이 필요한 페이지: userinfo.js 가 requireLogin() 후 GET /api/v1/users/me 로 값을 채움
+       지금 들어 있는 닉네임·이메일은 모양 확인용 예시 -->
+  <main id="main" class="mp">
+    <nav class="mp-menu" aria-label="My page">
+      <a class="mp-menu__link" href="myPage.html">Dashboard</a>
+      <a class="mp-menu__link" href="userInfo.html" aria-current="page">Profile</a>
+      <a class="mp-menu__link" href="myProject.html">My Projects</a>
+      <button type="button" class="mp-menu__logout" id="logout-button">Log out</button>
+    </nav>
+
+    <div class="mp-body">
+      <h1 class="mp-title">Profile</h1>
+
+      <!-- 탭: [Account] 회원 정보 / [Preferences] 환경 설정 — Phase 2 (PRD 01 FR-141, PRD 02 §4.16)에 열림 -->
+      <div class="ui-tabs" role="tablist" aria-label="Profile sections">
+        <button type="button" class="ui-tab" role="tab" id="tab-account" aria-selected="true" aria-controls="panel-account">Account</button>
+        <button type="button" class="ui-tab" role="tab" id="tab-preferences" aria-selected="false" aria-controls="panel-preferences" disabled>Preferences <span class="ui-tab__soon">Phase 2</span></button>
+      </div>
+
+      <div class="mp-card ui-panel" role="tabpanel" id="panel-account" aria-labelledby="tab-account">
+
+        <!-- 사진 (FR-106): POST /api/v1/users/me/profile-image (multipart) — jpg·png·webp, 2MB -->
+        <section class="ui-sec" aria-labelledby="sec-photo">
+          <div class="ui-sec__head">
+            <h2 class="ui-sec__title" id="sec-photo">Photo</h2>
+            <p class="ui-sec__desc">Shown on your dashboard and to collaborators.</p>
+          </div>
+          <div class="ui-sec__body">
+            <div class="ui-photo">
+              <div class="avatar" id="profile-avatar" aria-hidden="true">N</div>
+              <div>
+                <div class="ui-photo__btns">
+                  <input class="sr-only" id="photo-input" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="photo-hint photo-msg">
+                  <label class="btn btn--ghost" for="photo-input">Upload photo</label>
+                  <button type="button" class="text-link" id="photo-remove">Remove</button>
+                </div>
+                <p class="ui-hint" id="photo-hint">JPG, PNG or WebP · up to 2 MB</p>
+                <p class="field__msg ui-photo__msg" id="photo-msg" aria-live="polite"></p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 계정 (FR-106): 닉네임 변경 PATCH /api/v1/users/me — 이메일은 바꿀 수 없음 -->
+        <section class="ui-sec" aria-labelledby="sec-account">
+          <div class="ui-sec__head">
+            <h2 class="ui-sec__title" id="sec-account">Account</h2>
+            <p class="ui-sec__desc">Your nickname is visible to people you invite.</p>
+          </div>
+          <form class="ui-sec__body" id="profile-form" novalidate>
+            <div class="form-stack">
+              <div class="field" id="nickname-field">
+                <label class="field__label" for="profile-nickname">Nickname</label>
+                <div class="field__group">
+                  <input class="field__control" id="profile-nickname" name="nickname" value="nightowl" required minlength="2" maxlength="20"
+                         autocomplete="nickname" aria-describedby="profile-nickname-msg">
+                  <button type="button" class="btn btn--ghost btn--sm" data-check="nickname" aria-controls="profile-nickname">Check</button>
+                </div>
+                <p class="field__msg" id="profile-nickname-msg" aria-live="polite"></p>
+              </div>
+              <div class="field">
+                <label class="field__label" for="profile-email">Email</label>
+                <input class="field__control" id="profile-email" type="email" value="nyxi@studionx.app" readonly aria-describedby="profile-email-msg">
+                <p class="field__msg" id="profile-email-msg">Email can't be changed.</p>
+              </div>
+            </div>
+            <p class="form-error" id="profile-error" role="alert" hidden></p>
+            <div class="ui-save">
+              <span class="ui-meta" id="profile-joined">Joined Oct 1, 2026</span>
+              <button type="submit" class="btn btn--primary">Save changes</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- 비밀번호 (FR-107): PUT /api/v1/users/me/password { current_password, new_password }
+             조건은 가입과 같음 (join.js PASSWORD_RULES = 서버 security.check_password_rules) -->
+        <section class="ui-sec" aria-labelledby="sec-password">
+          <div class="ui-sec__head">
+            <h2 class="ui-sec__title" id="sec-password">Password</h2>
+            <p class="ui-sec__desc">Use 8–20 characters with upper and lower case, a number and a symbol.</p>
+          </div>
+          <form class="ui-sec__body" id="password-form" novalidate>
+            <div class="form-stack">
+              <div class="field" id="pw-current-field">
+                <label class="field__label" for="pw-current">Current password</label>
+                <div class="pw">
+                  <input class="field__control" id="pw-current" name="current_password" type="password" required autocomplete="current-password">
+                  <button type="button" class="pw__toggle" aria-controls="pw-current" aria-pressed="false">Show</button>
+                </div>
+                <p class="field__msg" id="pw-current-msg" aria-live="polite"></p>
+              </div>
+              <div class="field" id="pw-new-field">
+                <label class="field__label" for="pw-new">New password</label>
+                <div class="pw">
+                  <input class="field__control" id="pw-new" name="new_password" type="password" required minlength="8" maxlength="20"
+                         autocomplete="new-password" aria-describedby="pw-new-rules pw-new-msg">
+                  <button type="button" class="pw__toggle" aria-controls="pw-new" aria-pressed="false">Show</button>
+                </div>
+                <ul class="pw-rules" id="pw-new-rules" aria-label="Password requirements">
+                  <li data-rule="length">8–20 characters<span class="sr-only" data-rule-state>, not met</span></li>
+                  <li data-rule="upper">Uppercase letter<span class="sr-only" data-rule-state>, not met</span></li>
+                  <li data-rule="lower">Lowercase letter<span class="sr-only" data-rule-state>, not met</span></li>
+                  <li data-rule="number">Number<span class="sr-only" data-rule-state>, not met</span></li>
+                  <li data-rule="special">Special character (!@#$…)<span class="sr-only" data-rule-state>, not met</span></li>
+                </ul>
+                <p class="field__msg" id="pw-new-msg" aria-live="polite"></p>
+              </div>
+              <div class="field" id="pw-confirm-field">
+                <label class="field__label" for="pw-confirm">Confirm new password</label>
+                <div class="pw">
+                  <input class="field__control" id="pw-confirm" name="new_password_confirm" type="password" required maxlength="20"
+                         autocomplete="new-password" aria-describedby="pw-confirm-msg">
+                  <button type="button" class="pw__toggle" aria-controls="pw-confirm" aria-pressed="false">Show</button>
+                </div>
+                <p class="field__msg" id="pw-confirm-msg" aria-live="polite"></p>
+              </div>
+            </div>
+            <p class="form-error" id="password-error" role="alert" hidden></p>
+            <div class="ui-save">
+              <span></span>
+              <button type="submit" class="btn btn--primary">Change password</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- 회원 탈퇴 (FR-108): 확인창에서 비밀번호를 다시 받음 -->
+        <section class="ui-sec ui-sec--danger" aria-labelledby="sec-delete">
+          <div class="ui-sec__head">
+            <h2 class="ui-sec__title" id="sec-delete">Delete account</h2>
+            <p class="ui-sec__desc">This cannot be undone.</p>
+          </div>
+          <div class="ui-sec__body">
+            <p class="ui-danger__text">Your projects and samples will be deleted and you won't be able to sign in. Shared projects you own will be removed for collaborators too.</p>
+            <button type="button" class="btn btn--danger-ghost" command="show-modal" commandfor="withdraw-modal">Delete account</button>
+          </div>
+        </section>
+      </div>
+
+      <!-- 환경 설정 탭 자리 (Phase 2): 테마·강조 색·UI 배율·캐릭터·Nyxi 팁·단축키 (user_settings) -->
+      <div role="tabpanel" id="panel-preferences" aria-labelledby="tab-preferences" hidden></div>
+    </div>
+  </main>
+
+  <!-- 탈퇴 확인 (FR-108): DELETE /api/v1/users/me { password } → 성공하면 로그아웃 후 home.html -->
+  <dialog class="modal modal--narrow" id="withdraw-modal" aria-labelledby="withdraw-title">
+    <div class="modal__head">
+      <h2 class="modal__title" id="withdraw-title">Delete account?</h2>
+      <button type="button" class="btn btn--ghost modal__close" command="close" commandfor="withdraw-modal">Close</button>
+    </div>
+    <div class="modal__body">
+      <form class="form-stack" id="withdraw-form" novalidate>
+        <p class="modal__lead">This removes <b id="withdraw-nickname">nightowl</b> and everything you own. You'll be signed out right away.</p>
+        <div class="field">
+          <label class="field__label" for="withdraw-password">Enter your password to confirm</label>
+          <div class="pw">
+            <input class="field__control" id="withdraw-password" name="password" type="password" required autocomplete="current-password">
+            <button type="button" class="pw__toggle" aria-controls="withdraw-password" aria-pressed="false">Show</button>
+          </div>
+        </div>
+        <p class="form-consent">
+          <input id="withdraw-agree" name="agree" type="checkbox" required>
+          <label for="withdraw-agree">I understand this cannot be undone.</label>
+        </p>
+        <p class="form-error" id="withdraw-error" role="alert" hidden></p>
+        <div class="modal__actions modal__actions--tight">
+          <button type="button" class="btn btn--ghost" command="close" commandfor="withdraw-modal">Cancel</button>
+          <button type="submit" class="btn btn--danger">Delete account</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- 공통 푸터: static/partials/footer.html -->
+  <div data-include="static/partials/footer.html"></div>
+
+  <script type="module" src="static/js/pages/userinfo.js"></script>
+</body>
+</html>

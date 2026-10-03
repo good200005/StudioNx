@@ -1,7 +1,7 @@
 -- Studio Nx DDL: Phase 1 — 계정 · 기본 (회원, 문의, 프로젝트, 프로젝트 멤버)
 -- 원본: docs/DB.md §5 (DB.md를 고치면 이 파일도 함께 갱신)
 -- 실행 순서: 00 → 01 → 02 → 03 → 04 → 05 → 06 (앞 파일의 테이블을 FK로 참조)
--- 테이블: users, inquiries, projects, project_members
+-- 테이블: users, inquiries, dev_notes, projects, project_members, project_sessions
 
 USE studionx;
 
@@ -27,10 +27,11 @@ CREATE TABLE users (
 CREATE TABLE inquiries (
   inquiry_id  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   user_id     BIGINT UNSIGNED NULL,
-  name        VARCHAR(50)     NOT NULL,
+  name        VARCHAR(50)     NULL,
   email       VARCHAR(255)    NOT NULL,
   title       VARCHAR(200)    NOT NULL,
   content     TEXT            NOT NULL,
+  privacy_agreed_at DATETIME(3) NOT NULL,
   status      ENUM('RECEIVED','ANSWERED','CLOSED') NOT NULL DEFAULT 'RECEIVED',
   answer      TEXT            NULL,
   answered_at DATETIME(3)     NULL,
@@ -39,6 +40,22 @@ CREATE TABLE inquiries (
   PRIMARY KEY (inquiry_id),
   KEY idx_inquiries_status (status),
   CONSTRAINT fk_inquiries_user FOREIGN KEY (user_id) REFERENCES users (user_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE dev_notes (
+  note_id      BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  author_id    BIGINT UNSIGNED NOT NULL,
+  title        VARCHAR(150)    NOT NULL,
+  summary      VARCHAR(300)    NOT NULL,
+  content      MEDIUMTEXT      NOT NULL,
+  is_published TINYINT(1)      NOT NULL DEFAULT 0,
+  published_at DATETIME(3)     NULL,
+  created_at   DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at   DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  deleted_at   DATETIME(3)     NULL,
+  PRIMARY KEY (note_id),
+  KEY idx_dev_notes_published (is_published, published_at),
+  CONSTRAINT fk_dev_notes_author FOREIGN KEY (author_id) REFERENCES users (user_id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE projects (
@@ -76,4 +93,19 @@ CREATE TABLE project_members (
   KEY idx_project_members_user (user_id),
   CONSTRAINT fk_pm_project FOREIGN KEY (project_id) REFERENCES projects (project_id) ON DELETE CASCADE,
   CONSTRAINT fk_pm_user    FOREIGN KEY (user_id)    REFERENCES users (user_id)
+) ENGINE=InnoDB;
+
+-- 작업 세션: 시퀀서(Phase 2)가 기록, 마이페이지(Phase 1)가 최근 7일 작업 시간으로 표시
+CREATE TABLE project_sessions (
+  session_id     BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  project_id     BIGINT UNSIGNED NOT NULL,
+  user_id        BIGINT UNSIGNED NOT NULL,
+  started_at     DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  last_seen_at   DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  active_seconds INT UNSIGNED    NOT NULL DEFAULT 0,
+  PRIMARY KEY (session_id),
+  KEY idx_project_sessions_user (user_id, started_at),
+  KEY idx_project_sessions_project (project_id, started_at),
+  CONSTRAINT fk_ps_project FOREIGN KEY (project_id) REFERENCES projects (project_id) ON DELETE CASCADE,
+  CONSTRAINT fk_ps_user    FOREIGN KEY (user_id)    REFERENCES users (user_id)
 ) ENGINE=InnoDB;

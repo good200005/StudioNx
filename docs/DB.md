@@ -35,7 +35,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | FK | 참조 대상 PK와 같은 이름 사용 (예외: `owner_id`, `inviter_id`처럼 의미가 분명할 때) |
 | 시간 | `DATETIME(3)`, **UTC 기준**으로 저장 |
 | 공통 컬럼 | `created_at` (기본값 현재시각), `updated_at` (수정 시 자동 갱신) |
-| 소프트 삭제 | 복구가 필요한 데이터(`users`, `projects`, `samples`, `chat_messages`)는 `deleted_at`으로 표시만 함 |
+| 소프트 삭제 | 복구가 필요한 데이터(`users`, `projects`, `samples`, `chat_messages`, `timeline_comments`, `dev_notes`)는 `deleted_at`으로 표시만 함 |
 | 상태값 | `ENUM` 사용, 값은 대문자 |
 | 유연한 설정값 | 플러그인 파라미터, AI 추천 설정 등 구조가 자주 바뀌는 값은 `JSON` |
 | 예약어 | MySQL 예약어(`references`, `key` 등)는 테이블/컬럼명으로 쓰지 않음 → `reference_tracks`, `music_key` |
@@ -96,34 +96,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | 31 | `chat_messages` | 프로젝트 단체 채팅(톡방) | 6 |
 | 32 | `timeline_comments` | 타임라인 코멘트 (위치 댓글·답글·해결) | 6 |
 | 33 | `project_snapshots` | 버전 스냅샷 | 6 |
-
----|---|---|---|
-| 1 | `users` | 회원 | 1 |
-| 2 | `inquiries` | 홈 화면 문의 | 1 |
-| 3 | `projects` | 시퀀서 프로젝트 | 1 (목록) / 2 (편집) |
-| 4 | `samples` | 개인 샘플 라이브러리 | 2 |
-| 5 | `tags` | 태그(장르·악기·분위기) | 2 |
-| 6 | `sample_tags` | 샘플-태그 연결 | 2 |
-| 7 | `plugins` | 웹 기반 가상악기/이펙트 목록 | 2 |
-| 8 | `plugin_presets` | 플러그인 프리셋 | 2 |
-| 9 | `tracks` | 프로젝트의 트랙 | 2 |
-| 10 | `track_plugins` | 트랙 디바이스(이펙트) — 체인 순서 + 패처 노드 위치 | 2 |
-| 11 | `track_plugin_links` | 패처 모드의 디바이스 연결선(라우팅) | 2 |
-| 12 | `clips` | 트랙 위의 오디오/MIDI 클립 | 2 |
-| 13 | `midi_notes` | MIDI 클립의 노트 | 2 |
-| 14 | `user_settings` | 사용자 UI 설정 (캐릭터, 하단 패널 등) | 2 |
-| 15 | `export_jobs` | 오디오 출력 작업 | 3 |
-| 16 | `separation_jobs` | 악기 분리 작업 | 4 |
-| 17 | `separation_stems` | 분리 결과 stem | 4 |
-| 18 | `reference_tracks` | 레퍼런스 트랙(링크/파일) | 5 |
-| 19 | `reference_tags` | 레퍼런스-태그(장르) 연결 | 5 |
-| 20 | `ai_analyses` | AI 분석 결과 | 5 |
-| 21 | `ai_recommendations` | AI 추천 설정(프리셋/믹싱/마스터링) | 5 |
-| 22 | `assistant_messages` | Nyxi 도우미(AI) 대화 기록 | 5 |
-| 23 | `project_members` | 프로젝트 참여자·권한 | 6 |
-| 24 | `invitations` | 프로젝트 초대 | 6 |
-| 25 | `project_change_logs` | 실시간 편집 변경 이력 | 6 |
-| 26 | `chat_messages` | 프로젝트 단체 채팅 | 6 |
+| 34 | `dev_notes` | 메인 페이지 Development 공지 (관리자만 작성) | 1 |
+| 35 | `project_sessions` | 프로젝트 작업 세션 (마이페이지 최근 7일 작업 시간) | 1 (표시) / 2 (기록) |
 
 ---
 
@@ -155,15 +129,32 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 |---|---|---|---|---|---|
 | inquiry_id | BIGINT UNSIGNED | N | AUTO_INCREMENT | PK | |
 | user_id | BIGINT UNSIGNED | Y | NULL | FK → users | 비회원 문의면 NULL |
-| name | VARCHAR(50) | N | | | 작성자 이름 |
+| name | VARCHAR(50) | Y | NULL | | 작성자 이름 (메인 페이지 문의 폼은 이름을 받지 않음 → NULL) |
 | email | VARCHAR(255) | N | | | 답변 받을 이메일 |
 | title | VARCHAR(200) | N | | | 제목 |
-| content | TEXT | N | | | 내용 |
+| content | TEXT | N | | | 내용 (폼에서 최대 2,000자) |
+| privacy_agreed_at | DATETIME(3) | N | | | 개인정보 정책 동의 시각 (동의 없이는 저장 불가) |
 | status | ENUM('RECEIVED','ANSWERED','CLOSED') | N | 'RECEIVED' | IDX | 처리 상태 |
 | answer | TEXT | Y | NULL | | 관리자 답변 |
 | answered_at | DATETIME(3) | Y | NULL | | 답변 일시 |
 | created_at | DATETIME(3) | N | CURRENT | | |
 | updated_at | DATETIME(3) | N | CURRENT (ON UPDATE) | | |
+
+#### `dev_notes` — Development 공지 (메인 페이지)
+> 작성·수정은 **관리자(`users.role = 'ADMIN'`)만** 가능 — 관리 화면은 SQLAdmin(`/admin`). 메인 페이지는 공개된 최신 4건을 읽기만 함.
+
+| 컬럼 | 타입 | NULL | 기본값 | 키 | 설명 |
+|---|---|---|---|---|---|
+| note_id | BIGINT UNSIGNED | N | AUTO_INCREMENT | PK | |
+| author_id | BIGINT UNSIGNED | N | | FK → users | 작성한 관리자 |
+| title | VARCHAR(150) | N | | | 제목 |
+| summary | VARCHAR(300) | N | | | 카드에 보이는 짧은 요약 |
+| content | MEDIUMTEXT | N | | | 본문 (Markdown) |
+| is_published | TINYINT(1) | N | 0 | IDX(is_published, published_at) | 공개 여부 (0 = 초안) |
+| published_at | DATETIME(3) | Y | NULL | | 공개 시각 — 메인 페이지 정렬 기준 |
+| created_at | DATETIME(3) | N | CURRENT | | |
+| updated_at | DATETIME(3) | N | CURRENT (ON UPDATE) | | |
+| deleted_at | DATETIME(3) | Y | NULL | | 소프트 삭제 |
 
 #### `projects` — 시퀀서 프로젝트
 | 컬럼 | 타입 | NULL | 기본값 | 키 | 설명 |
@@ -185,6 +176,19 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | created_at | DATETIME(3) | N | CURRENT | | |
 | updated_at | DATETIME(3) | N | CURRENT (ON UPDATE) | IDX | 최근 수정순 정렬용 |
 | deleted_at | DATETIME(3) | Y | NULL | | 소프트 삭제 |
+
+#### `project_sessions` — 작업 세션 (마이페이지 작업 시간)
+| 컬럼 | 타입 | NULL | 기본값 | 키 | 설명 |
+|---|---|---|---|---|---|
+| session_id | BIGINT UNSIGNED | N | AUTO_INCREMENT | PK | |
+| project_id | BIGINT UNSIGNED | N | | FK → projects, IDX(project_id, started_at) | 작업한 프로젝트 |
+| user_id | BIGINT UNSIGNED | N | | FK → users, IDX(user_id, started_at) | 작업한 사람 (협업 프로젝트도 **본인 시간만** 셈) |
+| started_at | DATETIME(3) | N | CURRENT | | 시퀀서에서 프로젝트를 연 시각 |
+| last_seen_at | DATETIME(3) | N | CURRENT | | 마지막 신호 시각 (시퀀서가 1분마다 보냄). 신호가 끊긴 시각 = 세션 끝 |
+| active_seconds | INT UNSIGNED | N | 0 | | 실제 작업 시간(초). 마우스·키보드 입력이 **5분 넘게 없는 구간은 빼고** 더함 |
+
+> - 기록: 시퀀서(Phase 2)가 프로젝트를 열면 행을 만들고, 1분마다 `last_seen_at`과 `active_seconds`를 갱신합니다. 마지막 신호가 10분 넘게 지났으면 새 세션을 만듭니다.
+> - 표시: 마이페이지(Phase 1)가 `user_id` 기준 최근 7일 행을 읽어 요일별 막대와 합계를 그립니다. 날짜는 UTC로 저장하고, 요일 구분은 브라우저 시간대로 합니다. 자정을 넘긴 세션은 시작한 날에 표시합니다.
 
 ---
 
@@ -644,6 +648,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | separation_jobs → separation_stems | CASCADE | |
 | ai_analyses → ai_recommendations | CASCADE | |
 | projects → project_members / invitations / change_logs / chat_messages | CASCADE | |
+| projects → project_sessions | CASCADE | 작업 시간 기록은 프로젝트와 함께 삭제 (프로젝트는 소프트 삭제라 실제로는 남음) |
 | users → (각종 FK) | RESTRICT | 회원은 소프트 삭제만 하므로 실제 DELETE가 일어나지 않음 |
 | *.project_id (NULL 허용: reference_tracks, ai_recommendations, assistant_messages) | SET NULL | 프로젝트가 지워져도 분석 기록은 남김 |
 
@@ -680,10 +685,11 @@ CREATE TABLE users (
 CREATE TABLE inquiries (
   inquiry_id  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   user_id     BIGINT UNSIGNED NULL,
-  name        VARCHAR(50)     NOT NULL,
+  name        VARCHAR(50)     NULL,
   email       VARCHAR(255)    NOT NULL,
   title       VARCHAR(200)    NOT NULL,
   content     TEXT            NOT NULL,
+  privacy_agreed_at DATETIME(3) NOT NULL,
   status      ENUM('RECEIVED','ANSWERED','CLOSED') NOT NULL DEFAULT 'RECEIVED',
   answer      TEXT            NULL,
   answered_at DATETIME(3)     NULL,
@@ -692,6 +698,22 @@ CREATE TABLE inquiries (
   PRIMARY KEY (inquiry_id),
   KEY idx_inquiries_status (status),
   CONSTRAINT fk_inquiries_user FOREIGN KEY (user_id) REFERENCES users (user_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE dev_notes (
+  note_id      BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  author_id    BIGINT UNSIGNED NOT NULL,
+  title        VARCHAR(150)    NOT NULL,
+  summary      VARCHAR(300)    NOT NULL,
+  content      MEDIUMTEXT      NOT NULL,
+  is_published TINYINT(1)      NOT NULL DEFAULT 0,
+  published_at DATETIME(3)     NULL,
+  created_at   DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at   DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  deleted_at   DATETIME(3)     NULL,
+  PRIMARY KEY (note_id),
+  KEY idx_dev_notes_published (is_published, published_at),
+  CONSTRAINT fk_dev_notes_author FOREIGN KEY (author_id) REFERENCES users (user_id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE projects (
@@ -729,6 +751,21 @@ CREATE TABLE project_members (
   KEY idx_project_members_user (user_id),
   CONSTRAINT fk_pm_project FOREIGN KEY (project_id) REFERENCES projects (project_id) ON DELETE CASCADE,
   CONSTRAINT fk_pm_user    FOREIGN KEY (user_id)    REFERENCES users (user_id)
+) ENGINE=InnoDB;
+
+-- 작업 세션: 시퀀서(Phase 2)가 기록, 마이페이지(Phase 1)가 최근 7일 작업 시간으로 표시
+CREATE TABLE project_sessions (
+  session_id     BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  project_id     BIGINT UNSIGNED NOT NULL,
+  user_id        BIGINT UNSIGNED NOT NULL,
+  started_at     DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  last_seen_at   DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  active_seconds INT UNSIGNED    NOT NULL DEFAULT 0,
+  PRIMARY KEY (session_id),
+  KEY idx_project_sessions_user (user_id, started_at),
+  KEY idx_project_sessions_project (project_id, started_at),
+  CONSTRAINT fk_ps_project FOREIGN KEY (project_id) REFERENCES projects (project_id) ON DELETE CASCADE,
+  CONSTRAINT fk_ps_user    FOREIGN KEY (user_id)    REFERENCES users (user_id)
 ) ENGINE=InnoDB;
 
 -- ========== Phase 2 ==========
@@ -1245,4 +1282,6 @@ CREATE TABLE project_snapshots (
 | 2026-10-01 | 최초 작성 (Phase 1~6 전체 테이블 초안) |
 | 2026-10-01 | 트랙 아코디언(체인+패처): `tracks.routing_mode`, `track_plugins.node_x/node_y`, `track_plugin_links` 추가 · 캐릭터/하단 패널: `user_settings` 추가 · Gopher: `assistant_messages` 추가 · ERD를 직선 이미지(`ERD.png`)로 교체 (총 26개 테이블) |
 | 2026-10-01 | AI 제안 채택 반영: `patterns`·`launcher_scenes`(패턴·클립 런처, **`midi_notes.clip_id` → `pattern_id`**), `automation_lanes`·`automation_points`, `project_templates`, `timeline_comments`, `project_snapshots` 추가 / `tracks`: MASTER 타입·담당자·잠금 / `projects`: `scale_mode`·`template_id` / `users`: 저장 용량 / `user_settings`: 테마·배율·단축키·튜토리얼 / Gopher → Nyxi(가칭) (총 33개 테이블) |
+| 2026-10-02 | `dev_notes`(메인 페이지 Development 공지, 관리자만 작성) 추가 · `inquiries.name` NULL 허용, `inquiries.privacy_agreed_at` 추가 (총 34개 테이블). 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-02_contact_devnotes.sql` · §2.1에 남아 있던 옛 테이블 목록 삭제 |
+| 2026-10-03 | `project_sessions`(프로젝트 작업 세션) 추가 — 마이페이지 Recent Projects의 최근 7일 작업 시간 (P1-17). 총 35개 테이블. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-03_project_sessions.sql` |
 | 2026-10-01 | 이름 **Nyxi** 확정 · `user_settings.tips_level`/`tips_state`(Nyxi 팁) · `plugins.card_asset` 및 `param_schema`의 `primary`/`group`(카드 UI·상세 모달) 추가 |

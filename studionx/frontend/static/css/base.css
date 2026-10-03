@@ -1,0 +1,213 @@
+/* Studio Nx — 공통 기본 스타일 (리셋, 글자, 버튼, 헤더, 푸터) */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-color: var(--c-violet) var(--c-ground);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  background: var(--c-ground);
+  color: var(--c-ink);
+  font-family: var(--font-text);
+  font-size: var(--fs-md);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img { display: block; max-width: 100%; }
+h1, h2, h3, p { margin: 0; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+
+a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+}
+
+::selection { background: var(--c-violet); color: var(--c-on-violet); }
+
+:focus-visible {
+  outline: 2px solid var(--c-focus);
+  outline-offset: 3px;
+}
+
+/* 스크린리더 전용 / 본문 바로가기 */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.skip-link {
+  position: absolute; left: var(--gutter); top: -100%; z-index: 100;
+  padding: var(--sp-2) var(--sp-4);
+  background: var(--c-violet); color: var(--c-on-violet);
+  font-weight: 600; text-decoration: none;
+}
+.skip-link:focus { top: var(--sp-4); }
+
+/* ---------- 버튼 ----------
+   [버튼 템플릿] 모든 페이지에서 이 두 가지를 기본으로 사용
+   - .btn--primary   주요 행동 (Join Us, Send …): 검은 바탕 + 보라 윤곽·글자 → hover 흰 바탕 + 진한 보라 글자
+   - .btn--ghost     보조 행동 (Sign In, 취소 …): 검은 바탕 + 옅은 윤곽·흰 글자 → hover 흰 바탕 + 검은 글자
+   (.btn--solid 보라 배경은 예비용) */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 2.5rem; padding: 0 var(--sp-6);
+  border: 1px solid transparent; border-radius: var(--radius);
+  font: 600 var(--fs-sm) / 1 var(--font-text);
+  letter-spacing: 0.06em; text-decoration: none; white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--dur) var(--ease-out),
+              border-color var(--dur) var(--ease-out),
+              color var(--dur) var(--ease-out);
+}
+.btn--solid { background: var(--c-violet); color: var(--c-on-violet); }
+.btn--solid:hover { background: #5a17e0; }
+/* 주요 행동(Join Us): 검은 바탕 + 보라 윤곽·글자, 마우스를 올리면 흰 바탕 */
+.btn--primary {
+  background: var(--c-ground); border-color: var(--c-violet-ink); color: var(--c-violet-ink);
+}
+.btn--primary:hover { background: #ffffff; border-color: #ffffff; color: var(--c-violet); }
+.btn--ghost { background: var(--c-ground); border-color: var(--c-rule); color: var(--c-ink); }
+.btn--ghost:hover { background: #ffffff; border-color: #ffffff; color: var(--c-ground); }
+/* 되돌릴 수 없는 행동 (프로젝트 삭제, 회원 탈퇴 …)
+   - .btn--danger        확인창의 최종 버튼: 빨간 면 + 바탕색 글자
+   - .btn--danger-ghost  확인창을 여는 버튼: 빨간 윤곽·글자 */
+.btn--danger { background: var(--c-error); border-color: var(--c-error); color: var(--c-ground); }
+.btn--danger:hover { background: #ffffff; border-color: #ffffff; color: var(--c-ground); }
+.btn--danger-ghost { background: none; border-color: var(--c-error); color: var(--c-error); }
+.btn--danger-ghost:hover { background: var(--c-error); color: var(--c-ground); }
+
+/* 버튼 모양이 아닌 글자 링크형 행동 (+ View More, 개인정보정책 등) */
+.text-link {
+  padding: 0; border: 0; background: none; cursor: pointer;
+  color: var(--c-ink-soft); text-decoration: none;
+  font: 600 var(--fs-sm) / 1.4 var(--font-text); letter-spacing: 0.04em;
+  transition: color var(--dur) var(--ease-out);
+}
+.text-link:hover { color: var(--c-violet-ink); }   /* 진한 보라(#6a24f6)는 검은 바탕에서 대비 부족 → 밝은 보라 */
+.text-link--strong { color: var(--c-violet-ink); font-weight: 700; letter-spacing: 0; font-size: inherit; }
+.text-link--strong:hover,
+.text-link--strong:active { color: var(--c-violet-ink); }   /* 클릭해도 색이 바뀌지 않음 */
+
+/* ---------- 모달 (<dialog>) ---------- */
+.modal {
+  width: min(40rem, calc(100vw - 2rem)); max-height: min(80svh, 46rem);
+  padding: 0; border: 1px solid var(--c-rule);
+  background: var(--c-ground-raised); color: var(--c-ink);
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.55);
+}
+.modal::backdrop { background: rgb(11 10 15 / 0.72); backdrop-filter: blur(3px); }
+.modal__head {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4);
+  padding: var(--sp-6) var(--sp-8); border-bottom: 1px solid var(--c-rule);
+}
+.modal__title { font: 700 var(--fs-lg) / 1.2 var(--font-display); }
+.modal__close { min-height: 2.25rem; padding: 0 var(--sp-4); }
+.modal__body { padding: var(--sp-6) var(--sp-8) var(--sp-8); overflow-y: auto; max-height: calc(min(80svh, 46rem) - 5rem); }
+.modal__body h3 { margin-top: var(--sp-6); font: 700 var(--fs-md) / 1.4 var(--font-text); }
+.modal__body h3:first-child { margin-top: 0; }
+.modal__body p, .modal__body li { margin-top: var(--sp-2); color: var(--c-ink-soft); font-size: var(--fs-sm); line-height: 1.7; }
+.modal__body ul { padding-left: 1.1rem; list-style: disc; }
+/* 확인창 (삭제·탈퇴·안내): 첫 문장은 크게, 보충은 작게, 버튼은 오른쪽 */
+.modal__body .modal__lead { margin-top: 0; color: var(--c-ink); font-size: var(--fs-md); }
+.modal__body .modal__note { font-size: var(--fs-xs); }
+.modal__actions { display: flex; justify-content: flex-end; gap: var(--sp-2); margin-top: var(--sp-6); }
+.modal__actions--tight { margin-top: var(--sp-2); }   /* 폼 안 (form-stack 간격이 이미 있음) */
+@media (prefers-reduced-motion: no-preference) {
+  .modal[open] { animation: modal-in 260ms var(--ease-out); }
+}
+@keyframes modal-in { from { opacity: 0; transform: translateY(0.75rem); } }
+.btn:disabled,
+.btn[aria-disabled="true"] { opacity: 0.45; cursor: not-allowed; }
+
+/* ---------- 헤더 ---------- */
+.site-header {
+  position: absolute; inset: 0 0 auto; z-index: 20;
+  display: flex; align-items: center; gap: var(--sp-8);
+  height: var(--header-h); padding-inline: var(--gutter);
+}
+
+.brand {
+  display: inline-flex; align-items: center; gap: var(--sp-3);
+  color: var(--c-ink); text-decoration: none;
+}
+.brand__mark { width: 1.75rem; height: 1.75rem; color: var(--c-violet-ink); flex: none; }
+.brand__name {
+  font: 700 1.0625rem / 1 var(--font-display);
+  letter-spacing: 0.08em;
+}
+
+.site-nav { margin-left: auto; }
+.site-nav__list { display: flex; gap: clamp(var(--sp-4), 2.2vw, var(--sp-8)); }
+.site-nav__link {
+  position: relative; display: block; padding-block: var(--sp-2);
+  color: var(--c-ink); text-decoration: none;   /* 보라 띠 위에서도 읽히도록 흰 글자 */
+  font: 600 var(--fs-xs) / 1 var(--font-text); letter-spacing: 0.16em; text-transform: uppercase;
+  transition: color var(--dur) var(--ease-out);
+}
+.site-nav__link::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+  background: currentColor;
+  transform: scaleX(0); transform-origin: right;
+  transition: transform 320ms var(--ease-out);
+}
+.site-nav__link:hover { color: var(--c-ink); }
+.site-nav__link:hover::after { transform: scaleX(1); transform-origin: left; }
+
+.site-actions { display: flex; gap: var(--sp-2); }
+
+/* 모바일 메뉴 — JS 없이 <details> 로 여닫기 */
+.menu { display: none; margin-left: auto; position: relative; }
+.menu > summary {
+  list-style: none; cursor: pointer;
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  min-height: 2.5rem; padding: 0 var(--sp-4);
+  border: 1px solid var(--c-rule);
+  font: 600 var(--fs-xs) / 1 var(--font-text); letter-spacing: 0.16em; text-transform: uppercase;
+}
+.menu > summary::-webkit-details-marker { display: none; }
+.menu__panel {
+  position: absolute; right: 0; top: calc(100% + var(--sp-2));
+  min-width: 14rem; padding: var(--sp-4);
+  background: var(--c-ground-raised); border: 1px solid var(--c-rule);
+  box-shadow: 0 18px 40px rgb(0 0 0 / 0.45);
+}
+.menu__panel .site-nav__list { flex-direction: column; gap: 0; }
+.menu__panel .site-nav__link { padding-block: var(--sp-3); }
+.menu__panel .site-actions { margin-top: var(--sp-4); flex-direction: column; }
+
+@media (max-width: 960px) {
+  .site-header > .site-nav,
+  .site-header > .site-actions { display: none; }
+  .menu { display: block; }
+}
+
+/* ---------- 섹션 제목 (공통) ---------- */
+.section-title {
+  font: 800 var(--fs-xl) / 1.05 var(--font-display);
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+.section-sub {
+  margin-top: var(--sp-3);
+  color: var(--c-ink-soft); font-size: var(--fs-sm); letter-spacing: 0.02em;
+}
+
+/* ---------- 푸터 ---------- */
+.site-footer {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--sp-4);
+  padding: var(--sp-12) var(--gutter);
+  border-top: 1px solid var(--c-rule);
+  color: var(--c-ink-faint); font-size: var(--fs-xs); letter-spacing: 0.04em;
+}
+.site-footer .brand__name { font-size: var(--fs-sm); }

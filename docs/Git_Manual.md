@@ -144,7 +144,7 @@ git switch feature/phase1-account
 |---|---|---|
 | `.venv/` | git 제외 | `py -3.13 -m venv .venv` → `.venv\Scripts\python -m pip install -r backend\requirements-dev.txt` |
 | `.env` | 비밀값이라 git 제외 | `copy .env.example .env` → `DB_PASSWORD=nyxiadmin`(개발용), `JWT_SECRET` 입력 |
-| MySQL DB·테이블 | DB는 git으로 옮겨지지 않음 | `mysql -u root -p < db\00_create_database.sql` → 01~06 순서대로 실행 (`db/docs/StudioNx_DB_Guide.md` §2) |
+| MySQL DB·테이블 | DB는 git으로 옮겨지지 않음 | `mysql -u root -p -e "source db/00_create_database.sql"` → 01~06 순서대로 실행 (`db/docs/StudioNx_DB_Guide.md` §2) |
 | `node_modules/` | git 제외 | Word 문서 빌드할 때만: `cd db\docs\_build` → `npm install` |
 | `storage/` 파일 | 업로드 파일은 git 제외 | 빈 폴더로 시작 |
 
@@ -159,5 +159,5 @@ git switch feature/phase1-account
 
 - 같은 브랜치를 두 컴퓨터에서 **동시에** 고치지 않습니다(충돌 원인).
 - `git pull`에서 충돌이 나면 §5 "병합 충돌" 방법으로 해결합니다.
-- DB **데이터**는 옮겨지지 않습니다. 테스트 데이터가 필요하면 `mysqldump -u root -p studionx > dump.sql`로 내보내고 다른 컴퓨터에서 `mysql -u root -p studionx < dump.sql` (dump 파일은 커밋하지 않기).
+- DB **데이터**는 옮겨지지 않습니다. 테스트 데이터가 필요하면 `mysqldump -u root -p studionx > dump.sql`로 내보내고 다른 컴퓨터에서 `mysql -u root -p studionx -e "source dump.sql"` (dump 파일은 커밋하지 않기).
 - 다른 컴퓨터에서 AI로 문서를 만들 때는 [AI_Doc_Template_Guide.md](AI_Doc_Template_Guide.md)를 먼저 읽게 하면 같은 템플릿으로 만들어집니다.

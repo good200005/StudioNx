@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Projects — Studio Nx</title>
+  <meta name="description" content="Your Studio Nx projects: search, create, edit and delete.">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0b0a0f">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23a383ff' d='M20.6 3.2A13 13 0 1 0 28.8 22 10.5 10.5 0 1 1 20.6 3.2Z'/%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+
+  <link rel="stylesheet" href="static/css/tokens.css">
+  <link rel="stylesheet" href="static/css/base.css">
+  <link rel="stylesheet" href="static/css/forms.css">
+  <link rel="stylesheet" href="static/css/auth.css">
+  <link rel="stylesheet" href="static/css/account.css">
+  <link rel="stylesheet" href="static/css/pages/myproject.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- 공통 헤더: static/partials/header.html (core/include.js 가 끼움) -->
+  <div data-include="static/partials/header.html"></div>
+
+  <!-- 나의 프로젝트 (P1-14, PRD 01 FR-122~126) — 시안 docs/page_mockups/myproject/03~06 (P-2 콘솔 목록형)
+       로그인이 필요한 페이지: myproject.js 가 requireLogin() 후 GET /api/v1/projects?query=&page=&size= 로 목록을 채움
+       지금 들어 있는 프로젝트 6개는 모양 확인용 예시 -->
+  <main id="main" class="mp">
+    <nav class="mp-menu" aria-label="My page">
+      <a class="mp-menu__link" href="myPage.html">Dashboard</a>
+      <a class="mp-menu__link" href="userInfo.html">Profile</a>
+      <a class="mp-menu__link" href="myProject.html" aria-current="page">My Projects</a>
+      <button type="button" class="mp-menu__logout" id="logout-button">Log out</button>
+    </nav>
+
+    <div class="mp-body">
+      <h1 class="mp-title">My Projects</h1>
+
+      <!-- 검색·정렬 (FR-123): 입력이 바뀌면 myproject.js 가 목록을 다시 받음 (검색은 0.3초 멈춘 뒤) -->
+      <form class="pj-tools" id="project-search" role="search">
+        <div class="field pj-tools__search">
+          <label class="sr-only" for="project-query">Search projects</label>
+          <input class="field__control" id="project-query" name="query" type="search" maxlength="100" placeholder="Search by title">
+        </div>
+        <div class="field pj-tools__sort">
+          <label class="sr-only" for="project-sort">Sort by</label>
+          <select class="field__control" id="project-sort" name="sort">
+            <option value="updated">Recently edited</option>
+            <option value="title">Name</option>
+            <option value="created">Created</option>
+          </select>
+        </div>
+        <p class="pj-tools__count" id="project-count" aria-live="polite">7 projects</p>
+        <button type="button" class="btn btn--primary pj-tools__new" command="show-modal" commandfor="new-project-modal">New project</button>
+      </form>
+
+      <!-- 프로젝트 목록 (P-2): 이름·설명 | BPM | 박자 | 키 | 참여자 | 수정 | Open ··· -->
+      <section class="mp-card pj-list" aria-labelledby="project-list-title">
+        <h2 class="sr-only" id="project-list-title">Projects</h2>
+        <div class="pj-row pj-row--label" aria-hidden="true">
+          <span>Project</span><span>BPM</span><span>Sig</span><span>Key</span><span>Members</span><span>Edited</span><span></span>
+        </div>
+
+        <ul id="project-list">
+          <!-- 아직 시퀀서에서 한 번도 열지 않은 프로젝트 (작업 세션 0개, FR-130): 제목 옆 'Not opened' -->
+          <li class="pj-row" data-project-id="7">
+            <a class="pj-row__head" href="studioNx.html?projectId=7"><b>Summer Loop <span class="pj-badge">Not opened</span></b><span>Idea from the bus ride home</span></a>
+            <span class="pj-row__cell">120</span>
+            <span class="pj-row__cell">4/4</span>
+            <span class="pj-row__cell">—</span>
+            <span class="pj-row__cell pj-row__members" aria-label="1 member"><i></i></span>
+            <span class="pj-row__cell pj-row__when" data-meta="120 BPM · ">5 minutes ago</span>
+            <span class="pj-row__act">
+              <a class="btn btn--ghost" href="studioNx.html?projectId=7">Open</a>
+              <details class="pj-menu">
+                <summary class="pj-more" aria-label="More actions for Summer Loop">···</summary>
+                <div class="pj-pop">
+                  <button type="button" data-action="edit" command="show-modal" commandfor="edit-project-modal">Edit details</button>
+                  <button type="button" data-action="delete" class="pj-pop__danger" command="show-modal" commandfor="delete-project-modal">Delete</button>
+                </div>
+              </details>
+            </span>
+          </li>
+          <li class="pj-row" data-project-id="1">
+            <a class="pj-row__head" href="studioNx.html?projectId=1"><b>Midnight Drive</b><span>Night-drive synthwave with long pads</span></a>
+            <span class="pj-row__cell">128</span>
+            <span class="pj-row__cell">4/4</span>
+            <span class="pj-row__cell">A minor</span>
+            <span class="pj-row__cell pj-row__members" aria-label="1 member"><i></i></span>
+            <span class="pj-row__cell pj-row__when" data-meta="128 BPM · A minor · ">12 minutes ago</span>
+            <span class="pj-row__act">
+              <a class="btn btn--ghost" href="studioNx.html?projectId=1">Open</a>
+              <details class="pj-menu">
+                <summary class="pj-more" aria-label="More actions for Midnight Drive">···</summary>
+                <div class="pj-pop">
+                  <button type="button" data-action="edit" command="show-modal" commandfor="edit-project-modal">Edit details</button>
+                  <button type="button" data-action="delete" class="pj-pop__danger" command="show-modal" commandfor="delete-project-modal">Delete</button>
+                </div>
+              </details>
+            </span>
+          </li>
+          <li class="pj-row" data-project-id="2">
+            <a class="pj-row__head" href="studioNx.html?projectId=2"><b>Neon Rain (demo)</b><span>Demo for the rain sample pack</span></a>
+            <span class="pj-row__cell">96</span>
+            <span class="pj-row__cell">4/4</span>
+            <span class="pj-row__cell">F# minor</span>
+            <span class="pj-row__cell pj-row__members" aria-label="1 member"><i></i></span>
+            <span class="pj-row__cell pj-row__when" data-meta="96 BPM · F# minor · ">2 hours ago</span>
+            <span class="pj-row__act">
+              <a class="btn btn--ghost" href="studioNx.html?projectId=2">Open</a>
+              <details class="pj-menu">
+                <summary class="pj-more" aria-label="More actions for Neon Rain (demo)">···</summary>
+                <div class="pj-pop">
+                  <button type="button" data-action="edit" command="show-modal" commandfor="edit-project-modal">Edit details</button>
+                  <button type="button" data-action="delete" class="pj-pop__danger" command="show-modal" commandfor="delete-project-modal">Delete</button>
+                </div>
+              </details>
+            </span>
+          </li>
+          <li class="pj-row" data-project-id="3">
+            <a class="pj-row__head" href="studioNx.html?projectId=3"><b>Lo-fi Sketch 03</b><span>No description</span></a>
+            <span class="pj-row__cell">82</span>
+            <span class="pj-row__cell">4/4</span>
+            <span class="pj-row__cell">C major</span>
+            <span class="pj-row__cell pj-row__members" aria-label="1 member"><i></i></span>
+            <span class="pj-row__cell pj-row__when" data-meta="82 BPM · C major · ">Yesterday</span>
+            <span class="pj-row__act">
+              <a class="btn btn--ghost" href="studioNx.html?projectId=3">Open</a>
+              <details class="pj-menu">
+                <summary class="pj-more" aria-label="More actions for Lo-fi Sketch 03">···</summary>
+                <div class="pj-pop">
+                  <button type="button" data-action="edit" command="show-modal" commandfor="edit-project-modal">Edit details</button>
+                  <button type="button" data-action="delete" class="pj-pop__danger" command="show-modal" commandfor="delete-project-modal">Delete</button>
+                </div>
+              </details>
+            </span>
+          </li>
+          <!-- 내가 OWNER가 아닌 프로젝트: 역할 표시, 삭제 버튼 비활성 (FR-125 — OWNER만 삭제) -->
+          <li class="pj-row" data-project-id="4">
+            <a class="pj-row__head" href="studioNx.html?projectId=4"><b>Collab — Nyxi Theme</b><span>Theme song with the team</span></a>
+            <span class="pj-row__cell">140</span>
+            <span class="pj-row__cell">7/8</span>
+            <span class="pj-row__cell">D minor</span>
+            <span class="pj-row__cell pj-row__members" aria-label="3 members, your role: editor"><i></i><i></i><i></i><span class="pj-role">Editor</span></span>
+            <span class="pj-row__cell pj-row__when" data-meta="140 BPM · D minor · ">3 days ago</span>
+            <span class="pj-row__act">
+              <a class="btn btn--ghost" href="studioNx.html?projectId=4">Open</a>
+              <details class="pj-menu">
+                <summary class="pj-more" aria-label="More actions for Collab — Nyxi Theme">···</summary>
+                <div class="pj-pop">
+                  <button type="button" data-action="edit" command="show-modal" commandfor="edit-project-modal">Edit details</button>
+                  <button type="button" data-action="delete" class="pj-pop__danger" disabled title="Only the owner can delete">Delete <small>Owner only</small></button>
+                </div>
+              </details>
+            </span>
+          </li>
+          <li class="pj-row" data-project-id="5">
+            <a class="pj-row__head" href="studioNx.html?projectId=5"><b>Untitled 12</b><span>No description</span></a>
+            <span class="pj-row__cell">120</span>
+            <span class="pj-row__cell">4/4</span>
+            <span class="pj-row__cell">—</span>
+            <span class="pj-row__cell pj-row__members" aria-label="1 member"><i></i></span>
+            <span class="pj-row__cell pj-row__when" data-meta="120 BPM · ">Sep 27</span>
+            <span class="pj-row__act">
+              <a class="btn btn--ghost" href="studioNx.html?projectId=5">Open</a>
+              <details class="pj-menu">
+                <summary class="pj-more" aria-label="More actions for Untitled 12">···</summary>
+                <div class="pj-pop">
+                  <button type="button" data-action="edit" command="show-modal" commandfor="edit-project-modal">Edit details</button>
+                  <button type="button" data-action="delete" class="pj-pop__danger" command="show-modal" commandfor="delete-project-modal">Delete</button>
+                </div>
+              </details>
+            </span>
+          </li>
+          <li class="pj-row" data-project-id="6">
+            <a class="pj-row__head" href="studioNx.html?projectId=6"><b>Drum Study</b><span>Breakbeat chops practice</span></a>
+            <span class="pj-row__cell">174</span>
+            <span class="pj-row__cell">4/4</span>
+            <span class="pj-row__cell">E minor</span>
+            <span class="pj-row__cell pj-row__members" aria-label="1 member"><i></i></span>
+            <span class="pj-row__cell pj-row__when" data-meta="174 BPM · E minor · ">Sep 21</span>
+            <span class="pj-row__act">
+              <a class="btn btn--ghost" href="studioNx.html?projectId=6">Open</a>
+              <details class="pj-menu">
+                <summary class="pj-more" aria-label="More actions for Drum Study">···</summary>
+                <div class="pj-pop">
+                  <button type="button" data-action="edit" command="show-modal" commandfor="edit-project-modal">Edit details</button>
+                  <button type="button" data-action="delete" class="pj-pop__danger" command="show-modal" commandfor="delete-project-modal">Delete</button>
+                </div>
+              </details>
+            </span>
+          </li>
+        </ul>
+
+        <!-- 목록이 비었을 때 (myproject.js 가 둘 중 하나의 hidden 해제) -->
+        <p class="pj-empty" id="project-empty" hidden>No projects yet. <button type="button" class="text-link text-link--strong" command="show-modal" commandfor="new-project-modal">Create your first project</button></p>
+        <p class="pj-empty" id="project-no-result" hidden>No projects match your search.</p>
+      </section>
+
+      <!-- 페이지 넘김 (FR-123): 한 페이지 10개. myproject.js 가 페이지 수에 맞게 다시 그림 -->
+      <nav class="pj-pager" id="project-pager" aria-label="Pages">
+        <a class="pj-pager__btn" aria-disabled="true">Prev</a>
+        <a class="pj-pager__btn" href="?page=1" aria-current="page">1</a>
+        <a class="pj-pager__btn" href="?page=2">2</a>
+        <a class="pj-pager__btn" href="?page=2">Next</a>
+      </nav>
+    </div>
+  </main>
+
+  <!-- 목록 한 줄 틀: myproject.js 가 복사해서 채움 (위 예시 줄과 같은 구조) -->
+  <template id="project-row-template">
+    <li class="pj-row" data-project-id="">
+      <!-- 시퀀서에서 한 번도 안 연 프로젝트면 <b> 안 제목 뒤에 <span class="pj-badge">Not opened</span> (FR-130) -->
+      <a class="pj-row__head" href=""><b></b><span></span></a>
+      <span class="pj-row__cell" data-field="bpm"></span>
+      <span class="pj-row__cell" data-field="sig"></span>
+      <span class="pj-row__cell" data-field="key"></span>
+      <span class="pj-row__cell pj-row__members" data-field="members"></span>
+      <span class="pj-row__cell pj-row__when" data-field="when" data-meta=""></span>
+      <span class="pj-row__act">
+        <a class="btn btn--ghost" href="">Open</a>
+        <details class="pj-menu">
+          <summary class="pj-more" aria-label="More actions">···</summary>
+          <div class="pj-pop">
+            <button type="button" data-action="edit" command="show-modal" commandfor="edit-project-modal">Edit details</button>
+            <button type="button" data-action="delete" class="pj-pop__danger" command="show-modal" commandfor="delete-project-modal">Delete</button>
+          </div>
+        </details>
+      </span>
+    </li>
+  </template>
+
+  <!-- 새 프로젝트 (FR-122·127): POST /api/v1/projects
+       성공하면 PC(폭 1280px 이상)는 studioNx.html?projectId= 로 이동, 그보다 작은 화면은 목록 맨 위에 넣고 #desktop-only-modal (FR-129) -->
+  <dialog class="modal modal--narrow" id="new-project-modal" aria-labelledby="new-project-title">
+    <div class="modal__head">
+      <h2 class="modal__title" id="new-project-title">New project</h2>
+      <button type="button" class="btn btn--ghost modal__close" command="close" commandfor="new-project-modal">Close</button>
+    </div>
+    <div class="modal__body">
+      <form class="form-stack" id="new-project-form" action="/api/v1/projects" method="post">
+        <div class="field">
+          <label class="field__label" for="new-title">Title <span class="field__req" aria-hidden="true">*</span></label>
+          <input class="field__control" id="new-title" name="title" required maxlength="100" placeholder="Untitled" autofocus>
+        </div>
+        <div class="field">
+          <label class="field__label" for="new-description">Description</label>
+          <input class="field__control" id="new-description" name="description" maxlength="500" placeholder="Optional, up to 500 characters">
+        </div>
+        <div class="pj-form-row">
+          <div class="field">
+            <label class="field__label" for="new-bpm">BPM</label>
+            <input class="field__control" id="new-bpm" name="bpm" type="number" value="120" min="20" max="999" step="0.01" required>
+          </div>
+          <div class="field">
+            <label class="field__label" for="new-sig">Time signature</label>
+            <select class="field__control" id="new-sig" name="time_sig">
+              <option value="4/4" selected>4/4</option>
+              <option value="3/4">3/4</option>
+              <option value="6/8">6/8</option>
+              <option value="7/8">7/8</option>
+            </select>
+          </div>
+        </div>
+        <!-- 시작 방식 (FR-127): 템플릿은 Phase 2부터 → 지금은 비활성 -->
+        <fieldset class="pj-start">
+          <legend class="field__label">Start from</legend>
+          <label class="pj-start__opt"><input type="radio" name="start" value="empty" checked> <b>Empty project</b><span>Master track only</span></label>
+          <label class="pj-start__opt"><input type="radio" name="start" value="template" disabled> <b>Template</b><span>Phase 2</span></label>
+        </fieldset>
+        <p class="form-error" id="new-project-error" role="alert" hidden></p>
+        <button type="submit" class="btn btn--primary btn--block">Create project</button>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- 제목·설명 수정 (FR-124): PATCH /api/v1/projects/{id}. 열 때 myproject.js 가 현재 값을 채움 -->
+  <dialog class="modal modal--narrow" id="edit-project-modal" aria-labelledby="edit-project-title">
+    <div class="modal__head">
+      <h2 class="modal__title" id="edit-project-title">Edit details</h2>
+      <button type="button" class="btn btn--ghost modal__close" command="close" commandfor="edit-project-modal">Close</button>
+    </div>
+    <div class="modal__body">
+      <form class="form-stack" id="edit-project-form" method="post">
+        <div class="field">
+          <label class="field__label" for="edit-title">Title <span class="field__req" aria-hidden="true">*</span></label>
+          <input class="field__control" id="edit-title" name="title" required maxlength="100">
+        </div>
+        <div class="field">
+          <label class="field__label" for="edit-description">Description</label>
+          <input class="field__control" id="edit-description" name="description" maxlength="500">
+        </div>
+        <p class="form-error" id="edit-project-error" role="alert" hidden></p>
+        <button type="submit" class="btn btn--primary btn--block">Save</button>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- 삭제 확인 (FR-125): DELETE /api/v1/projects/{id} — 소프트 삭제, OWNER만 -->
+  <dialog class="modal modal--narrow" id="delete-project-modal" aria-labelledby="delete-project-title">
+    <div class="modal__head">
+      <h2 class="modal__title" id="delete-project-title">Delete project?</h2>
+      <button type="button" class="btn btn--ghost modal__close" command="close" commandfor="delete-project-modal">Close</button>
+    </div>
+    <div class="modal__body">
+      <p class="modal__lead"><b id="delete-project-name">Neon Rain (demo)</b> will be removed from your projects. Collaborators will lose access too.</p>
+      <p class="modal__note">Only the owner can delete a project.</p>
+      <p class="form-error" id="delete-project-error" role="alert" hidden></p>
+      <div class="modal__actions">
+        <button type="button" class="btn btn--ghost" command="close" commandfor="delete-project-modal">Cancel</button>
+        <button type="button" class="btn btn--danger" id="delete-project-confirm">Delete project</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 작은 화면 안내 모달: static/partials/desktop-only-modal.html (FR-129) -->
+  <div data-include="static/partials/desktop-only-modal.html"></div>
+
+  <!-- 공통 푸터: static/partials/footer.html -->
+  <div data-include="static/partials/footer.html"></div>
+
+  <script type="module" src="static/js/pages/myproject.js"></script>
+</body>
+</html>

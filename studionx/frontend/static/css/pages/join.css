@@ -1,0 +1,42 @@
+/* join.html — 회원가입 (P1-06)
+   시안: docs/form_mockups/03_B2_stacked_line.png (JOIN US 카드)
+   입력칸은 forms.css, 비밀번호·소셜 버튼·구분선은 auth.css */
+
+body { display: flex; flex-direction: column; }
+
+/* ---------- 공통 헤더(static/partials/header.html)를 가입 페이지에 맞게 ----------
+   - 메인 페이지에서는 첫 화면 위에 겹쳐 있지만(absolute), 여기서는 일반 흐름
+   - 섹션 메뉴·모바일 메뉴·Join Us는 숨기고 Sign In(로그인 상태면 My Page·My Projects)만 */
+.site-header { position: static; }
+[data-include$="header.html"] { min-height: var(--header-h); }   /* 헤더를 받기 전 자리 확보 (아래 내용이 밀리지 않게) */
+.site-header .site-nav,
+.site-header .menu,
+.site-header .site-actions__join { display: none; }
+.site-header > .site-actions { margin-left: auto; }
+@media (max-width: 960px) {
+  .site-header > .site-actions { display: flex; }   /* base.css 는 모바일에서 숨기고 메뉴로 옮김 → 여기선 그대로 보임 */
+}
+
+.join {
+  flex: 1;
+  display: flex; justify-content: center; align-items: flex-start;
+  padding: var(--sp-8) var(--gutter) var(--sp-24);
+}
+
+.join__card {
+  width: min(30rem, 100%);
+  padding: var(--sp-12) clamp(var(--sp-6), 5vw, var(--sp-12));
+  background: var(--c-ground-raised);
+}
+
+.join__title {
+  font: 800 var(--fs-xl) / 1.05 var(--font-display);
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+.join__title + .auth-sub { margin-top: var(--sp-3); margin-bottom: var(--sp-8); }
+
+/* ---------- 모바일: 카드 면을 없애고 화면 전체를 씀 ---------- */
+@media (max-width: 760px) {
+  .join { padding: var(--sp-4) var(--gutter) var(--sp-16); }
+  .join__card { padding: var(--sp-6) 0 0; background: none; }
+}

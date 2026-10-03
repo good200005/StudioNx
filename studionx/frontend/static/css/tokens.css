@@ -1,0 +1,83 @@
+/* Studio Nx — 디자인 토큰 (모든 페이지 공통)
+   색: Black & White 기본 + Nyxi 헤드폰에서 뽑은 Violet 한 가지를 포인트로.
+   테마: <html data-theme="dark|light|system"> — 기본 dark. 전환 UI는 2단계(S2-10)에서. */
+
+:root {
+  /* 색 — 다크(기본) */
+  --c-ground: #0b0a0f;          /* 바탕: 보라 기운이 아주 살짝 도는 먹색 */
+  --c-ground-raised: #15131c;   /* 한 단 올라온 면 */
+  --c-ink: #f4f3f7;             /* 본문 글자: 종이색 */
+  --c-ink-soft: #b9b6c4;        /* 보조 글자 (바탕 대비 9:1 이상) */
+  --c-ink-faint: #7f7b8c;       /* 비활성·각주 (큰 글자 전용) */
+  --c-rule: rgb(244 243 247 / 0.16);
+  --c-rule-violet: rgb(163 131 255 / 0.45);   /* 보라 구분선 (Development·Contact) */
+  --c-violet: #6a24f6;          /* 포인트 면·버튼 (Nyxi 헤드폰 #6820f8 기준) */
+  --c-violet-ink: #a383ff;      /* 어두운 바탕 위 보라 글자용 (대비 6:1) */
+  --c-on-violet: #ffffff;
+  --c-focus: #b69bff;
+  --c-ok: #7fe0a8;              /* 입력칸 확인 완료 (바탕 대비 12:1) */
+  --c-error: #ff8a8a;           /* 입력칸 오류 (바탕 대비 8:1) */
+
+  /* 글꼴 */
+  --font-display: "Unbounded", "Pretendard Variable", "Pretendard", sans-serif;
+  --font-text: "Pretendard Variable", "Pretendard", -apple-system, "Malgun Gothic", sans-serif;
+
+  /* 크기 단계 */
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-md: 1rem;
+  --fs-lg: 1.25rem;
+  --fs-xl: clamp(1.75rem, 3.2vw, 2.75rem);
+  --fs-display: clamp(3rem, 6.6vw, 6.5rem);
+
+  /* 간격 (4px 기반) */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-6: 1.5rem;
+  --sp-8: 2rem;
+  --sp-12: 3rem;
+  --sp-16: 4rem;
+  --sp-24: 6rem;
+  --gutter: clamp(1.25rem, 3.5vw, 3.5rem);
+
+  /* 기타 */
+  --header-h: 5.5rem;
+  --radius: 0;                  /* 포스터처럼 각진 모서리 */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur: 220ms;
+
+  color-scheme: dark;
+}
+
+/* 라이트 테마 — 먹과 종이를 뒤집고, 보라는 그대로 */
+:root[data-theme="light"] {
+  --c-ground: #f6f5f9;
+  --c-ground-raised: #ffffff;
+  --c-ink: #0b0a0f;
+  --c-ink-soft: #46424f;
+  --c-ink-faint: #75717f;
+  --c-rule: rgb(11 10 15 / 0.14);
+  --c-violet-ink: #5a17e0;
+  --c-focus: #5a17e0;
+  --c-ok: #137a45;
+  --c-error: #c42b2b;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: light) {
+  :root[data-theme="system"] {
+    --c-ground: #f6f5f9;
+    --c-ground-raised: #ffffff;
+    --c-ink: #0b0a0f;
+    --c-ink-soft: #46424f;
+    --c-ink-faint: #75717f;
+    --c-rule: rgb(11 10 15 / 0.14);
+    --c-violet-ink: #5a17e0;
+    --c-focus: #5a17e0;
+    --c-ok: #137a45;
+    --c-error: #c42b2b;
+    color-scheme: light;
+  }
+}

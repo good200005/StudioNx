@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     # 인증
     jwt_secret: str = "change-me"
     jwt_access_minutes: int = 30
-    jwt_refresh_days: int = 14
+    jwt_refresh_days: int = 3          # 자동 로그인 체크 시 리프레시 쿠키 유지 기간 (PRD 01 FR-109)
 
     # 파일 저장 위치 (DB에는 이 경로 기준 상대 경로만 저장)
     storage_dir: Path = ROOT_DIR / "storage"

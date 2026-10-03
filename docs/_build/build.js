@@ -76,13 +76,13 @@ const CSS = `
   .mermaid svg { max-width: 100%; height: auto; }
 `;
 
-function buildPdf({ out, title, subtitle, files }) {
+function buildPdf({ out, title, subtitle, files, base = '' }) {   // base: md 안 이미지·링크의 기준 폴더 (docs 기준)
   const sources = files.map(f => ({ name: f, md: fs.readFileSync(path.join(DOCS, f), 'utf8') }));
   const toc = files.length > 1
     ? `<section class="doc"><h1>목차</h1><ol class="toc">${files.map(f => `<li>${f}</li>`).join('')}</ol></section>` : '';
   const html = path.join(DOCS, '_build', '.tmp_' + path.basename(out, '.pdf') + '.html'); // docs 기준 상대경로(이미지) 유지
   fs.writeFileSync(html, `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${title}</title>
-<base href="${fileUrl(DOCS)}/">
+<base href="${fileUrl(path.join(DOCS, base))}/">
 <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <style>${CSS}</style></head><body>
@@ -120,9 +120,15 @@ document.querySelectorAll('pre code.language-mermaid').forEach(c => {
 mermaid.initialize({ startOnLoad: false, theme: 'neutral', gantt: { useWidth: 1500, fontSize: 11, barHeight: 13, barGap: 3, topPadding: 40, sectionFontSize: 12 } });
 mermaid.run();
 </script></body></html>`, 'utf8');
+  const target = path.join(DOCS, out);
+  const before = fs.existsSync(target) ? fs.statSync(target).mtimeMs : 0;
   chrome(['--no-pdf-header-footer', '--virtual-time-budget=25000', '--run-all-compositor-stages-before-draw',
-    '--allow-file-access-from-files', `--print-to-pdf=${path.join(DOCS, out)}`, fileUrl(html)]);
+    '--allow-file-access-from-files', `--print-to-pdf=${target}`, fileUrl(html)]);
   fs.unlinkSync(html);
+  // Chrome은 저장에 실패해도 오류를 내지 않음 → 파일 시각으로 확인 (PDF 뷰어에 열려 있으면 잠겨서 실패)
+  if (!fs.existsSync(target) || fs.statSync(target).mtimeMs === before) {
+    throw new Error(`${out} 저장 실패 — PDF 뷰어 등에서 파일이 열려 있으면 닫고 다시 실행하세요`);
+  }
   console.log(out);
 }
 
@@ -133,6 +139,21 @@ const PDFS = [
   { out: 'Ai_feedback.pdf', title: 'Studio Nx', subtitle: 'AI 제안 — 추가하면 좋을 기능', files: ['Ai_feedback.md'] },
   { out: 'Ai_feedback_moreExplain.pdf', title: 'Studio Nx', subtitle: 'AI 제안 추가 설명 — 상황 인지 팁 · 스냅샷 · 이름 추천', files: ['Ai_feedback_moreExplain.md'] },
   { out: 'Git_Manual.pdf', title: 'Studio Nx', subtitle: 'Git · GitHub 관리 매뉴얼', files: ['Git_Manual.md'] },
+  { out: 'ai-notes/01_dev_environment.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 01 — 개발 환경 구축', files: ['ai-notes/01_dev_environment.md'], base: 'ai-notes' },
+  { out: 'ai-notes/02_home_first_page.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 02 — 메인 페이지 구조 · 첫 화면', files: ['ai-notes/02_home_first_page.md'], base: 'ai-notes' },
+  { out: 'ai-notes/03_home_revision_service.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 03 — 메인 페이지 수정 · Service 섹션', files: ['ai-notes/03_home_revision_service.md'], base: 'ai-notes' },
+  { out: 'ai-notes/04_home_sections.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 04 — 메인 페이지 나머지 섹션 프로토타입', files: ['ai-notes/04_home_sections.md'], base: 'ai-notes' },
+  { out: 'ai-notes/05_home_feature.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 05 — 모바일 띠 재조정 · Feature 섹션', files: ['ai-notes/05_home_feature.md'], base: 'ai-notes' },
+  { out: 'ai-notes/06_common_forms.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 06 — 공통 폼 스타일 (B-2 밑줄형)', files: ['ai-notes/06_common_forms.md'], base: 'ai-notes' },
+  { out: 'ai-notes/07_auth_pages.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 07 — 회원가입 페이지 · 로그인 모달', files: ['ai-notes/07_auth_pages.md'], base: 'ai-notes' },
+  { out: 'ai-notes/08_backend_core.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 08 — 백엔드 공통 뼈대', files: ['ai-notes/08_backend_core.md'], base: 'ai-notes' },
+  { out: 'ai-notes/09_frontend_api_core.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 09 — 프론트 공통 JS 뼈대', files: ['ai-notes/09_frontend_api_core.md'], base: 'ai-notes' },
+  { out: 'ai-notes/10_common_partials.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 10 — 공통 헤더·푸터·로그인 모달 통합', files: ['ai-notes/10_common_partials.md'], base: 'ai-notes' },
+  { out: 'ai-notes/11_error_pages.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 11 — 오류 페이지', files: ['ai-notes/11_error_pages.md'], base: 'ai-notes' },
+  { out: 'ai-notes/13_mypage.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 13 — 마이페이지 대시보드', files: ['ai-notes/13_mypage.md'], base: 'ai-notes' },
+  { out: 'ai-notes/14_myproject.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 14 — 나의 프로젝트', files: ['ai-notes/14_myproject.md'], base: 'ai-notes' },
+  { out: 'ai-notes/15_userinfo.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 15 — 회원 정보', files: ['ai-notes/15_userinfo.md'], base: 'ai-notes' },
+${LINE}
 ];
 
 const mode = process.argv[2];

@@ -9,7 +9,7 @@
    git for-each-ref --sort=-committerdate refs/remotes/origin/feature refs/remotes/origin/fix --format="%(committerdate:iso) %(refname:short) %(subject)" --count=5
    ```
    맨 위 브랜치로 `git switch <브랜치>` 후 `git pull`. 바꾸기 전에 `git status`로 커밋 안 된 변경이 있으면 사용자에게 먼저 묻는다. 어떤 브랜치로 바꿨는지와 최신 커밋을 사용자에게 알린다. 백엔드 의존성 파일이 바뀌었으면 `.venv`에 다시 설치한다.
-2. 작업 전에 **`docs/context_*.md` 중 날짜가 가장 최신인 파일을 먼저 읽는다** (1번으로 최신 브랜치에 맞춘 뒤). 지금까지의 결정·진행 상황·남은 일·사용자 주의 사항(PowerShell 사용 등)이 정리되어 있다. Claude Code 메모리는 컴퓨터마다 따로라서 이 파일이 맥락을 이어 준다.
+2. 작업 전에 **`docs/context_*.md` 중 날짜가 가장 최신인 파일을 먼저 읽는다** (1번으로 최신 브랜치에 맞춘 뒤, 현재: `docs/context_2026-10-02.md`). 지금까지의 결정·진행 상황·남은 일·사용자 주의 사항(PowerShell 사용 등)이 정리되어 있다. Claude Code 메모리는 컴퓨터마다 따로라서 이 파일이 맥락을 이어 준다.
 
 ## 프로젝트 원칙 (반드시 지킬 것)
 @StudioNx_CLAUDE.md

@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Page — Studio Nx</title>
+  <meta name="description" content="Your Studio Nx dashboard: storage, AI usage and recent projects.">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0b0a0f">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23a383ff' d='M20.6 3.2A13 13 0 1 0 28.8 22 10.5 10.5 0 1 1 20.6 3.2Z'/%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+
+  <link rel="stylesheet" href="static/css/tokens.css">
+  <link rel="stylesheet" href="static/css/base.css">
+  <link rel="stylesheet" href="static/css/auth.css">
+  <link rel="stylesheet" href="static/css/account.css">
+  <link rel="stylesheet" href="static/css/pages/mypage.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- 공통 헤더: static/partials/header.html (core/include.js 가 끼움) -->
+  <div data-include="static/partials/header.html"></div>
+
+  <!-- 마이페이지 대시보드 (P1-17, PRD 01 FR-121·128·133·136) — 시안 docs/page_mockups/mypage/05~06 (M-2 믹서 콘솔형)
+       로그인이 필요한 페이지: mypage.js 가 requireLogin() 후 GET /api/v1/me/dashboard 로 아래 값을 채움
+       지금 들어 있는 숫자·프로젝트는 모양 확인용 예시 -->
+  <main id="main" class="mp">
+    <!-- 왼쪽 메뉴 (모바일: 위쪽 가로 탭). 로그아웃은 메뉴 맨 아래 (2026-10-03 결정) -->
+    <nav class="mp-menu" aria-label="My page">
+      <a class="mp-menu__link" href="myPage.html" aria-current="page">Dashboard</a>
+      <a class="mp-menu__link" href="userInfo.html">Profile</a>
+      <a class="mp-menu__link" href="myProject.html">My Projects</a>
+      <button type="button" class="mp-menu__logout" id="logout-button">Log out</button>
+    </nav>
+
+    <div class="mp-body">
+      <h1 class="mp-title">Dashboard</h1>
+
+      <!-- 이어 하기 배너 (FR-130): 아직 시퀀서에서 한 번도 안 연 프로젝트(내 작업 세션 0개) 중 가장 최근 것
+           - 휴대폰에서 만든 프로젝트를 PC에서 바로 열기 위한 자리. 시퀀서를 열 수 있는 폭(1280px 이상)에서만 보임
+           - 안 연 프로젝트가 없거나 × 로 닫으면 숨김 (닫은 프로젝트 ID는 이 브라우저에 기억 — mypage.js)
+           - 시퀀서에서 한 번 열면 세션이 생겨 다음부터 자동으로 안 나옴 -->
+      <section class="mp-card ready" id="ready-banner" aria-labelledby="ready-title">
+        <p class="ready__label">Ready to start</p>
+        <div class="ready__main">
+          <h2 class="ready__title" id="ready-title">Summer Loop</h2>
+          <p class="ready__meta">Not opened yet · created 5 minutes ago · 120 BPM · 4/4<span id="ready-more"> · 1 more in <a class="text-link text-link--strong" href="myProject.html">My Projects</a></span></p>
+        </div>
+        <a class="btn btn--primary ready__open" id="ready-open" href="studioNx.html?projectId=7">Open in studio</a>
+        <button type="button" class="ready__close" id="ready-close" aria-label="Dismiss">×</button>
+      </section>
+
+      <div class="mp-top">
+        <!-- 프로필 요약: users.nickname · email · created_at, 사진(profile_image_path)이 있으면 .avatar 안을 <img>로 -->
+        <section class="mp-card profile" aria-labelledby="profile-name">
+          <div class="avatar" id="profile-avatar" aria-hidden="true">N</div>
+          <div>
+            <h2 class="profile__name" id="profile-name">nightowl</h2>
+            <p class="profile__meta"><span id="profile-email">nyxi@studionx.app</span> · Joined <span id="profile-joined">Oct 2026</span></p>
+          </div>
+          <a class="text-link text-link--strong profile__edit" href="userInfo.html">Edit profile</a>
+        </section>
+
+        <!-- 아직 없는 기능의 자리 (점선) -->
+        <section class="mp-card mp-card--soon" aria-labelledby="soon-samples">
+          <h2 class="mp-card__title" id="soon-samples">Sample library</h2>
+          <p class="mp-card__note">Uploaded samples will be counted here.</p>
+          <span class="soon">Phase 2</span>
+        </section>
+        <section class="mp-card mp-card--soon" aria-labelledby="soon-invites">
+          <h2 class="mp-card__title" id="soon-invites">Invitations</h2>
+          <p class="mp-card__note">Shared projects will show up here.</p>
+          <span class="soon">Phase 6</span>
+        </section>
+      </div>
+
+      <!-- 사용량 미터 (FR-133·136): PC는 세로 레벨 미터, 모바일은 가로 막대 (mypage.css)
+           채움 비율은 style="--p: 백분율", TOTAL의 경고선은 --w (80%). 80% 이상이면 .strip 에 is-warn -->
+      <section class="mp-card console" aria-labelledby="usage-title">
+        <div class="mp-card__head">
+          <h2 class="mp-card__title" id="usage-title">Usage</h2>
+          <p class="mp-card__value">Storage <span id="usage-storage">1.86 / 5 GB</span> · AI resets 00:00</p>
+        </div>
+        <div class="console__strips" id="usage-strips">
+          <div class="strip strip--samples" data-usage="samples">
+            <div class="strip__meter" role="img" aria-label="Samples 0.94 of 5 GB"><i style="--p: 18.8%"></i></div>
+            <b class="strip__value">0.94<small>GB</small></b><span class="strip__label">Samples</span>
+          </div>
+          <div class="strip strip--exports" data-usage="exports">
+            <div class="strip__meter" role="img" aria-label="Exports 0.48 of 5 GB"><i style="--p: 9.6%"></i></div>
+            <b class="strip__value">0.48<small>GB</small></b><span class="strip__label">Exports</span>
+          </div>
+          <div class="strip strip--stems" data-usage="stems">
+            <div class="strip__meter" role="img" aria-label="Stems 0.31 of 5 GB"><i style="--p: 6.2%"></i></div>
+            <b class="strip__value">0.31<small>GB</small></b><span class="strip__label">Stems</span>
+          </div>
+          <div class="strip strip--snapshots" data-usage="snapshots">
+            <div class="strip__meter" role="img" aria-label="Snapshots 0.13 of 5 GB"><i style="--p: 2.6%"></i></div>
+            <b class="strip__value">0.13<small>GB</small></b><span class="strip__label">Snapshots</span>
+          </div>
+          <span class="console__div" aria-hidden="true"></span>
+          <div class="strip strip--total" data-usage="total">
+            <div class="strip__meter" role="img" aria-label="Total 1.86 of 5 GB, warning at 80%"><i style="--p: 37.2%"></i><span class="strip__warn" style="--w: 80%"></span></div>
+            <b class="strip__value">1.86<small>GB</small></b><span class="strip__label">Total</span>
+          </div>
+          <span class="console__div" aria-hidden="true"></span>
+          <div class="strip strip--ai" data-usage="analyses">
+            <div class="strip__meter" role="img" aria-label="Reference analyses today 2 of 5"><i style="--p: 40%"></i></div>
+            <b class="strip__value">2<small>/5</small></b><span class="strip__label">Analyses</span>
+          </div>
+          <div class="strip strip--ai" data-usage="questions">
+            <div class="strip__meter" role="img" aria-label="Nyxi questions today 7 of 30"><i style="--p: 23.3%"></i></div>
+            <b class="strip__value">7<small>/30</small></b><span class="strip__label">Nyxi Q</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 최근 프로젝트 5개 + 최근 7일 작업 시간 (FR-121·128, project_sessions)
+           PC: 요일 칸마다 세션 막대 (너비 --w = 작업 시간 ÷ 8시간), 오른쪽 7일 합계
+           모바일: 요일 칸·막대는 숨기고 7일 합계만. 줄 색은 순서대로 5가지 (mypage.css) -->
+      <section class="mp-card lanes" aria-labelledby="recent-title">
+        <div class="mp-card__head">
+          <h2 class="mp-card__title" id="recent-title">Recent projects</h2>
+          <a class="btn btn--primary" href="myProject.html#new">New project</a>
+        </div>
+        <p class="lanes__sub">Time spent in each project · last 7 days · <b id="recent-week-total">23h 00m</b> total</p>
+
+        <div class="lanes__ruler" id="recent-days" aria-hidden="true">
+          <span>Sun <small>27</small></span><span>Mon <small>28</small></span><span>Tue <small>29</small></span><span>Wed <small>30</small></span><span>Thu <small>1</small></span><span>Fri <small>2</small></span><span class="is-today">Today <small>3</small></span><span class="lanes__sum">Week</span>
+        </div>
+
+        <ul class="lanes__list" id="recent-list">
+          <li class="lane">
+            <a class="lane__head" href="studioNx.html?projectId=1"><b>Midnight Drive</b><span>128 BPM · A minor · 12 minutes ago</span></a>
+            <span class="lane__days" role="img" aria-label="Midnight Drive: 9 hours in the last 7 days">
+              <span class="lane__day"><i style="--w: 37.5%" title="Sun 27 · 20:00–23:00 · 3h 00m"></i></span>
+              <span class="lane__day"></span>
+              <span class="lane__day"></span>
+              <span class="lane__day"><i style="--w: 15.6%" title="Wed 30 · 22:00–23:15 · 1h 15m"></i></span>
+              <span class="lane__day"></span>
+              <span class="lane__day"><i style="--w: 31.3%" title="Fri 2 · 19:30–22:00 · 2h 30m"></i><i style="--w: 9.4%" title="Fri 2 · 23:15–24:00 · 0h 45m"></i></span>
+              <span class="lane__day is-today"><i style="--w: 18.8%" title="Today · 14:00–15:30 · 1h 30m"></i></span>
+            </span>
+            <b class="lane__sum">9h 00m</b>
+          </li>
+          <li class="lane">
+            <a class="lane__head" href="studioNx.html?projectId=2"><b>Neon Rain (demo)</b><span>96 BPM · F# minor · 2 hours ago</span></a>
+            <span class="lane__days" role="img" aria-label="Neon Rain (demo): 5 hours in the last 7 days">
+              <span class="lane__day"></span>
+              <span class="lane__day"></span>
+              <span class="lane__day"><i style="--w: 18.8%" title="Tue 29 · 21:00–22:30 · 1h 30m"></i><i style="--w: 12.5%" title="Tue 29 · 23:00–24:00 · 1h 00m"></i></span>
+              <span class="lane__day"></span>
+              <span class="lane__day"><i style="--w: 25%" title="Thu 1 · 20:00–22:00 · 2h 00m"></i></span>
+              <span class="lane__day"><i style="--w: 6.3%" title="Fri 2 · 13:00–13:30 · 0h 30m"></i></span>
+              <span class="lane__day is-today"></span>
+            </span>
+            <b class="lane__sum">5h 00m</b>
+          </li>
+          <li class="lane">
+            <a class="lane__head" href="studioNx.html?projectId=3"><b>Lo-fi Sketch 03</b><span>82 BPM · C major · Yesterday</span></a>
+            <span class="lane__days" role="img" aria-label="Lo-fi Sketch 03: 4 hours 45 minutes in the last 7 days">
+              <span class="lane__day"></span>
+              <span class="lane__day"><i style="--w: 9.4%" title="Mon 28 · 10:00–10:45 · 0h 45m"></i><i style="--w: 28.1%" title="Mon 28 · 15:00–17:15 · 2h 15m"></i></span>
+              <span class="lane__day"></span>
+              <span class="lane__day"></span>
+              <span class="lane__day"></span>
+              <span class="lane__day"><i style="--w: 21.9%" title="Fri 2 · 21:00–22:45 · 1h 45m"></i></span>
+              <span class="lane__day is-today"></span>
+            </span>
+            <b class="lane__sum">4h 45m</b>
+          </li>
+          <li class="lane">
+            <a class="lane__head" href="studioNx.html?projectId=4"><b>Collab — Nyxi Theme</b><span>140 BPM · D minor · 3 days ago</span></a>
+            <span class="lane__days" role="img" aria-label="Collab — Nyxi Theme: 3 hours 45 minutes in the last 7 days">
+              <span class="lane__day"></span>
+              <span class="lane__day"><i style="--w: 12.5%" title="Mon 28 · 19:00–20:00 · 1h 00m"></i></span>
+              <span class="lane__day"></span>
+              <span class="lane__day"><i style="--w: 34.4%" title="Wed 30 · 18:00–20:45 · 2h 45m"></i></span>
+              <span class="lane__day"></span>
+              <span class="lane__day"></span>
+              <span class="lane__day is-today"></span>
+            </span>
+            <b class="lane__sum">3h 45m</b>
+          </li>
+          <li class="lane">
+            <a class="lane__head" href="studioNx.html?projectId=5"><b>Untitled 12</b><span>120 BPM · Sep 27</span></a>
+            <span class="lane__days" role="img" aria-label="Untitled 12: 30 minutes in the last 7 days">
+              <span class="lane__day"><i style="--w: 6.3%" title="Sun 27 · 16:00–16:30 · 0h 30m"></i></span>
+              <span class="lane__day"></span>
+              <span class="lane__day"></span>
+              <span class="lane__day"></span>
+              <span class="lane__day"></span>
+              <span class="lane__day"></span>
+              <span class="lane__day is-today"></span>
+            </span>
+            <b class="lane__sum">0h 30m</b>
+          </li>
+        </ul>
+
+        <!-- 프로젝트가 하나도 없을 때 (mypage.js 가 hidden 해제, 위 목록·눈금은 숨김) -->
+        <p class="lanes__empty" id="recent-empty" hidden>No projects yet. <a class="text-link text-link--strong" href="myProject.html#new">Create your first project</a></p>
+
+        <a class="text-link text-link--strong lanes__all" href="myProject.html">All projects</a>
+      </section>
+    </div>
+  </main>
+
+  <!-- 작은 화면 안내 모달: static/partials/desktop-only-modal.html (FR-129) — Recent projects 를 작은 화면에서 누를 때 -->
+  <div data-include="static/partials/desktop-only-modal.html"></div>
+
+  <!-- 공통 푸터: static/partials/footer.html -->
+  <div data-include="static/partials/footer.html"></div>
+
+  <script type="module" src="static/js/pages/mypage.js"></script>
+</body>
+</html>

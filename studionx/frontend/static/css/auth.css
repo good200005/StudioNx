@@ -1,0 +1,88 @@
+/* Studio Nx — 로그인·회원가입 공통 (home.html 로그인 모달, join.html)
+   시안: docs/form_mockups/07_login_C2_email_first.png, 09_login_C2_oauth_hover.png
+   폼 입력칸은 forms.css(B-2), 모달 틀은 base.css(.modal) 를 그대로 씀 */
+
+/* ---------- 로그인 상태에 따라 보이는 요소 ----------
+   <html data-auth="in">  로그인 상태 (JS가 붙임, P1-07)
+   <html data-auth="pending"> 확인 중 → 버튼 자리를 비워 깜빡임 방지
+   속성이 없으면 로그아웃 상태로 보임 (JS가 없어도 Sign In·Join Us는 보임) */
+:root:not([data-auth="in"]) [data-auth-show="in"],
+:root[data-auth="in"] [data-auth-show="out"] { display: none; }
+:root[data-auth="pending"] [data-auth-show] { visibility: hidden; }
+
+/* ---------- 로그인 모달 ---------- */
+.modal--narrow { width: min(26rem, calc(100vw - 2rem)); }
+.auth-sub { margin-bottom: var(--sp-6); color: var(--c-ink-soft); font-size: var(--fs-sm); }
+
+/* ---------- 비밀번호 + Show 버튼 ---------- */
+.pw { position: relative; }
+.pw > .field__control { padding-right: 3.75rem; }
+.pw__toggle {
+  position: absolute; right: 0; bottom: var(--sp-2);
+  padding: var(--sp-1) var(--sp-2); border: 0; background: none; cursor: pointer;
+  color: var(--c-ink-soft); font: 600 var(--fs-xs) / 1 var(--font-text); letter-spacing: 0.06em;
+  transition: color var(--dur) var(--ease-out);
+}
+.pw__toggle:hover { color: var(--c-violet-ink); }
+
+/* ---------- 비밀번호 조건 목록 (join.html) ----------
+   기본: ○ 회색 / 만족: li.is-met → ✓ 초록 (JS가 클래스만 바꿈) */
+.pw-rules {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); gap: var(--sp-1) var(--sp-4);
+  color: var(--c-ink-soft); font-size: var(--fs-xs); line-height: 1.5;
+}
+.pw-rules li { display: flex; gap: var(--sp-2); transition: color var(--dur) var(--ease-out); }
+.pw-rules li::before { content: "○"; flex: none; width: 1em; text-align: center; }
+.pw-rules li.is-met { color: var(--c-ok); }
+.pw-rules li.is-met::before { content: "✓"; }
+
+/* ---------- 폼 전체 오류 (로그인 실패 등 한 줄) ---------- */
+.form-error { color: var(--c-error); font-size: var(--fs-sm); }
+.form-error[hidden] { display: none; }
+
+/* 폭을 꽉 채우는 주요 버튼 (Sign In, Create account) */
+.btn--block { width: 100%; }
+
+/* ---------- 구분선 "or continue with" ---------- */
+.divider {
+  display: flex; align-items: center; gap: var(--sp-4);
+  margin-block: var(--sp-6);
+  color: var(--c-ink-soft); font-size: var(--fs-xs); letter-spacing: 0.04em;
+}
+.divider::before,
+.divider::after { content: ""; flex: 1; height: 1px; background: var(--c-rule); }
+
+/* ---------- 소셜 로그인 버튼 (자리만 — 연동은 추후) ----------
+   평소: ghost 단색 / hover·키보드 선택: 각 서비스 색
+   - Google     흰 바탕 + 컬러 G (Google 버튼 규정의 밝은 버튼)
+   - Discord    #5865F2 + 흰 글자 (대비 4.6:1)
+   - SoundCloud #FF5500 + 검은 글자 (흰 글자는 3.2:1로 부족 → 검정 6.2:1) */
+.oauth-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-2); }
+.oauth {
+  flex-direction: column; gap: var(--sp-2);
+  min-height: 4.25rem; padding: var(--sp-2);
+  background: var(--c-ground); border-color: var(--c-rule); color: var(--c-ink);
+  font-size: var(--fs-xs); letter-spacing: 0.02em;
+}
+.oauth__icon { width: 1.125rem; height: 1.125rem; flex: none; }
+.oauth__icon--color { display: none; }
+.oauth--google:is(:hover, :focus-visible) { background: #ffffff; border-color: #ffffff; color: #1f1f1f; }
+.oauth--google:is(:hover, :focus-visible) .oauth__icon--mono { display: none; }
+.oauth--google:is(:hover, :focus-visible) .oauth__icon--color { display: block; }
+.oauth--discord:is(:hover, :focus-visible) { background: #5865f2; border-color: #5865f2; color: #ffffff; }
+.oauth--soundcloud:is(:hover, :focus-visible) { background: #ff5500; border-color: #ff5500; color: #0b0a0f; }
+
+/* 라이트 테마: Google 흰 버튼이 바탕과 섞이지 않게 테두리 */
+:root[data-theme="light"] .oauth--google:is(:hover, :focus-visible) { border-color: var(--c-rule); }
+@media (prefers-color-scheme: light) {
+  :root[data-theme="system"] .oauth--google:is(:hover, :focus-visible) { border-color: var(--c-rule); }
+}
+
+/* ---------- 아래 안내 줄 (New here? Join Us) ---------- */
+.auth-foot { margin-top: var(--sp-6); text-align: center; color: var(--c-ink-soft); font-size: var(--fs-sm); }
+
+/* ---------- 모달 안에서 base.css 의 문단 규칙(.modal__body p: 위 여백·글자 크기·색)을 되돌림 ---------- */
+.modal__body :is(.auth-sub, .form-consent, .form-error) { margin-top: 0; }
+.modal__body .divider { margin-block: var(--sp-6); color: var(--c-ink-soft); font-size: var(--fs-xs); }
+.modal__body .form-error { color: var(--c-error); }
+.modal__body .auth-foot { margin-top: var(--sp-6); }

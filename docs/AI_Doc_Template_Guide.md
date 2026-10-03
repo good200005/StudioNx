@@ -27,7 +27,8 @@
 |---|---|---|
 | 기획 (PRD) | `docs/PRD/NN_PhaseN_이름.md` | `02_Phase2_Sequencer_Core.md` |
 | 설계 · 계획 · 매뉴얼 | `docs/이름.md` | `DB.md`, `Implementation_Plan.md`, `Git_Manual.md` |
-| AI가 구현한 코드 설명 | `docs/ai-notes/NN_이름.md` | `01_dev_environment.md` |
+| AI가 구현한 코드 설명 | `docs/ai-notes/NN_이름.md` + **같은 이름 PDF** | `01_dev_environment.md` |
+| AI 구현 설명의 실행 화면 | `docs/ai-notes/images/NN_이름/NN_내용.png` | `images/02_home_first_page/01_desktop_first_viewport.png` |
 | DB 스크립트 문서 | `studionx/db/docs/` (md + docx) | `StudioNx_DB_Guide.md` |
 | PDF | md와 **같은 폴더, 같은 이름** `.pdf` | `Git_Manual.pdf` |
 
@@ -100,6 +101,7 @@
 
 ### 4.4 AI 구현 설명 (`docs/ai-notes/NN_*.md`)
 `1. 무엇을 만들었나(파일 / 역할 / 비고 표) → 2. 왜 이렇게 했나 → 3. 검증 결과 표 → 4. 남은 일(사용자) → 5. 자주 받을 질문 대비(Q/A)`.
+화면이 있는 구현이면 맨 앞에 `실행 결과` 섹션을 두고 캡처 이미지(데스크톱·모바일)를 넣습니다. md와 PDF를 **함께** 만듭니다.
 기획서 규칙상 **AI가 구현한 코드는 반드시 이 문서를 남깁니다.**
 
 ## 5. PDF 만들기
@@ -109,6 +111,7 @@
 { out: 'New_Doc.pdf', title: 'Studio Nx', subtitle: '부제목', files: ['New_Doc.md'] },
 ```
 - 여러 md를 한 PDF로 묶으려면 `files`에 순서대로 나열 (표지 → 목차 → 문서별 새 페이지).
+- md가 `docs/` 하위 폴더에 있고 이미지를 상대 경로로 넣었다면 `base`에 그 폴더를 지정합니다. 예: `{ out: 'ai-notes/02_home_first_page.pdf', ..., files: ['ai-notes/02_home_first_page.md'], base: 'ai-notes' }`
 
 ### 5.2 실행
 | 목적 | 명령 (저장소 루트에서) |

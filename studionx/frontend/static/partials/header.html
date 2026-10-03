@@ -1,0 +1,52 @@
+<!-- 공통 헤더 (모든 페이지) — core/include.js 가 <div data-include="static/partials/header.html"> 자리에 끼움
+     - 링크는 home.html 기준 (다른 페이지에서도 동작). home.html 안에서는 같은 문서라 새로고침 없이 스크롤
+     - 페이지별 차이는 그 페이지 CSS로 (예: join.css 는 섹션 메뉴·Join Us 숨김)
+     - 로그인 상태(<html data-auth="in">)면 My Page·My Projects — auth.css -->
+<header class="site-header">
+  <a class="brand" href="home.html#top" aria-label="Studio Nx home">
+    <!-- 임시 로고: Nyxi 머리띠 초승달 로고가 오면 교체 -->
+    <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true">
+      <path fill="currentColor" d="M20.6 3.2A13 13 0 1 0 28.8 22 10.5 10.5 0 1 1 20.6 3.2Z"/>
+    </svg>
+    <span class="brand__name">Studio Nx</span>
+  </a>
+
+  <nav class="site-nav" aria-label="Sections">
+    <ul class="site-nav__list">
+      <li><a class="site-nav__link" href="home.html#service">Service</a></li>
+      <li><a class="site-nav__link" href="home.html#character">Character</a></li>
+      <li><a class="site-nav__link" href="home.html#feature">Feature</a></li>
+      <li><a class="site-nav__link" href="home.html#development">Development</a></li>
+      <li><a class="site-nav__link" href="home.html#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- 로그인 상태(<html data-auth="in">)면 My Page·My Projects가 보임 — auth.css, 상태 확인은 home.js(P1-07) -->
+  <div class="site-actions">
+    <button type="button" class="btn btn--ghost" command="show-modal" commandfor="login-modal" data-auth-show="out">Sign In</button>
+    <a class="btn btn--primary site-actions__join" href="join.html" data-auth-show="out">Join Us</a>
+    <a class="btn btn--ghost" href="myPage.html" data-auth-show="in">My Page</a>
+    <a class="btn btn--primary" href="myProject.html" data-auth-show="in">My Projects</a>
+  </div>
+
+  <details class="menu">
+    <summary>Menu</summary>
+    <div class="menu__panel">
+      <nav aria-label="Sections (mobile)">
+        <ul class="site-nav__list">
+          <li><a class="site-nav__link" href="home.html#service">Service</a></li>
+          <li><a class="site-nav__link" href="home.html#character">Character</a></li>
+          <li><a class="site-nav__link" href="home.html#feature">Feature</a></li>
+          <li><a class="site-nav__link" href="home.html#development">Development</a></li>
+          <li><a class="site-nav__link" href="home.html#contact">Contact</a></li>
+        </ul>
+      </nav>
+      <div class="site-actions">
+        <button type="button" class="btn btn--ghost" command="show-modal" commandfor="login-modal" data-auth-show="out">Sign In</button>
+        <a class="btn btn--primary site-actions__join" href="join.html" data-auth-show="out">Join Us</a>
+        <a class="btn btn--ghost" href="myPage.html" data-auth-show="in">My Page</a>
+        <a class="btn btn--primary" href="myProject.html" data-auth-show="in">My Projects</a>
+      </div>
+    </div>
+  </details>
+</header>

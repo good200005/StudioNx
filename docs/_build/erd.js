@@ -2,14 +2,16 @@
 // 사용: node docs/_build/build.js 가 이 모듈을 불러 ERD.png 를 만듭니다.
 
 const groups = [
-  { id: 'account', label: '계정', color: '#E8F1FF', head: '#3B6FD8', tables: {
+  { id: 'account', label: '계정 · 사이트 운영', color: '#E8F1FF', head: '#3B6FD8', tables: {
     users:         [['PK', 'user_id'], ['UQ', 'email'], ['UQ', 'nickname']],
     user_settings: [['PK FK', 'user_id']],
     inquiries:     [['PK', 'inquiry_id'], ['FK', 'user_id (null)']],
+    dev_notes:     [['PK', 'note_id'], ['FK', 'author_id']],
   }},
   { id: 'project', label: '프로젝트 · 협업 (코멘트 · 스냅샷)', color: '#FFF4E5', head: '#D9822B', tables: {
     projects:            [['PK', 'project_id'], ['FK', 'owner_id'], ['FK', 'template_id (null)']],
     project_members:     [['PK FK', 'project_id'], ['PK FK', 'user_id']],
+    project_sessions:    [['PK', 'session_id'], ['FK', 'project_id'], ['FK', 'user_id → users']],
     invitations:         [['PK', 'invitation_id'], ['FK', 'project_id'], ['FK', 'inviter_id → users'], ['FK', 'invitee_id → users (null)'], ['UQ', 'token']],
     project_change_logs: [['PK', 'change_id'], ['FK', 'project_id'], ['FK', 'user_id → users'], ['UQ', '(project_id, revision)']],
     chat_messages:       [['PK', 'message_id'], ['FK', 'project_id'], ['FK', 'user_id → users (null)']],
@@ -52,10 +54,10 @@ const groups = [
 // [부모, 자식, 종류]  kind: 'N' = 1:N(FK 필수), 'N?' = 0..1:N(FK NULL 허용), '1' = 1:1
 // "→ users"로 표시된 행위자 FK(요청자·작성자)는 선이 너무 많아져 선을 생략하고 박스 안에만 표기
 const relations = [
-  ['users', 'projects', 'N'], ['users', 'user_settings', '1'], ['users', 'inquiries', 'N?'],
+  ['users', 'projects', 'N'], ['users', 'user_settings', '1'], ['users', 'inquiries', 'N?'], ['users', 'dev_notes', 'N'],
   ['users', 'samples', 'N'], ['users', 'plugin_presets', 'N?'], ['users', 'project_members', 'N'],
   ['users', 'reference_tracks', 'N'], ['users', 'assistant_messages', 'N'],
-  ['projects', 'project_members', 'N'], ['projects', 'invitations', 'N'], ['projects', 'project_change_logs', 'N'],
+  ['projects', 'project_members', 'N'], ['projects', 'project_sessions', 'N'], ['projects', 'invitations', 'N'], ['projects', 'project_change_logs', 'N'],
   ['projects', 'chat_messages', 'N'], ['projects', 'tracks', 'N'], ['projects', 'export_jobs', 'N'],
   ['projects', 'reference_tracks', 'N?'], ['projects', 'ai_recommendations', 'N?'], ['projects', 'assistant_messages', 'N?'],
   ['tracks', 'track_plugins', 'N'], ['tracks', 'track_plugin_links', 'N'], ['tracks', 'clips', 'N'],

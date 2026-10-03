@@ -51,17 +51,17 @@ PRD의 Phase는 **기능 묶음**이고, 이 문서의 단계는 **구현 순서
 | ID | 그룹 | 작업 | 관련 FR | 담당 | 기간 | 브랜치 |
 |---|---|---|---|---|---|---|
 | P1-01 | 공통 기반 (먼저) | 공통 CSS: 테마 색 변수(다크/라이트), 헤더·푸터·버튼·폼 스타일 | FR-142, 02 FR-2162 | AI | 2일 | `feature/phase1/p1-01-common-css` |
-| P1-02 | 공통 기반 (먼저) | 프론트 공통 JS: API 호출 함수(토큰 자동 첨부, 401이면 재발급), 로그인 확인 | FR-105 | 뼈대 AI → 직접 | 2일 | `feature/phase1/p1-02-frontend-api-core` |
+| P1-02 | 공통 기반 (먼저) | 프론트 공통 JS: API 호출 함수(토큰 자동 첨부, 401이면 재발급), 로그인 확인(안 됐으면 `home.html#login?next=`로 이동) | FR-105 | 뼈대 AI → 직접 | 2일 | `feature/phase1/p1-02-frontend-api-core` |
 | P1-03 | 공통 기반 (먼저) | 백엔드 공통: ORM 모델(users, inquiries, projects, project_members, tracks), 오류 응답 형식, `get_current_user` | — | 뼈대 AI → 직접 | 2일 | `feature/phase1/p1-03-backend-core` |
 | P1-04 | 인증 | 회원가입 API + 이메일·닉네임 중복 확인 + 비밀번호 규칙·bcrypt 해시 | FR-101~102 | 직접 | 2일 | `feature/phase1/p1-04-signup-api` |
-| P1-05 | 인증 | 로그인(JWT 발급, 리프레시 토큰 HttpOnly 쿠키), 토큰 재발급, 로그아웃, `last_login_at` | FR-103~105 | 직접 | 3일 | `feature/phase1/p1-05-login-jwt` |
-| P1-06 | 인증 | `join.html`, `login.html` 화면 | §6 | AI | 1일 | `feature/phase1/p1-06-auth-pages` |
-| P1-07 | 인증 | 가입·로그인 JS: 폼 검증, 실시간 중복 확인, 로그인 후 이동 | FR-101, 103 | 직접 | 2일 | `feature/phase1/p1-07-auth-js` |
+| P1-05 | 인증 | 로그인(JWT 발급, 리프레시 토큰 HttpOnly 쿠키 — 자동 로그인 체크 시 3일, 아니면 세션 쿠키), 토큰 재발급, 로그아웃, `last_login_at` | FR-103~105 | 직접 | 3일 | `feature/phase1/p1-05-login-jwt` |
+| P1-06 | 인증 | `join.html` 화면 + `home.html` 로그인 모달 + 로그인 상태 헤더 버튼(My Page·My Projects) | §6 | AI | 1일 | `feature/phase1/p1-06-auth-pages` |
+| P1-07 | 인증 | 가입·로그인 JS: 폼 검증, 실시간 중복 확인, `#login`이면 모달 자동 열기, 로그인 후 `next` 페이지로 이동, 로그인 상태면 헤더 전환 | FR-101, 103 | 직접 | 2일 | `feature/phase1/p1-07-auth-js` |
 | P1-08 | 회원 정보 | `/users/me` 조회·수정, 프로필 이미지 업로드(jpg/png/webp, 2MB) | FR-106 | 직접 | 2일 | `feature/phase1/p1-08-user-profile-api` |
 | P1-09 | 회원 정보 | 비밀번호 변경, 회원 탈퇴(재확인, 소프트 삭제, 로그인 차단) | FR-107~108 | 직접 | 1일 | `feature/phase1/p1-09-password-withdraw` |
 | P1-10 | 회원 정보 | `userInfo.html` [회원 정보] 탭 화면 + JS | FR-106~108 | AI(화면) / 직접(JS) | 2일 | `feature/phase1/p1-10-userinfo-page` |
-| P1-11 | 홈 · 문의 | `home.html`: 히어로, 기능 카드 6개, 문의 폼, 푸터 | FR-111 | AI | 2일 | `feature/phase1/p1-11-home-page` |
-| P1-12 | 홈 · 문의 | 문의 API + 로그인 시 자동 채움 + 반복 전송 제한(권장) | FR-112~113 | 직접 | 1일 | `feature/phase1/p1-12-inquiry-api` |
+| P1-11 | 홈 · 문의 | `home.html`: 첫 화면, Service·Character·Feature·Development·Contact 섹션, 푸터 | FR-111·112·114 | AI | 2일 | `feature/phase1/p1-11-home-page` |
+| P1-12 | 홈 · 문의 | 문의 API(이메일·제목·내용·개인정보 동의) + 반복 전송 제한(권장) | FR-112~113 | 직접 | 1일 | `feature/phase1/p1-12-inquiry-api` |
 | P1-13 | 프로젝트 | 프로젝트 CRUD API: 생성 시 OWNER 멤버 + MASTER 트랙 **트랜잭션**, 검색·페이지, 권한 검사, 소프트 삭제 | FR-122~126 | 직접 | 3일 | `feature/phase1/p1-13-project-api` |
 | P1-14 | 프로젝트 | `myProject.html`: 카드 목록, 새 프로젝트 모달, 이름 변경, 삭제 확인창 | FR-123~126 | AI(화면) / 직접(JS) | 2일 | `feature/phase1/p1-14-myproject-page` |
 | P1-15 | 프로젝트 | `studioNx.html` 빈 페이지 (`?projectId=` 받아 제목 표시, 열기 테스트용) | FR-126 | AI / 직접 | 0.5일 | `feature/phase1/p1-15-studionx-stub` |
@@ -69,6 +69,8 @@ PRD의 Phase는 **기능 묶음**이고, 이 문서의 단계는 **구현 순서
 | P1-17 | 마이페이지 | `myPage.html`: 좌측 메뉴, 프로필 카드, 최근 프로젝트, 위젯 자리 | FR-121 | AI(화면) / 직접(JS) | 1.5일 | `feature/phase1/p1-17-mypage` |
 | P1-18 | 마무리 | 테스트(pytest): 가입·로그인·재발급, 다른 사람 프로젝트 접근 차단, 탈퇴 계정 로그인 | §10 | 직접 (요청 시 AI) | 2일 | `feature/phase1/p1-18-tests` |
 | P1-19 | 마무리 | `docs/ai-notes/` 설명 문서, `develop`으로 PR | — | AI / 직접 | 0.5일 | `feature/phase1/p1-19-ai-notes-pr` |
+| P1-21 | 홈 · 문의 | Development 공지 API(`GET /dev-notes`) + **SQLAdmin 관리자 화면**(`/admin`, ADMIN만) — 공지 작성·문의 답변 | FR-114~115 | 직접 (요청 시 AI) | 2일 | `feature/phase1/p1-21-dev-notes-admin` |
+| P1-22 | 공통 기반 | **오류 페이지** 7종(404·500·403·503·429·400·504, F-2 "숫자 자체가 신호" 디자인) + 페이지 요청 오류 시 HTML·API 요청 오류 시 JSON 응답 | FR-116 | AI(화면) / 직접(백엔드 연결) | 1일 | `feature/phase1/p1-22-error-pages` |
 
 **권장 순서**: A(P1-01~03) → B(P1-04~07) → C·D·E 병행(P1-08~15) → F(P1-16~17) → G(P1-18~19)
 

@@ -1,0 +1,136 @@
+/* myPage.html — 마이페이지 대시보드 (P1-17)
+   시안: docs/page_mockups/mypage/05_M2_sessions_desktop.png, 06_M2_sessions_mobile.png (M-2 믹서 콘솔형)
+   - PC: 왼쪽 메뉴 + 본문 / 사용량은 세로 레벨 미터 / 최근 프로젝트는 요일별 작업 세션 막대
+   - 모바일(960px 이하): 메뉴는 위쪽 가로 탭 / 사용량은 가로 막대 / 최근 프로젝트는 7일 합계만
+   왼쪽 메뉴·카드·색 등 공통 틀은 account.css */
+
+/* ---------- 이어 하기 배너 (FR-130): 아직 안 연 프로젝트 → PC에서 바로 열기 ----------
+   시퀀서를 열 수 있는 폭(1280px 이상, core/studio.js STUDIO_MIN_WIDTH)에서만 보임 */
+.ready {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: var(--sp-2) var(--sp-6);
+  margin-bottom: var(--sp-4);
+  border: 1px solid var(--c-rule-violet);
+  background: color-mix(in srgb, var(--c-violet) 10%, var(--c-ground-raised));
+}
+.ready[hidden] { display: none; }
+.ready__label {
+  grid-column: 1 / -1;
+  color: var(--c-violet-ink); font: 700 var(--fs-xs) / 1 var(--font-text); letter-spacing: 0.14em; text-transform: uppercase;
+}
+.ready__main { min-width: 0; }
+.ready__title { font: 800 var(--fs-lg) / 1.2 var(--font-display); letter-spacing: 0.03em; overflow-wrap: anywhere; }
+.ready__meta { margin-top: var(--sp-1); color: var(--c-ink-soft); font-size: var(--fs-sm); }
+.ready__close {
+  align-self: start; width: 2.25rem; height: 2.25rem; margin: calc(-1 * var(--sp-8)) calc(-1 * var(--sp-2)) 0 0;
+  border: 0; background: none; cursor: pointer; color: var(--c-ink-soft); font: 400 1.5rem / 1 var(--font-text);
+}
+.ready__close:hover { color: var(--c-ink); }
+@media (max-width: 1279px) {
+  .ready { display: none; }
+}
+
+/* ---------- 위쪽 줄: 프로필 + 준비 중 2칸 ---------- */
+.mp-top { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: var(--sp-4); margin-bottom: var(--sp-4); }
+.profile { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: var(--sp-4) var(--sp-6); }
+.profile__name { font: 800 var(--fs-lg) / 1.1 var(--font-display); letter-spacing: 0.03em; overflow-wrap: anywhere; }
+.profile__meta { margin-top: var(--sp-2); color: var(--c-ink-soft); font-size: var(--fs-sm); }
+.profile__edit { grid-column: 1 / -1; justify-self: start; }
+
+/* ---------- 사용량: 레벨 미터 ----------
+   .strip__meter i 의 --p = 채움 비율, .strip__warn 의 --w = 경고선 위치 (같은 값을 PC는 세로, 모바일은 가로로 씀) */
+.console { margin-bottom: var(--sp-4); }
+.console__strips { display: flex; align-items: flex-end; gap: var(--sp-4); }
+.console__div { align-self: stretch; width: 1px; margin: 0 var(--sp-2); background: var(--c-rule); }
+.strip { --mc: var(--mp-c1); display: grid; justify-items: center; gap: var(--sp-2); min-width: 4.75rem; }
+.strip--samples   { --mc: var(--mp-c1); }
+.strip--exports   { --mc: var(--mp-c2); }
+.strip--stems     { --mc: var(--mp-c3); }
+.strip--snapshots { --mc: var(--mp-c5); }
+.strip--total     { --mc: var(--c-ink); }
+.strip.is-warn    { --mc: var(--c-error); }   /* 80% 이상 (FR-133) */
+.strip__meter {
+  position: relative; width: 1.25rem; height: 9rem;
+  background: var(--c-ground) repeating-linear-gradient(to top, transparent 0 7px, var(--c-ground-raised) 7px 9px);
+}
+.strip__meter i {
+  position: absolute; left: 0; right: 0; bottom: 0; height: var(--p, 0%);
+  background: repeating-linear-gradient(to top, var(--mc) 0 7px, transparent 7px 9px);
+}
+.strip__warn { position: absolute; left: -6px; right: -6px; bottom: var(--w); border-top: 2px dashed var(--c-error); }
+.strip__value { font: 800 var(--fs-md) / 1 var(--font-display); }
+.strip__value small { margin-left: 2px; color: var(--c-ink-soft); font: 600 var(--fs-xs) / 1 var(--font-text); }
+.strip__label {
+  color: var(--c-ink-soft); text-align: center;
+  font: 600 0.6875rem / 1.2 var(--font-text); letter-spacing: 0.1em; text-transform: uppercase;
+}
+
+/* ---------- 최근 프로젝트: 요일별 작업 세션 ----------
+   열: 이름 15rem | 요일 7칸 | 7일 합계 5.5rem. 세션 막대 너비 --w = 작업 시간 ÷ 8시간 */
+.lanes__sub { margin: calc(-1 * var(--sp-2)) 0 var(--sp-6); color: var(--c-ink-soft); font-size: var(--fs-xs); }
+.lanes__sub b { color: var(--c-ink); font-weight: 600; }
+.lanes__ruler,
+.lane { display: grid; grid-template-columns: 15rem minmax(0, 1fr) 5.5rem; }
+.lanes__ruler {
+  grid-template-columns: 15rem repeat(7, minmax(0, 1fr)) 5.5rem;
+  padding-bottom: var(--sp-2);
+  color: var(--c-ink-soft); font: 600 0.6875rem / 1 var(--font-text); letter-spacing: 0.08em; text-transform: uppercase;
+}
+.lanes__ruler span { padding-left: 6px; border-left: 1px solid var(--c-rule); white-space: nowrap; overflow: hidden; }
+.lanes__ruler span:first-child { grid-column: 2; }
+.lanes__ruler small { font-weight: 400; letter-spacing: 0; }
+.lanes__ruler .is-today { color: var(--c-violet-ink); }
+.lanes__ruler .lanes__sum { border-left: 0; padding-left: 0; text-align: right; }
+
+.lane { --c: var(--mp-c1); align-items: stretch; border-top: 1px solid var(--c-rule); }
+.lane:nth-child(5n + 2) { --c: var(--mp-c2); }
+.lane:nth-child(5n + 3) { --c: var(--mp-c3); }
+.lane:nth-child(5n + 4) { --c: var(--mp-c4); }
+.lane:nth-child(5n + 5) { --c: var(--mp-c5); }
+.lane__head {
+  display: grid; gap: 2px; min-width: 0;
+  padding: var(--sp-3) var(--sp-4) var(--sp-3) var(--sp-3);
+  border-left: 3px solid var(--c); color: var(--c-ink); text-decoration: none;
+}
+.lane__head b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color var(--dur) var(--ease-out); }
+.lane__head:hover b { color: var(--c-violet-ink); }
+.lane__head span { color: var(--c-ink-soft); font-size: var(--fs-xs); }
+.lane__days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); min-width: 0; }
+.lane__day { display: flex; align-items: center; gap: 2px; min-width: 0; padding: 0 4px; border-left: 1px solid var(--c-rule); }
+.lane__day.is-today { background: color-mix(in srgb, var(--c-violet) 8%, transparent); }
+.lane__day i {
+  flex: none; width: var(--w); min-width: 3px; height: 1.75rem;
+  background: color-mix(in srgb, var(--c) 70%, transparent); border-left: 2px solid var(--c);
+}
+.lane__sum { align-self: center; text-align: right; font: 600 var(--fs-sm) / 1 var(--font-text); font-variant-numeric: tabular-nums; }
+.lanes__empty { padding: var(--sp-8) 0; border-top: 1px solid var(--c-rule); color: var(--c-ink-soft); font-size: var(--fs-sm); }
+.lanes__all { display: inline-block; margin-top: var(--sp-4); }
+
+/* ---------- 모바일 (960px 이하) ---------- */
+@media (max-width: 960px) {
+  .mp-top { grid-template-columns: minmax(0, 1fr); }
+
+  /* 사용량 → 가로 막대: 이름 | 막대 | 값 */
+  .console .mp-card__head { flex-direction: column; gap: var(--sp-2); }
+  .console__strips { flex-direction: column; align-items: stretch; gap: var(--sp-3); }
+  .console__div { width: auto; height: 1px; margin: var(--sp-1) 0; }
+  .strip {
+    grid-template-columns: 5.5rem minmax(0, 1fr) 4.5rem; grid-template-areas: "label meter value";
+    align-items: center; justify-items: stretch; gap: var(--sp-3); min-width: 0;
+  }
+  .strip__label { grid-area: label; text-align: left; }
+  .strip__meter {
+    grid-area: meter; width: auto; height: 0.75rem;
+    background-image: repeating-linear-gradient(to right, transparent 0 7px, var(--c-ground-raised) 7px 9px);
+  }
+  .strip__meter i {
+    top: 0; right: auto; width: var(--p, 0%); height: auto;
+    background: repeating-linear-gradient(to right, var(--mc) 0 7px, transparent 7px 9px);
+  }
+  .strip__warn { top: -5px; bottom: -5px; right: auto; left: var(--w); border-top: 0; border-left: 2px dashed var(--c-error); }
+  .strip__value { grid-area: value; text-align: right; font-size: var(--fs-sm); }
+
+  /* 최근 프로젝트 → 이름 | 7일 합계 (요일 칸·세션 막대 숨김) */
+  .lane { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+  .lanes__ruler, .lane__days { display: none; }
+  .lane__sum { padding-right: 2px; font-size: var(--fs-md); }
+}
