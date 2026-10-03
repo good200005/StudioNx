@@ -15,7 +15,7 @@
 
 ![헤더 로고 (S2)](images/25_intro_logo/03_header_logo.png)
 
-> 움직이는 모습: `images/25_intro_logo/01_intro.gif` · 고르는 과정의 목업: `docs/page_mockups/loader/`, `docs/page_mockups/logo/`
+> **실제 동작 영상** (실제 `home.html`을 새로 열며 실시간 녹화, 60fps): [데스크톱 1440×900](images/25_intro_logo/04_intro_desktop.mp4) · [모바일 390×844](images/25_intro_logo/05_intro_mobile.mp4) — PDF에서는 재생되지 않으므로 파일을 직접 여세요. 시간을 멈춰 찍은 GIF: `images/25_intro_logo/01_intro.gif` · 고르는 과정의 목업: `docs/page_mockups/loader/`, `docs/page_mockups/logo/`
 
 ## 2. 무엇을 만들었나
 | 파일 | 상태 | 내용 |
@@ -67,6 +67,7 @@ JS 없이 CSS만으로 재생·사라짐까지 되므로, JS가 늦거나 실패
 | 확인 | 결과 |
 |---|---|
 | 실제 `home.html`에서 40ms마다 캡처 | 목업과 같은 순서로 재생, 800ms에 첫 화면으로 이어짐 |
+| **실시간 녹화** (페이지를 새로 열며 CDP screencast, 약 70fps) | 데스크톱·모바일 모두 로딩이 재생된 뒤 첫 화면 등장 — MP4 2개 (`04`, `05`). 녹화·변환 스크립트: `docs/page_mockups/loader/_source/record.mjs`, `encode.py` |
 | 끝난 뒤 | `.intro`는 `visibility: hidden`, 화면 가운데 클릭은 첫 화면 요소가 받음 |
 | `data-intro="seen"` | 로딩 `display: none`, 띠 등장 지연 `0s` (원래대로) |
 | 움직임 줄이기 | 로딩 `display: none` |
