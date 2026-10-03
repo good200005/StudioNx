@@ -1,0 +1,54 @@
+/* userInfo.html — 회원 정보 (P1-10)
+   시안: docs/page_mockups/userinfo/03_U2_two_column_desktop.png, 04_U2_two_column_mobile.png, 05(탈퇴 확인) — U-2 2열 설정형
+   왼쪽 메뉴·카드·사진 동그라미는 account.css, 입력칸·비밀번호 조건은 forms.css·auth.css */
+
+/* ---------- 탭: Account / Preferences(Phase 2) ---------- */
+.ui-tabs { display: flex; gap: var(--sp-6); margin-bottom: var(--sp-6); border-bottom: 1px solid var(--c-rule); }
+.ui-tab {
+  padding: var(--sp-3) 0; border: 0; border-bottom: 2px solid transparent; background: none; cursor: pointer;
+  color: var(--c-ink-soft); font: 600 var(--fs-sm) / 1.2 var(--font-text); letter-spacing: 0.04em;
+  transition: color var(--dur) var(--ease-out);
+}
+.ui-tab:hover { color: var(--c-ink); }
+.ui-tab[aria-selected="true"] { color: var(--c-ink); border-bottom-color: var(--c-violet); }
+.ui-tab:disabled { cursor: default; color: var(--c-ink-soft); }
+.ui-tab__soon { margin-left: var(--sp-1); color: var(--c-violet-ink); font-size: 0.6875rem; letter-spacing: 0.12em; text-transform: uppercase; }
+
+/* ---------- 항목: 왼쪽 제목·설명 15rem | 오른쪽 입력 (최대 34rem) ---------- */
+.ui-panel { padding: 0 var(--sp-8); }
+.ui-sec {
+  display: grid; grid-template-columns: 15rem minmax(0, 1fr); gap: var(--sp-12);
+  padding: var(--sp-8) 0; border-top: 1px solid var(--c-rule);
+}
+.ui-sec:first-child { border-top: 0; }
+.ui-sec__body { max-width: 34rem; min-width: 0; }
+.ui-sec__title { font: 700 var(--fs-sm) / 1.2 var(--font-text); letter-spacing: 0.14em; text-transform: uppercase; }
+.ui-sec__desc { margin-top: var(--sp-2); color: var(--c-ink-soft); font-size: var(--fs-xs); line-height: 1.6; }
+.ui-sec--danger .ui-sec__title { color: var(--c-error); }
+
+/* ---------- 사진 ---------- */
+.ui-photo { display: flex; align-items: center; gap: var(--sp-6); }
+.ui-photo__btns { display: flex; align-items: center; gap: var(--sp-4); }
+#photo-input:focus-visible + label { outline: 2px solid var(--c-focus); outline-offset: 2px; }   /* 숨긴 파일 칸에 키보드 초점이 오면 버튼에 표시 */
+.ui-hint { margin-top: var(--sp-2); color: var(--c-ink-soft); font-size: var(--fs-xs); }
+.ui-photo__msg:empty { display: none; }
+
+/* 바꿀 수 없는 칸(이메일): 점선 밑줄 + 옅은 글자 */
+.field__control[readonly] { color: var(--c-ink-soft); border-bottom-style: dashed; }
+
+/* ---------- 저장 줄: 왼쪽 안내 + 오른쪽 버튼 ---------- */
+.ui-save { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); margin-top: var(--sp-6); }
+.ui-meta { color: var(--c-ink-soft); font-size: var(--fs-xs); }
+.ui-sec .form-error { margin-top: var(--sp-4); }
+
+/* ---------- 탈퇴 ---------- */
+.ui-danger__text { max-width: 38rem; margin-bottom: var(--sp-4); color: var(--c-ink-soft); font-size: var(--fs-sm); line-height: 1.7; }
+
+/* ---------- 모바일 (960px 이하): 한 줄로 쌓고, 저장 버튼은 폭 가득 ---------- */
+@media (max-width: 960px) {
+  .ui-panel { padding: 0 var(--sp-6); }
+  .ui-sec { grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); padding: var(--sp-6) 0; }
+  .ui-photo { gap: var(--sp-4); }
+  .ui-save { flex-direction: column-reverse; align-items: stretch; }
+  .ui-save .btn { width: 100%; }
+}
