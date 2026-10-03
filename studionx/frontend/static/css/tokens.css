@@ -13,6 +13,8 @@
   --c-rule-violet: rgb(163 131 255 / 0.45);   /* 보라 구분선 (Development·Contact) */
   --c-violet: #6a24f6;          /* 포인트 면·버튼 (Nyxi 헤드폰 #6820f8 기준) */
   --c-violet-ink: #a383ff;      /* 어두운 바탕 위 보라 글자용 (대비 6:1) */
+  --c-invert: #ffffff;          /* 버튼 hover 반전 면 (다크: 흰 면, 라이트: 먹 면) */
+  --c-invert-accent: #6a24f6;   /* 반전 면 위 보라 글자 */
   --c-on-violet: #ffffff;
   --c-focus: #b69bff;
   --c-ok: #7fe0a8;              /* 입력칸 확인 완료 (바탕 대비 12:1) */
@@ -60,6 +62,8 @@
   --c-ink-faint: #75717f;
   --c-rule: rgb(11 10 15 / 0.14);
   --c-violet-ink: #5a17e0;
+  --c-invert: #0b0a0f;
+  --c-invert-accent: #a383ff;
   --c-focus: #5a17e0;
   --c-ok: #137a45;
   --c-error: #c42b2b;
@@ -75,6 +79,8 @@
     --c-ink-faint: #75717f;
     --c-rule: rgb(11 10 15 / 0.14);
     --c-violet-ink: #5a17e0;
+    --c-invert: #0b0a0f;
+    --c-invert-accent: #a383ff;
     --c-focus: #5a17e0;
     --c-ok: #137a45;
     --c-error: #c42b2b;

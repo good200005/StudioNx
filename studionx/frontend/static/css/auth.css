@@ -20,6 +20,7 @@
 .pw__toggle {
   position: absolute; right: 0; bottom: var(--sp-2);
   padding: var(--sp-1) var(--sp-2); border: 0; background: none; cursor: pointer;
+  min-height: 24px;   /* 누르는 영역 24px 이상 (WCAG 2.5.8) */
   color: var(--c-ink-soft); font: 600 var(--fs-xs) / 1 var(--font-text); letter-spacing: 0.06em;
   transition: color var(--dur) var(--ease-out);
 }
