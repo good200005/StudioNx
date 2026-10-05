@@ -166,6 +166,7 @@ const PDFS = [
   { out: 'ai-notes/25_intro_logo.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 25 — 로고(S2) 확정과 첫 접속 로딩', files: ['ai-notes/25_intro_logo.md'], base: 'ai-notes' },
   { out: 'ai-notes/26_star_cursor.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 26 — 별 커서', files: ['ai-notes/26_star_cursor.md'], base: 'ai-notes' },
   { out: 'ai-notes/27_privacy_policy.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 27 — 개인정보 처리방침 페이지와 가입 동의', files: ['ai-notes/27_privacy_policy.md'], base: 'ai-notes' },
+  { out: 'ai-notes/28_home_mobile_hero.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 28 — 홈 첫 화면 모바일 겹침 수정', files: ['ai-notes/28_home_mobile_hero.md'], base: 'ai-notes' },
 ];
 
 const mode = process.argv[2];
