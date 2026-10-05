@@ -201,7 +201,7 @@
 - `projects.revision` (문서 버전 번호)
 - `timeline_comments` (코멘트), `project_snapshots` (스냅샷)
 - `tracks.assignee_id` / `locked_by` / `locked_at` (담당자·잠금)
-- Phase 2 편집 대상 테이블: `tracks`, `track_plugins`, `track_plugin_links`, `patterns`, `clips`, `midi_notes`, `automation_lanes`, `automation_points`, `launcher_scenes`
+- Phase 2 편집 대상 테이블: `tracks`, `track_plugins`, `track_plugin_links`, `patterns`, `clips`, `midi_notes`, `automation_lanes`, `automation_points` (2026-10-06 추가: `track_instruments`, `track_sends`, `track_connections`, `midi_cc_events`, `tempo_changes`, `meter_changes`, `markers`)
 
 ## 9. AI 역할 구분
 | 영역 | 이 Phase에서 AI가 하는 일 |

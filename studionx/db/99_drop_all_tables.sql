@@ -32,7 +32,7 @@ DROP TABLE IF EXISTS automation_points;
 DROP TABLE IF EXISTS automation_lanes;
 DROP TABLE IF EXISTS midi_notes;
 DROP TABLE IF EXISTS clips;
-DROP TABLE IF EXISTS launcher_scenes;
+DROP TABLE IF EXISTS launcher_scenes;   -- 2026-10-06 삭제된 표 (예전 DB 정리용으로 남김)
 DROP TABLE IF EXISTS patterns;
 DROP TABLE IF EXISTS track_plugin_links;
 DROP TABLE IF EXISTS track_plugins;

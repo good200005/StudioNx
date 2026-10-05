@@ -34,7 +34,7 @@
 | 3 | 레퍼런스 AI 분석 → 프리셋·믹싱·마스터링 추천 | Phase 5 | [05_Phase5_AI_Reference_Analysis.md](05_Phase5_AI_Reference_Analysis.md) |
 | 6 | 회원 초대 실시간 협업 + 단체톡 | Phase 6 | [06_Phase6_Collaboration_Chat.md](06_Phase6_Collaboration_Chat.md) |
 | + | 시퀀서 캐릭터 Nyxi(Fruity Dance식, 외형은 외부 AI 플랫폼 제작), 트랙 아코디언(Ableton 체인 + FL Patcher), **Nyxi 카드형 디바이스 UI + 상세 설정 모달**, 토글형 하단 패널 | Phase 2 | [02](02_Phase2_Sequencer_Core.md) §4.7~4.9 |
-| + | 오토메이션, 스케일·코드 도우미, 오디오 녹음, 패턴·클립 런처, 템플릿(확인창), 튜토리얼, UI 커스터마이징·커맨드 팔레트, 로컬 캐시 | Phase 2 | [02](02_Phase2_Sequencer_Core.md) §4.2, §4.10~4.16 |
+| + | 오토메이션, 스케일·코드 도우미, 오디오 녹음, 패턴(링크 클립), 템플릿(확인창), 튜토리얼, UI 커스터마이징·커맨드 팔레트, 로컬 캐시 | Phase 2 | [02](02_Phase2_Sequencer_Core.md) §4.2, §4.10~4.16 |
 | + | 저장 용량·사용량 관리 | Phase 1 | [01](01_Phase1_Account_Pages.md) §4.4 |
 | + | Nyxi 도우미 (FL Studio Gopher식 AI 도우미, 캐릭터가 얼굴), **Nyxi 팁(상황 인지, 프로젝트 5개 시 유지 여부 확인창)** | Phase 5 | [05](05_Phase5_AI_Reference_Analysis.md) §4.4~4.5 |
 | + | 타임라인 코멘트, 버전 스냅샷·복원, 트랙 잠금·담당자 | Phase 6 | [06](06_Phase6_Collaboration_Chat.md) §4.5~4.7 |
@@ -92,7 +92,7 @@ Phase 6  협업·단체톡        ──►  초대, 동시 편집, 채팅
 | `myPage.html` | 마이페이지 대시보드 (최근 프로젝트, 라이브러리 요약, 받은 초대) | 1 (+6 초대 위젯) |
 | `userInfo.html` | 회원 정보 조회·수정·탈퇴, **환경 설정(UI 커스터마이징)** 탭 | 1 (+2 환경 설정) |
 | `myProject.html` | 나의 프로젝트 목록 (생성/이름변경/삭제/열기, 공유된 프로젝트) | 1 (+6 공유 목록) |
-| `studioNx.html` | 시퀀서 본체 — 트랙 아코디언(디바이스·노트·오토메이션), 어레인지/런처 뷰, 토글형 하단 패널(톡방·Nyxi), 캐릭터 Nyxi, 설정·커맨드 팔레트 | 2~6 |
+| `studioNx.html` | 시퀀서 본체 — 트랙 펼침(Instrument·Effects·Connect·Mixer), 오토메이션 모드, 아래 칸(피아노롤·샘플 설정·Nyxi·믹서), 협업 패널, 캐릭터 Nyxi, 설정·커맨드 팔레트 (배치: [Sequencer_Layout_Mockup.md](../Sequencer_Layout_Mockup.md)) | 2~6 |
 
 ```
 home ─┬─ (로그인 모달) ──► myPage ─┬─ userInfo
@@ -164,6 +164,6 @@ home ─┬─ (로그인 모달) ──► myPage ─┬─ userInfo
 | Nyxi 도우미 | FL Studio의 Gopher 같은 대화형 AI. Studio Nx 사용법·작곡/믹싱 질문에 답함 (Phase 5). "Gopher"는 FL Studio 서비스명이라 사용하지 않음 |
 | 오토메이션 | 볼륨·필터 등 파라미터를 시간에 따라 자동으로 바꾸는 선(레인) |
 | 패턴 / 링크 클립 | 여러 클립이 같은 노트 묶음(패턴)을 공유. 하나를 고치면 모두 바뀜 |
-| 클립 런처 (세션 뷰) | 트랙 × 씬 격자에서 클립을 즉석 재생·조합하는 화면 (Ableton 방식) |
+| 클립 런처 (세션 뷰) | 트랙 × 씬 격자에서 클립을 즉석 재생·조합하는 화면 (Ableton 방식). **Studio Nx 에서는 제외** (2026-10-06) |
 | 스냅샷 | 특정 시점의 프로젝트 전체 상태 저장본. 미리듣기·복원·복제 가능 |
 | 커맨드 팔레트 | Ctrl+P로 모든 명령을 검색해 실행하는 입력창 |

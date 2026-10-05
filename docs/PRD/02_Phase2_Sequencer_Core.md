@@ -27,7 +27,7 @@
 - 웹 기반 가상악기(synth, 샘플러) 및 이펙트 플러그인(EQ, 컴프레서, 리버브, 딜레이 등)
 - **트랙 펼침(V)**: 각 트랙 바로 밑으로 펼쳐지는 칸 — [Instrument] [Effects(직렬 + 병렬 갈래·병합)] [Connect to Another] [Mixer] (§4.7, §4.17)
 - **오토메이션 모드(A)**: 패턴을 흐리게 하고 그 위에 오토메이션 클립 + 맨 위 Tempo·Meter 줄 (§4.10, §4.17)
-- **패턴(링크 클립)** 과 **클립 런처(세션 뷰)**
+- **패턴(링크 클립)**
 - 믹서: 트랙 머리 M·S·●, 트랙 펼침의 Mixer 칸, **Tab → 아래 칸 믹서**(모든 트랙 + MASTER)
 - **아래 칸(상황별)**: 평소 없음. MIDI 패턴 클릭 = 피아노 롤, 샘플 클릭 = 샘플 설정, Nyxi 더블 클릭 = Agent(Phase 5), Tab = 믹서
 - **왼쪽 버튼 줄 · 파일 패널 · 협업 패널**: 파일 분류 8개, 업로드·끌어 넣기, 검색은 맨 아래, 협업 패널(Members·Chat, Phase 6에서 채움)
@@ -43,6 +43,7 @@
 - 파일 출력 → Phase 3
 - **Nyxi 캐릭터 외형·애니메이션·카드 아트 제작** → 별도 AI 플랫폼에서 제작해 제공받음. 이 프로젝트에서는 만들지 않고 **연동 규격**(§4.9 FR-288)만 정의
 - 상황 인지 팁(Nyxi 팁) → PRD 05 §4.5 (이 문서에서는 설정 항목만 다룸)
+- **클립 런처(세션 뷰)** — 2026-10-06 제외 (런치패드로 공연할 때 쓰는 기능. 아이디어 실험은 패턴 재사용·레이어링으로)
 - 매뉴얼 대조 C 항목 — MPE(**추후**: 특수 건반이 있을 때. 피아노에 필요한 서스테인 페달·릴리즈 벨로시티는 FR-2220), 튜닝 시스템, Max for Live, Push·외부 컨트롤러 매핑, 비디오, Link·MIDI 클록 동기화, 크로스페이더, 여러 버전 편곡 ([Sequencer_Feature_Gaps.md](../Sequencer_Feature_Gaps.md) §4)
 
 ## 3. 사용자 스토리
@@ -127,7 +128,7 @@
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
 | FR-251 | 믹서: 트랙 머리에 **M · S · ●**(Cubase식, FR-2195), 볼륨·팬·미터는 트랙 펼침의 **Mixer 칸**(FR-2201)과 **Tab → 아래 칸 믹서**(FR-2200)에서. 두 곳은 같은 값 | 필수 |
-| FR-252 | **마스터 트랙**(`tracks.track_type='MASTER'`, 프로젝트당 1개, 삭제·이동 불가): 볼륨, 미터, 마스터 디바이스(Limiter 등). 아래 칸 믹서 오른쪽 끝에 늘 고정. **미정: 트랙 목록 맨 아래에도 MASTER 줄을 둘지** (지금 목업은 아래 칸 믹서에만 있음) | 필수 |
+| FR-252 | **마스터 트랙**(`tracks.track_type='MASTER'`, 프로젝트당 1개, 삭제·이동 불가): **트랙 목록 맨 아래에 고정**(2026-10-06 결정) + 아래 칸 믹서 오른쪽 끝. 볼륨, 미터, 마스터 디바이스(Limiter 등) — 펼침(V)으로 편집 | 필수 |
 | FR-253 | 프로젝트 저장: 수동 저장(Ctrl+S) + 자동 저장(변경 후 일정 시간, 예: 30초) | 필수 |
 | FR-254 | 프로젝트 불러오기: 트랙·클립·패턴·노트·디바이스·오토메이션 상태를 한 번에 로드하고 오디오 그래프 재구성 | 필수 |
 | FR-255 | Undo/Redo: 클라이언트에서 명령(Command) 단위로 이력 관리 (최소 100단계) | 필수 |
@@ -273,9 +274,8 @@
 | FR-2125 | 루프 녹음(테이크 여러 개) 및 테이크 선택 | 추후 |
 | FR-2126 | 녹음 중 용량 확인(FR-227), 브라우저 권한 거부 시 안내 | 필수 |
 
-### 4.13 패턴(링크 클립) · 클립 런처
+### 4.13 패턴(링크 클립)
 > **패턴**: FL Studio 패턴처럼, MIDI 노트 묶음을 "패턴"으로 만들고 여러 클립이 같은 패턴을 가리키게 합니다. 패턴 하나를 고치면 그 패턴을 쓰는 모든 클립이 같이 바뀝니다.
-> **클립 런처**: Ableton 세션 뷰처럼, 트랙 × 씬(행) 격자에 클립을 넣고 즉석에서 재생·조합해 봅니다.
 
 | ID | 요구사항 | 우선순위 |
 |---|---|---|
@@ -283,9 +283,9 @@
 | FR-2132 | 복제 두 가지: **링크 복제**(Ctrl+D, 같은 패턴 공유) / **독립 복제**(Ctrl+Shift+D, 패턴 복사). 링크된 클립은 같은 색 + 링크 아이콘 | 필수 |
 | FR-2133 | [고유하게 만들기]: 링크된 클립 하나를 패턴 복사해 분리 | 필수 |
 | FR-2134 | 브라우저 패널에 프로젝트 패턴 목록 → 드래그로 타임라인 배치, 패턴 이름·색 변경 | 권장 |
-| FR-2135 | **클립 런처 뷰**: [어레인지 ⇄ 런처] 전환. 트랙 × 씬 격자, 슬롯 클릭으로 해당 클립 루프 재생(다음 마디 경계에서 시작·정지 = 퀀타이즈 런치), 씬 행 단위 동시 재생. **미정: 전환 키·버튼 위치** (Ableton 은 Tab 이지만 Studio Nx 는 Tab 을 믹서에 씀, 목업에 자리 없음) | 권장 |
-| FR-2136 | 런처에서 연주한 결과를 어레인지(타임라인)에 녹음하는 기능 | 추후 |
-| FR-2137 | 저장: `patterns`, `clips.pattern_id`, `launcher_scenes`, `clips.scene_id`(NULL이면 타임라인 클립) | 필수 |
+| ~~FR-2135~~ | ~~클립 런처 뷰~~ — **2026-10-06 제외** (범위 밖) | — |
+| ~~FR-2136~~ | ~~런처 결과를 어레인지에 녹음~~ — 제외 | — |
+| FR-2137 | 저장: `patterns`, `clips.pattern_id` | 필수 |
 
 ### 4.14 프로젝트 템플릿 (적용 전 확인 필수)
 | ID | 요구사항 | 우선순위 |
@@ -407,7 +407,7 @@
 ## 7. API 초안 (FastAPI)
 | Method | Path | 설명 |
 |---|---|---|
-| GET | `/projects/{id}/full` | 프로젝트 전체 상태(트랙, 클립, 패턴, 노트, 디바이스, 연결선, 오토메이션, 씬) 한 번에 조회 |
+| GET | `/projects/{id}/full` | 프로젝트 전체 상태(트랙, 악기, 클립, 패턴, 노트, CC, 디바이스, 연결선, 센드, 트랙 연결, 오토메이션, 템포·박자, 마커) 한 번에 조회 |
 | PUT | `/projects/{id}/full` | 프로젝트 전체 상태 저장 (트랜잭션으로 일괄 반영) |
 | PATCH | `/projects/{id}/settings` | BPM, 박자, 키, 스케일 |
 | POST | `/projects/{id}/sessions/heartbeat` | 작업 세션 신호 (body: 지난 신호 이후 입력이 있었던 초). 세션이 없거나 끊겼으면 새로 만듦 |
@@ -432,7 +432,7 @@
 | GET | `/users/me/settings` | UI 설정(테마·단축키·캐릭터·하단 패널·튜토리얼) 조회 |
 | PATCH | `/users/me/settings` | UI 설정 부분 저장 (캐릭터 위치 이동 등은 디바운스 후 전송) |
 
-> 패처 라우팅·오토메이션·패턴·씬은 `/projects/{id}/full` 저장·조회에 함께 포함됩니다.
+> 갈래 라우팅·트랙 연결·센드·오토메이션·패턴·템포/박자·마커는 `/projects/{id}/full` 저장·조회에 함께 포함됩니다.
 > 저장 방식: Phase 2는 **전체 저장(PUT full)** 으로 단순하게 시작하고, Phase 6에서 변경 단위(operation) 저장으로 확장합니다.
 > 템플릿 적용 API는 `confirmed=true`가 없으면 400을 반환합니다 — 프론트 확인창을 거치지 않은 적용을 서버에서도 막습니다.
 
@@ -440,9 +440,9 @@
 > 컬럼 상세는 [DB.md](../DB.md) §3.2 참고 (시간 단위 규칙은 §1.4)
 - `samples`, `tags`, `sample_tags`
 - `plugins`, `plugin_presets`
-- `tracks`(track_type MASTER, routing_mode), `track_plugins`(node_x/node_y), `track_plugin_links`
-- `patterns`, `clips`(pattern_id, scene_id), `midi_notes`(pattern_id), `launcher_scenes`
-- `automation_lanes`, `automation_points`
+- `tracks`(track_type MASTER·GROUP·RETURN, routing_mode, is_enabled, parent_track_id, frozen_sample_id), `track_instruments`, `track_plugins`(node_x/node_y), `track_plugin_links`, `track_sends`, `track_connections`
+- `patterns`(swing), `clips`(pattern_id, 페이드·Warp·음정), `midi_notes`(pattern_id, release_velocity·is_muted·probability), `midi_cc_events`
+- `automation_lanes`, `automation_points`, `tempo_changes`, `meter_changes`, `markers`
 - `project_templates`
 - `projects` (bpm, time_sig_*, music_key, scale_mode, template_id)
 - `users` (storage_quota_bytes, storage_used_bytes)
@@ -481,7 +481,6 @@
 - [ ] C minor 스케일을 고르면 스케일 밖 음이 흐려지고, 스케일 스냅·코드 스탬프가 동작한다.
 - [ ] 마이크 녹음 클립이 레이턴시 보정되어 박자에 맞게 놓인다.
 - [ ] 링크 복제한 패턴 하나를 고치면 같은 패턴의 모든 클립이 바뀌고, [고유하게 만들기] 후에는 따로 바뀐다.
-- [ ] 클립 런처에서 씬을 실행하면 다음 마디 경계에서 해당 클립들이 동시에 재생된다.
 - [ ] 템플릿 적용 시 **반드시 확인창**이 뜨고, [취소]하면 아무것도 바뀌지 않는다. 교체 적용 전에는 자동 스냅샷이 생긴다.
 - [ ] 첫 접속 시 튜토리얼을 진행할 수 있고, 중간에 나갔다 와도 이어서 할 수 있다.
 - [ ] 테마·UI 배율·단축키를 바꾸면 즉시 적용되고, 다른 브라우저에서 로그인해도 유지된다. 단축키 충돌 시 경고가 뜬다.

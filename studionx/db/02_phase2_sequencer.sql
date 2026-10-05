@@ -1,7 +1,7 @@
 -- Studio Nx DDL: Phase 2 — 시퀀서 코어 (샘플, 태그, 플러그인, 트랙, 디바이스, 패턴, 클립, 노트, 오토메이션, 템플릿, UI 설정)
 -- 원본: docs/DB.md §5 (DB.md를 고치면 이 파일도 함께 갱신)
 -- 실행 순서: 00 → 01 → 02 → 03 → 04 → 05 → 06 (앞 파일의 테이블을 FK로 참조)
--- 테이블: samples, tags, sample_tags, plugins, plugin_presets, tracks, track_plugins, track_plugin_links, patterns, launcher_scenes, clips, track_instruments, track_sends, track_connections, midi_notes, midi_cc_events, automation_lanes, automation_points, tempo_changes, meter_changes, markers, project_templates, user_settings
+-- 테이블: samples, tags, sample_tags, plugins, plugin_presets, tracks, track_plugins, track_plugin_links, patterns, clips, track_instruments, track_sends, track_connections, midi_notes, midi_cc_events, automation_lanes, automation_points, tempo_changes, meter_changes, markers, project_templates, user_settings
 
 USE studionx;
 
@@ -206,24 +206,12 @@ CREATE TABLE patterns (
   CONSTRAINT chk_patterns_swing  CHECK (swing BETWEEN 0.00 AND 1.00)
 ) ENGINE=InnoDB;
 
-CREATE TABLE launcher_scenes (
-  scene_id    BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT,
-  project_id  BIGINT UNSIGNED   NOT NULL,
-  scene_index SMALLINT UNSIGNED NOT NULL,
-  name        VARCHAR(100)      NULL,
-  created_at  DATETIME(3)       NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  PRIMARY KEY (scene_id),
-  UNIQUE KEY uq_scenes_index (project_id, scene_index),
-  CONSTRAINT fk_scenes_project FOREIGN KEY (project_id) REFERENCES projects (project_id) ON DELETE CASCADE
-) ENGINE=InnoDB;
-
 CREATE TABLE clips (
   clip_id     BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   track_id    BIGINT UNSIGNED NOT NULL,
   clip_type   ENUM('AUDIO','MIDI') NOT NULL,
   sample_id   BIGINT UNSIGNED NULL,
   pattern_id  BIGINT UNSIGNED NULL,
-  scene_id    BIGINT UNSIGNED NULL,
   name        VARCHAR(100)    NULL,
   start_tick  INT UNSIGNED    NOT NULL,
   length_tick INT UNSIGNED    NOT NULL,
@@ -243,11 +231,9 @@ CREATE TABLE clips (
   PRIMARY KEY (clip_id),
   KEY idx_clips_track_start (track_id, start_tick),
   CONSTRAINT fk_clips_track  FOREIGN KEY (track_id)  REFERENCES tracks (track_id) ON DELETE CASCADE,
-  UNIQUE KEY uq_clips_launcher_slot (track_id, scene_id),
   KEY idx_clips_pattern (pattern_id),
   CONSTRAINT fk_clips_sample  FOREIGN KEY (sample_id)  REFERENCES samples (sample_id),
   CONSTRAINT fk_clips_pattern FOREIGN KEY (pattern_id) REFERENCES patterns (pattern_id),
-  CONSTRAINT fk_clips_scene   FOREIGN KEY (scene_id)   REFERENCES launcher_scenes (scene_id) ON DELETE CASCADE,
   CONSTRAINT chk_clips_kind CHECK (
     (clip_type = 'MIDI'  AND pattern_id IS NOT NULL AND sample_id IS NULL) OR
     (clip_type = 'AUDIO' AND sample_id  IS NOT NULL AND pattern_id IS NULL)
