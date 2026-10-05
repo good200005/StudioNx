@@ -28,6 +28,8 @@ const groups = [
     midi_notes:         [['PK', 'note_id'], ['FK', 'pattern_id']],
     automation_lanes:   [['PK', 'lane_id'], ['FK', 'track_id'], ['FK', 'track_plugin_id (null)']],
     automation_points:  [['PK', 'point_id'], ['FK', 'lane_id']],
+    tempo_changes:      [['PK', 'tempo_change_id'], ['FK', 'project_id'], ['UQ', '(project_id, tick)']],
+    meter_changes:      [['PK', 'meter_change_id'], ['FK', 'project_id'], ['UQ', '(project_id, tick)']],
   }},
   { id: 'lib', label: '라이브러리 · 플러그인 · 템플릿', color: '#F3EEFF', head: '#7C5CFF', tables: {
     samples:        [['PK', 'sample_id'], ['FK', 'owner_id']],
@@ -64,6 +66,7 @@ const relations = [
   ['track_plugins', 'track_plugin_links', 'N?'],
   ['projects', 'patterns', 'N'], ['projects', 'launcher_scenes', 'N'], ['patterns', 'clips', 'N?'], ['launcher_scenes', 'clips', 'N?'], ['patterns', 'midi_notes', 'N'],
   ['tracks', 'automation_lanes', 'N'], ['track_plugins', 'automation_lanes', 'N?'], ['automation_lanes', 'automation_points', 'N'],
+  ['projects', 'tempo_changes', 'N'], ['projects', 'meter_changes', 'N'],
   ['users', 'project_templates', 'N?'], ['tags', 'project_templates', 'N?'], ['project_templates', 'projects', 'N?'],
   ['projects', 'timeline_comments', 'N'], ['projects', 'project_snapshots', 'N'], ['tracks', 'timeline_comments', 'N?'], ['clips', 'timeline_comments', 'N?'],
   ['samples', 'clips', 'N?'], ['samples', 'sample_tags', 'N'], ['tags', 'sample_tags', 'N'],

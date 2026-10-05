@@ -1,7 +1,7 @@
 -- Studio Nx DDL: Phase 2 — 시퀀서 코어 (샘플, 태그, 플러그인, 트랙, 디바이스, 패턴, 클립, 노트, 오토메이션, 템플릿, UI 설정)
 -- 원본: docs/DB.md §5 (DB.md를 고치면 이 파일도 함께 갱신)
 -- 실행 순서: 00 → 01 → 02 → 03 → 04 → 05 → 06 (앞 파일의 테이블을 FK로 참조)
--- 테이블: samples, tags, sample_tags, plugins, plugin_presets, tracks, track_plugins, track_plugin_links, patterns, launcher_scenes, clips, midi_notes, automation_lanes, automation_points, project_templates, user_settings
+-- 테이블: samples, tags, sample_tags, plugins, plugin_presets, tracks, track_plugins, track_plugin_links, patterns, launcher_scenes, clips, midi_notes, automation_lanes, automation_points, tempo_changes, meter_changes, project_templates, user_settings
 
 USE studionx;
 
@@ -231,6 +231,36 @@ CREATE TABLE automation_points (
   KEY idx_points_lane_tick (lane_id, tick),
   CONSTRAINT fk_points_lane FOREIGN KEY (lane_id) REFERENCES automation_lanes (lane_id) ON DELETE CASCADE,
   CONSTRAINT chk_points_curve CHECK (curve BETWEEN -1.00 AND 1.00)
+) ENGINE=InnoDB;
+
+-- 템포·박자 지도: 시작 값은 projects.bpm / time_sig_*, 곡 중간 변경점만 저장 (2026-10-05)
+CREATE TABLE tempo_changes (
+  tempo_change_id BIGINT UNSIGNED       NOT NULL AUTO_INCREMENT,
+  project_id      BIGINT UNSIGNED       NOT NULL,
+  tick            INT UNSIGNED          NOT NULL,
+  bpm             DECIMAL(6,2)          NOT NULL,
+  ramp            ENUM('STEP','LINEAR') NOT NULL DEFAULT 'STEP',
+  created_at      DATETIME(3)           NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (tempo_change_id),
+  UNIQUE KEY uq_tempo_project_tick (project_id, tick),
+  CONSTRAINT fk_tempo_project FOREIGN KEY (project_id) REFERENCES projects (project_id) ON DELETE CASCADE,
+  CONSTRAINT chk_tempo_bpm  CHECK (bpm BETWEEN 20.00 AND 300.00),
+  CONSTRAINT chk_tempo_tick CHECK (tick > 0)
+) ENGINE=InnoDB;
+
+CREATE TABLE meter_changes (
+  meter_change_id BIGINT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  project_id      BIGINT UNSIGNED  NOT NULL,
+  tick            INT UNSIGNED     NOT NULL,
+  time_sig_num    TINYINT UNSIGNED NOT NULL,
+  time_sig_den    TINYINT UNSIGNED NOT NULL,
+  created_at      DATETIME(3)      NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (meter_change_id),
+  UNIQUE KEY uq_meter_project_tick (project_id, tick),
+  CONSTRAINT fk_meter_project FOREIGN KEY (project_id) REFERENCES projects (project_id) ON DELETE CASCADE,
+  CONSTRAINT chk_meter_num  CHECK (time_sig_num BETWEEN 1 AND 32),
+  CONSTRAINT chk_meter_den  CHECK (time_sig_den IN (1, 2, 4, 8, 16, 32)),
+  CONSTRAINT chk_meter_tick CHECK (tick > 0)
 ) ENGINE=InnoDB;
 
 CREATE TABLE project_templates (

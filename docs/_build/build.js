@@ -136,6 +136,7 @@ const PDFS = [
   { out: 'StudioNx_PRD_DB_통합본.pdf', title: 'Studio Nx', subtitle: 'PRD (Phase 0~6) &amp; DB 설계 · ERD 통합본',
     files: [...fs.readdirSync(path.join(DOCS, 'PRD')).filter(f => f.endsWith('.md')).sort().map(f => 'PRD/' + f), 'DB.md', 'ERD.md'] },
   { out: 'Implementation_Plan.pdf', title: 'Studio Nx', subtitle: '구현 계획 — 3단계 목록 &amp; 간트차트', files: ['Implementation_Plan.md'] },
+  { out: '../studionx/db/docs/StudioNx_DB_Guide.pdf', title: 'Studio Nx', subtitle: 'DB 스크립트 가이드', files: ['../studionx/db/docs/StudioNx_DB_Guide.md'], base: '../studionx/db/docs' },
   { out: 'Sequencer_Layout_Mockup.pdf', title: 'Studio Nx', subtitle: '시퀀서 기본 배치 목업', files: ['Sequencer_Layout_Mockup.md'] },
   { out: 'Sequencer_UI_Reference_Analysis.pdf', title: 'Studio Nx', subtitle: '시퀀서 UI 레퍼런스 분석 — Ableton · FL Studio', files: ['Sequencer_UI_Reference_Analysis.md'] },
   { out: 'Privacy_Policy_Draft.pdf', title: 'Studio Nx', subtitle: '개인정보 처리방침 수정안 (초안)', files: ['Privacy_Policy_Draft.md'] },
