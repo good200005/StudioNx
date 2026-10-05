@@ -74,7 +74,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | 7 | `sample_tags` | 샘플-태그 연결 | 2 |
 | 8 | `plugins` | 웹 기반 가상악기/이펙트 목록 | 2 |
 | 9 | `plugin_presets` | 플러그인 프리셋 | 2 |
-| 10 | `tracks` | 트랙 (AUDIO / MIDI / MASTER) | 2 |
+| 10 | `tracks` | 트랙 (AUDIO / MIDI / MASTER / GROUP / RETURN) | 2 |
 | 11 | `track_plugins` | 트랙 디바이스 — 체인 순서 + 패처 노드 위치 | 2 |
 | 12 | `track_plugin_links` | 패처 모드의 디바이스 연결선(라우팅) | 2 |
 | 13 | `patterns` | MIDI 패턴 (링크 클립이 공유하는 노트 묶음) | 2 |
@@ -102,6 +102,11 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | 35 | `project_sessions` | 프로젝트 작업 세션 (마이페이지 최근 7일 작업 시간) | 1 (표시) / 2 (기록) |
 | 36 | `tempo_changes` | 곡 중간 템포 변경점 (템포 지도) | 2 |
 | 37 | `meter_changes` | 곡 중간 박자 변경점 (박자 지도) | 2 |
+| 38 | `track_instruments` | 트랙의 악기 (레이어링: 한 트랙에 여러 악기) | 2 |
+| 39 | `track_sends` | 센드 (트랙 → 리턴 트랙으로 보내는 양) | 2 |
+| 40 | `track_connections` | Connect to Another (다른 트랙의 플러그인·악기 단계로 연결) | 2 |
+| 41 | `midi_cc_events` | 패턴의 CC · 피치벤드 · 페달 이벤트 | 2 |
+| 42 | `markers` | 타임라인 마커 (Intro · Drop …) | 2 |
 
 ---
 
@@ -216,7 +221,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | bpm | DECIMAL(6,2) | Y | NULL | | 감지/입력된 BPM |
 | music_key | VARCHAR(10) | Y | NULL | | 감지/입력된 키 |
 | waveform_path | VARCHAR(500) | Y | NULL | | 파형 미리보기 데이터(JSON/PNG) 경로 |
-| source | ENUM('UPLOAD','SEPARATION','EXPORT','RECORDING') | N | 'UPLOAD' | | 생성 경로 |
+| source | ENUM('UPLOAD','SEPARATION','EXPORT','RECORDING','BOUNCE','RESAMPLE') | N | 'UPLOAD' | | 생성 경로 (BOUNCE = 트랙을 오디오로 굳힘·프리즈, RESAMPLE = 마스터 소리를 녹음) |
 | created_at | DATETIME(3) | N | CURRENT | | |
 | updated_at | DATETIME(3) | N | CURRENT (ON UPDATE) | | |
 | deleted_at | DATETIME(3) | Y | NULL | | |
@@ -242,7 +247,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | plugin_id | INT UNSIGNED | N | AUTO_INCREMENT | PK | |
 | code | VARCHAR(50) | N | | UQ | 프론트에서 모듈을 찾는 키 (예: `nx-subsynth`, `nx-eq3`) |
 | name | VARCHAR(100) | N | | | 표시 이름 |
-| plugin_type | ENUM('INSTRUMENT','EFFECT') | N | | | 가상악기 / 이펙트 |
+| plugin_type | ENUM('INSTRUMENT','EFFECT','MIDI_EFFECT') | N | | | 가상악기 / 이펙트 / MIDI 이펙트(Arpeggiator·Chord 등, 악기 앞에서 노트를 바꿈) |
 | engine | ENUM('WEBAUDIO','WASM') | N | 'WEBAUDIO' | | 구현 방식 (Web Audio 노드 / C++→WASM) |
 | version | VARCHAR(20) | N | '1.0.0' | | |
 | param_schema | JSON | N | | | 파라미터 정의 배열: 이름, 범위, 기본값, 단위, **`primary`**(카드에 노출할 핵심 파라미터 여부), **`group`**(상세 모달의 탭/섹션) |
@@ -269,15 +274,16 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | track_id | BIGINT UNSIGNED | N | AUTO_INCREMENT | PK | |
 | project_id | BIGINT UNSIGNED | N | | FK → projects, IDX(project_id, order_index) | |
 | name | VARCHAR(100) | N | | | |
-| track_type | ENUM('AUDIO','MIDI','MASTER') | N | | | MASTER는 프로젝트당 1개, 생성 시 자동 생성·삭제 불가 |
+| track_type | ENUM('AUDIO','MIDI','MASTER','GROUP','RETURN') | N | | | MASTER는 프로젝트당 1개, 생성 시 자동 생성·삭제 불가. **GROUP** = 그룹(폴더) 트랙, **RETURN** = 리턴 트랙(센드를 받음) |
 | order_index | INT UNSIGNED | N | 0 | | 화면 위→아래 순서 |
 | color | CHAR(7) | N | '#7C5CFF' | | HEX 색상 |
 | volume_db | DECIMAL(5,2) | N | 0.00 | | 페이더 (-60 ~ +6 dB) |
 | pan | DECIMAL(3,2) | N | 0.00 | | -1.00(L) ~ 1.00(R) |
 | is_muted | TINYINT(1) | N | 0 | | |
 | is_solo | TINYINT(1) | N | 0 | | |
-| instrument_plugin_id | INT UNSIGNED | Y | NULL | FK → plugins | MIDI 트랙의 가상악기 |
-| instrument_params | JSON | Y | NULL | | 가상악기 파라미터 값 |
+| is_enabled | TINYINT(1) | N | 1 | | 켜기/끄기 (0 = 트랙을 아예 멈춤, 처리도 쉼). `is_muted` 는 소리만 끔 |
+| parent_track_id | BIGINT UNSIGNED | Y | NULL | FK → tracks | 속한 그룹 트랙 (그룹이 지워지면 NULL) |
+| frozen_sample_id | BIGINT UNSIGNED | Y | NULL | FK → samples | 프리즈 결과 오디오. 값이 있으면 이 오디오를 재생하고 악기·이펙트 처리는 쉼 |
 | routing_mode | ENUM('CHAIN','PATCHER') | N | 'CHAIN' | | 디바이스 라우팅 방식. CHAIN: `slot_index` 순서대로 직렬 연결 / PATCHER: `track_plugin_links` 연결선대로 처리 |
 | assignee_id | BIGINT UNSIGNED | Y | NULL | FK → users | 담당 멤버 (표시용, Phase 6) |
 | locked_by | BIGINT UNSIGNED | Y | NULL | FK → users | 잠근 멤버. NULL이면 잠금 없음 (Phase 6) |
@@ -285,7 +291,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | created_at | DATETIME(3) | N | CURRENT | | |
 | updated_at | DATETIME(3) | N | CURRENT (ON UPDATE) | | |
 
-> 트랙 아코디언의 펼침/접힘 상태는 사용자마다 다르므로 DB에 저장하지 않고 브라우저(localStorage)에 저장합니다.
+> 트랙 펼침 상태는 사용자마다 다르므로 DB에 저장하지 않고 브라우저(localStorage)에 저장합니다.
+> 악기는 2026-10-06부터 `track_instruments`에 저장합니다 (예전 `instrument_plugin_id`·`instrument_params` 삭제 — 레이어링으로 악기가 여러 개가 될 수 있음).
 
 #### `track_plugins` — 트랙 디바이스 (체인 + 패처 노드)
 | 컬럼 | 타입 | NULL | 기본값 | 키 | 설명 |
@@ -317,6 +324,48 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 
 > 순환(사이클) 연결과, 같은 노드·포트 쌍의 중복 연결은 애플리케이션에서 막습니다.
 
+#### `track_instruments` — 트랙의 악기 (레이어링)
+| 컬럼 | 타입 | NULL | 기본값 | 키 | 설명 |
+|---|---|---|---|---|---|
+| track_instrument_id | BIGINT UNSIGNED | N | AUTO_INCREMENT | PK | |
+| track_id | BIGINT UNSIGNED | N | | FK → tracks, UQ(track_id, slot_index) | MIDI 트랙 |
+| plugin_id | INT UNSIGNED | N | | FK → plugins | `plugin_type = 'INSTRUMENT'`만 (애플리케이션 검사) |
+| slot_index | TINYINT UNSIGNED | N | 0 | | INSTRUMENTS 칸 순서 (0 = 첫 악기). 같은 노트를 모든 악기가 연주 |
+| params | JSON | Y | NULL | | 악기 파라미터 값 |
+| volume_db | DECIMAL(5,2) | N | 0.00 | | 이 악기 줄의 볼륨 |
+| pan | DECIMAL(3,2) | N | 0.00 | | 이 악기 줄의 팬 |
+| is_solo | TINYINT(1) | N | 0 | | 이 악기 줄만 듣기 |
+| is_enabled | TINYINT(1) | N | 1 | | |
+| created_at | DATETIME(3) | N | CURRENT | | |
+| updated_at | DATETIME(3) | N | CURRENT (ON UPDATE) | | |
+
+#### `track_sends` — 센드 (리턴 트랙으로 보내기)
+| 컬럼 | 타입 | NULL | 기본값 | 키 | 설명 |
+|---|---|---|---|---|---|
+| send_id | BIGINT UNSIGNED | N | AUTO_INCREMENT | PK | |
+| track_id | BIGINT UNSIGNED | N | | FK → tracks, UQ(track_id, return_track_id) | 보내는 트랙 |
+| return_track_id | BIGINT UNSIGNED | N | | FK → tracks | 받는 리턴 트랙 (`track_type='RETURN'`, 자기 자신 금지 — 애플리케이션 검사) |
+| level_db | DECIMAL(5,2) | N | -12.00 | | 보내는 양 |
+| is_pre_fader | TINYINT(1) | N | 0 | | 1 = 페이더 전 (트랙 볼륨과 상관없이 보냄) |
+| created_at | DATETIME(3) | N | CURRENT | | |
+
+#### `track_connections` — Connect to Another
+| 컬럼 | 타입 | NULL | 기본값 | 키 | 설명 |
+|---|---|---|---|---|---|
+| connection_id | BIGINT UNSIGNED | N | AUTO_INCREMENT | PK | |
+| from_track_id | BIGINT UNSIGNED | N | | FK → tracks, **UQ** | 보내는 트랙 (트랙마다 연결 1개). 행이 없으면 `Connect = None` |
+| to_track_id | BIGINT UNSIGNED | N | | FK → tracks, IDX | 받는 트랙 (Track 번호 칸) |
+| target | ENUM('PLUGIN','INSTRUMENTS') | N | 'PLUGIN' | | PLUGIN = 받는 트랙의 플러그인 입력 / INSTRUMENTS = 레이어 (`<from Track X>` 줄) |
+| to_track_plugin_id | BIGINT UNSIGNED | Y | NULL | FK → track_plugins | PLUGIN 일 때 받는 플러그인 (Plugin 칸). INSTRUMENTS 이면 NULL |
+| to_port | TINYINT UNSIGNED | N | 1 | | 받는 플러그인의 입력 번호 (사이드체인·Carrier 등). 입력 종류(엿듣기/옮기기)는 `plugins.param_schema` 에 정의 |
+| also_play | TINYINT(1) | Y | NULL | | NULL = 자동(엿듣기 켜짐 / 옮기기 꺼짐), 1·0 = 사용자가 `Also play this track` 으로 정함 |
+| volume_db | DECIMAL(5,2) | N | 0.00 | | INSTRUMENTS 일 때 받는 쪽 `<from Track X>` 줄의 볼륨 |
+| pan | DECIMAL(3,2) | N | 0.00 | | 〃 팬 |
+| is_solo | TINYINT(1) | N | 0 | | 〃 Solo |
+| created_at | DATETIME(3) | N | CURRENT | | |
+
+> 자기 자신·서로(1→10, 10→1)·고리(1→10→5→1) 연결, PLUGIN 인데 플러그인이 비어 있는 경우는 애플리케이션에서 막습니다 (MySQL 은 CASCADE 가 걸린 FK 컬럼에 CHECK 를 둘 수 없음). 받는 트랙·플러그인이 지워지면 행이 지워져 `Connect = None` 이 됩니다.
+
 #### `clips` — 클립
 | 컬럼 | 타입 | NULL | 기본값 | 키 | 설명 |
 |---|---|---|---|---|---|
@@ -330,8 +379,16 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | start_tick | INT UNSIGNED | N | | | 타임라인 시작 위치 (런처 클립은 0) |
 | length_tick | INT UNSIGNED | N | | | 클립 길이 |
 | offset_tick | INT UNSIGNED | N | 0 | | 샘플 앞부분 잘라낸 양 (트리밍) |
-| gain_db | DECIMAL(5,2) | N | 0.00 | | 클립 게인 |
+| gain_db | DECIMAL(5,2) | N | 0.00 | | 클립 게인 (노멀라이즈는 피크를 계산해 이 값으로 설정) |
 | is_looped | TINYINT(1) | N | 0 | | |
+| fade_in_tick | INT UNSIGNED | N | 0 | | 앞 페이드 길이 (오디오) |
+| fade_out_tick | INT UNSIGNED | N | 0 | | 뒤 페이드 길이. 겹친 두 클립의 페이드가 크로스페이드 |
+| fade_in_curve | DECIMAL(3,2) | N | 0.00 | | 페이드 곡선 (-1.00 ~ 1.00, 0 = 직선) |
+| fade_out_curve | DECIMAL(3,2) | N | 0.00 | | |
+| warp_mode | ENUM('OFF','BEATS','TONES','TEXTURE','REPITCH','COMPLEX') | N | 'BEATS' | | 늘이기 방식. OFF = 초 단위 재생(템포를 따르지 않음) |
+| warp_markers | JSON | Y | NULL | | Warp 마커 `[{sample_sec, tick}]` |
+| pitch_semitones | DECIMAL(5,2) | N | 0.00 | | 음정 (-48 ~ +48 반음, 소수 = 센트) |
+| is_reversed | TINYINT(1) | N | 0 | | 거꾸로 재생 |
 | created_at | DATETIME(3) | N | CURRENT | | |
 | updated_at | DATETIME(3) | N | CURRENT (ON UPDATE) | | |
 
@@ -345,6 +402,20 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | start_tick | INT UNSIGNED | N | | | **패턴 시작 기준** 상대 위치 |
 | length_tick | INT UNSIGNED | N | | | |
 | channel | TINYINT UNSIGNED | N | 0 | | 0~15 |
+| release_velocity | TINYINT UNSIGNED | N | 64 | | 건반을 뗄 때의 세기 (피아노 음색 등) |
+| is_muted | TINYINT(1) | N | 0 | | 노트 뮤트 (지우지 않고 소리만 끔) |
+| probability | DECIMAL(3,2) | N | 1.00 | | 재생될 확률 (0.00 ~ 1.00) |
+| velocity_deviation | TINYINT UNSIGNED | N | 0 | | 재생마다 벨로시티를 ± 이 값 안에서 랜덤 |
+
+#### `midi_cc_events` — CC · 피치벤드 · 페달
+| 컬럼 | 타입 | NULL | 기본값 | 키 | 설명 |
+|---|---|---|---|---|---|
+| event_id | BIGINT UNSIGNED | N | AUTO_INCREMENT | PK | |
+| pattern_id | BIGINT UNSIGNED | N | | FK → patterns, IDX(pattern_id, controller, tick) | 노트처럼 **패턴**에 속함 |
+| tick | INT UNSIGNED | N | | | 패턴 시작 기준 위치 |
+| controller | SMALLINT UNSIGNED | N | | | 0~127 = CC 번호 (1 모듈레이션, 64 서스테인 페달, 67 소프트 페달 …) / 128 = 피치벤드 / 129 = 채널 프레셔 |
+| value | SMALLINT UNSIGNED | N | | | CC 0~127, 피치벤드 0~16383 (8192 = 가운데) |
+| channel | TINYINT UNSIGNED | N | 0 | | 0~15 |
 
 #### `patterns` — MIDI 패턴
 > MIDI 클립의 노트는 패턴에 저장됩니다. 클립 복제 시 **링크 복제**는 같은 `pattern_id`, **독립 복제**는 패턴을 복사해 새 `pattern_id`를 씁니다.
@@ -356,6 +427,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | name | VARCHAR(100) | N | | | 패턴 이름 (예: `Drum A`) |
 | color | CHAR(7) | Y | NULL | | 링크 클립 표시 색 |
 | length_tick | INT UNSIGNED | N | 3840 | | 패턴 길이 (기본 1마디) |
+| swing | DECIMAL(3,2) | N | 0.00 | | 스윙 정도 (0.00 ~ 1.00, 짝수 16분음표를 뒤로 밂) |
 | created_at | DATETIME(3) | N | CURRENT | | |
 | updated_at | DATETIME(3) | N | CURRENT (ON UPDATE) | | |
 
@@ -411,6 +483,16 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | time_sig_den | TINYINT UNSIGNED | N | | | 분모 (1·2·4·8·16·32) |
 | created_at | DATETIME(3) | N | CURRENT | | |
 
+#### `markers` — 타임라인 마커
+| 컬럼 | 타입 | NULL | 기본값 | 키 | 설명 |
+|---|---|---|---|---|---|
+| marker_id | BIGINT UNSIGNED | N | AUTO_INCREMENT | PK | |
+| project_id | BIGINT UNSIGNED | N | | FK → projects, IDX(project_id, tick) | |
+| tick | INT UNSIGNED | N | | | 위치 |
+| name | VARCHAR(50) | N | | | 이름 (Intro · Drop …) |
+| color | CHAR(7) | Y | NULL | | |
+| created_at | DATETIME(3) | N | CURRENT | | |
+
 > 시퀀서 화면: 오토메이션 모드에서 맨 위 **Tempo** 줄(점·계단/직선)과 **Meter** 줄(마디 단위 덩어리)로 편집합니다. 처음엔 변경점이 없어 평평한 선·한 덩어리입니다 ([Sequencer_Layout_Mockup.md](Sequencer_Layout_Mockup.md) 목업 14).
 
 #### `project_templates` — 프로젝트 템플릿
@@ -461,6 +543,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | range_start_tick | INT UNSIGNED | N | 0 | | 출력 구간 시작 |
 | range_end_tick | INT UNSIGNED | Y | NULL | | NULL이면 프로젝트 끝까지 |
 | render_mode | ENUM('CLIENT','SERVER') | N | 'CLIENT' | | 렌더링 위치 |
+| export_mode | ENUM('MIXDOWN','STEMS') | N | 'MIXDOWN' | | 전체 믹스다운 / 트랙별 따로(stems, 결과는 zip) |
 | status | ENUM('PENDING','PROCESSING','DONE','FAILED') | N | 'PENDING' | IDX | |
 | progress | TINYINT UNSIGNED | N | 0 | | 0~100 |
 | result_path | VARCHAR(500) | Y | NULL | | 결과 파일 경로 |
@@ -663,7 +746,12 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | patterns → clips | RESTRICT | 클립이 쓰는 패턴은 지울 수 없음 (마지막 클립이 지워지면 애플리케이션이 패턴 정리) |
 | projects → launcher_scenes → clips(scene_id) | CASCADE | 씬을 지우면 그 행의 런처 클립도 삭제 |
 | tracks → automation_lanes → automation_points | CASCADE | |
-| projects → tempo_changes, meter_changes | CASCADE | 템포·박자 지도는 프로젝트의 일부 |
+| projects → tempo_changes, meter_changes, markers | CASCADE | 템포·박자 지도·마커는 프로젝트의 일부 |
+| tracks → track_instruments, track_sends, track_connections | CASCADE | 트랙(보내는 쪽·받는 쪽 모두)이 지워지면 함께 삭제 → 연결은 None 으로 |
+| track_plugins → track_connections | CASCADE | 받는 플러그인이 지워지면 연결 삭제 |
+| tracks(그룹) → tracks.parent_track_id | SET NULL | 그룹을 지워도 안의 트랙은 남음 |
+| samples → tracks.frozen_sample_id | SET NULL | 프리즈 오디오가 지워지면 프리즈 해제 |
+| patterns → midi_cc_events | CASCADE | |
 | track_plugins → automation_lanes | CASCADE | 디바이스를 지우면 그 파라미터 오토메이션도 삭제 |
 | projects → timeline_comments, project_snapshots | CASCADE | |
 | tracks / clips → timeline_comments | SET NULL | 트랙·클립이 지워져도 코멘트는 tick 위치로 남음 |
@@ -814,7 +902,7 @@ CREATE TABLE samples (
   bpm               DECIMAL(6,2)     NULL,
   music_key         VARCHAR(10)      NULL,
   waveform_path     VARCHAR(500)     NULL,
-  source            ENUM('UPLOAD','SEPARATION','EXPORT','RECORDING') NOT NULL DEFAULT 'UPLOAD',
+  source            ENUM('UPLOAD','SEPARATION','EXPORT','RECORDING','BOUNCE','RESAMPLE') NOT NULL DEFAULT 'UPLOAD',
   created_at        DATETIME(3)      NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   updated_at        DATETIME(3)      NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   deleted_at        DATETIME(3)      NULL,
@@ -846,7 +934,7 @@ CREATE TABLE plugins (
   plugin_id    INT UNSIGNED NOT NULL AUTO_INCREMENT,
   code         VARCHAR(50)  NOT NULL,
   name         VARCHAR(100) NOT NULL,
-  plugin_type  ENUM('INSTRUMENT','EFFECT') NOT NULL,
+  plugin_type  ENUM('INSTRUMENT','EFFECT','MIDI_EFFECT') NOT NULL,
   engine       ENUM('WEBAUDIO','WASM') NOT NULL DEFAULT 'WEBAUDIO',
   version      VARCHAR(20)  NOT NULL DEFAULT '1.0.0',
   param_schema JSON         NOT NULL,
@@ -877,15 +965,16 @@ CREATE TABLE tracks (
   track_id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   project_id           BIGINT UNSIGNED NOT NULL,
   name                 VARCHAR(100)    NOT NULL,
-  track_type           ENUM('AUDIO','MIDI','MASTER') NOT NULL,
+  track_type           ENUM('AUDIO','MIDI','MASTER','GROUP','RETURN') NOT NULL,
   order_index          INT UNSIGNED    NOT NULL DEFAULT 0,
   color                CHAR(7)         NOT NULL DEFAULT '#7C5CFF',
   volume_db            DECIMAL(5,2)    NOT NULL DEFAULT 0.00,
   pan                  DECIMAL(3,2)    NOT NULL DEFAULT 0.00,
   is_muted             TINYINT(1)      NOT NULL DEFAULT 0,
   is_solo              TINYINT(1)      NOT NULL DEFAULT 0,
-  instrument_plugin_id INT UNSIGNED    NULL,
-  instrument_params    JSON            NULL,
+  is_enabled           TINYINT(1)      NOT NULL DEFAULT 1,
+  parent_track_id      BIGINT UNSIGNED NULL,
+  frozen_sample_id     BIGINT UNSIGNED NULL,
   routing_mode         ENUM('CHAIN','PATCHER') NOT NULL DEFAULT 'CHAIN',
   assignee_id          BIGINT UNSIGNED NULL,
   locked_by            BIGINT UNSIGNED NULL,
@@ -895,7 +984,8 @@ CREATE TABLE tracks (
   PRIMARY KEY (track_id),
   KEY idx_tracks_project_order (project_id, order_index),
   CONSTRAINT fk_tracks_project    FOREIGN KEY (project_id)           REFERENCES projects (project_id) ON DELETE CASCADE,
-  CONSTRAINT fk_tracks_instrument FOREIGN KEY (instrument_plugin_id) REFERENCES plugins (plugin_id),
+  CONSTRAINT fk_tracks_parent     FOREIGN KEY (parent_track_id)      REFERENCES tracks (track_id) ON DELETE SET NULL,
+  CONSTRAINT fk_tracks_frozen     FOREIGN KEY (frozen_sample_id)     REFERENCES samples (sample_id) ON DELETE SET NULL,
   CONSTRAINT fk_tracks_assignee   FOREIGN KEY (assignee_id)          REFERENCES users (user_id),
   CONSTRAINT fk_tracks_locked_by  FOREIGN KEY (locked_by)            REFERENCES users (user_id)
 ) ENGINE=InnoDB;
@@ -933,17 +1023,70 @@ CREATE TABLE track_plugin_links (
   CONSTRAINT fk_links_to    FOREIGN KEY (to_track_plugin_id)   REFERENCES track_plugins (track_plugin_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE track_instruments (
+  track_instrument_id BIGINT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  track_id            BIGINT UNSIGNED  NOT NULL,
+  plugin_id           INT UNSIGNED     NOT NULL,
+  slot_index          TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  params              JSON             NULL,
+  volume_db           DECIMAL(5,2)     NOT NULL DEFAULT 0.00,
+  pan                 DECIMAL(3,2)     NOT NULL DEFAULT 0.00,
+  is_solo             TINYINT(1)       NOT NULL DEFAULT 0,
+  is_enabled          TINYINT(1)       NOT NULL DEFAULT 1,
+  created_at          DATETIME(3)      NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at          DATETIME(3)      NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (track_instrument_id),
+  UNIQUE KEY uq_track_instruments_slot (track_id, slot_index),
+  CONSTRAINT fk_ti_track  FOREIGN KEY (track_id)  REFERENCES tracks (track_id) ON DELETE CASCADE,
+  CONSTRAINT fk_ti_plugin FOREIGN KEY (plugin_id) REFERENCES plugins (plugin_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE track_sends (
+  send_id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  track_id        BIGINT UNSIGNED NOT NULL,
+  return_track_id BIGINT UNSIGNED NOT NULL,
+  level_db        DECIMAL(5,2)    NOT NULL DEFAULT -12.00,
+  is_pre_fader    TINYINT(1)      NOT NULL DEFAULT 0,
+  created_at      DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (send_id),
+  UNIQUE KEY uq_track_sends (track_id, return_track_id),
+  CONSTRAINT fk_sends_track  FOREIGN KEY (track_id)        REFERENCES tracks (track_id) ON DELETE CASCADE,
+  CONSTRAINT fk_sends_return FOREIGN KEY (return_track_id) REFERENCES tracks (track_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE track_connections (
+  connection_id      BIGINT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  from_track_id      BIGINT UNSIGNED  NOT NULL,
+  to_track_id        BIGINT UNSIGNED  NOT NULL,
+  target             ENUM('PLUGIN','INSTRUMENTS') NOT NULL DEFAULT 'PLUGIN',
+  to_track_plugin_id BIGINT UNSIGNED  NULL,
+  to_port            TINYINT UNSIGNED NOT NULL DEFAULT 1,
+  also_play          TINYINT(1)       NULL,
+  volume_db          DECIMAL(5,2)     NOT NULL DEFAULT 0.00,
+  pan                DECIMAL(3,2)     NOT NULL DEFAULT 0.00,
+  is_solo            TINYINT(1)       NOT NULL DEFAULT 0,
+  created_at         DATETIME(3)      NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (connection_id),
+  UNIQUE KEY uq_connections_from (from_track_id),
+  KEY idx_connections_to (to_track_id),
+  CONSTRAINT fk_conn_from   FOREIGN KEY (from_track_id)      REFERENCES tracks (track_id) ON DELETE CASCADE,
+  CONSTRAINT fk_conn_to     FOREIGN KEY (to_track_id)        REFERENCES tracks (track_id) ON DELETE CASCADE,
+  CONSTRAINT fk_conn_plugin FOREIGN KEY (to_track_plugin_id) REFERENCES track_plugins (track_plugin_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE patterns (
   pattern_id  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   project_id  BIGINT UNSIGNED NOT NULL,
   name        VARCHAR(100)    NOT NULL,
   color       CHAR(7)         NULL,
   length_tick INT UNSIGNED    NOT NULL DEFAULT 3840,
+  swing       DECIMAL(3,2)    NOT NULL DEFAULT 0.00,
   created_at  DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   updated_at  DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   PRIMARY KEY (pattern_id),
   KEY idx_patterns_project (project_id),
-  CONSTRAINT fk_patterns_project FOREIGN KEY (project_id) REFERENCES projects (project_id) ON DELETE CASCADE
+  CONSTRAINT fk_patterns_project FOREIGN KEY (project_id) REFERENCES projects (project_id) ON DELETE CASCADE,
+  CONSTRAINT chk_patterns_swing  CHECK (swing BETWEEN 0.00 AND 1.00)
 ) ENGINE=InnoDB;
 
 CREATE TABLE launcher_scenes (
@@ -970,6 +1113,14 @@ CREATE TABLE clips (
   offset_tick INT UNSIGNED    NOT NULL DEFAULT 0,
   gain_db     DECIMAL(5,2)    NOT NULL DEFAULT 0.00,
   is_looped   TINYINT(1)      NOT NULL DEFAULT 0,
+  fade_in_tick    INT UNSIGNED  NOT NULL DEFAULT 0,
+  fade_out_tick   INT UNSIGNED  NOT NULL DEFAULT 0,
+  fade_in_curve   DECIMAL(3,2)  NOT NULL DEFAULT 0.00,
+  fade_out_curve  DECIMAL(3,2)  NOT NULL DEFAULT 0.00,
+  warp_mode       ENUM('OFF','BEATS','TONES','TEXTURE','REPITCH','COMPLEX') NOT NULL DEFAULT 'BEATS',
+  warp_markers    JSON          NULL,
+  pitch_semitones DECIMAL(5,2)  NOT NULL DEFAULT 0.00,
+  is_reversed     TINYINT(1)    NOT NULL DEFAULT 0,
   created_at  DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   updated_at  DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   PRIMARY KEY (clip_id),
@@ -983,7 +1134,9 @@ CREATE TABLE clips (
   CONSTRAINT chk_clips_kind CHECK (
     (clip_type = 'MIDI'  AND pattern_id IS NOT NULL AND sample_id IS NULL) OR
     (clip_type = 'AUDIO' AND sample_id  IS NOT NULL AND pattern_id IS NULL)
-  )
+  ),
+  CONSTRAINT chk_clips_fade_curve CHECK (fade_in_curve BETWEEN -1.00 AND 1.00 AND fade_out_curve BETWEEN -1.00 AND 1.00),
+  CONSTRAINT chk_clips_pitch      CHECK (pitch_semitones BETWEEN -48.00 AND 48.00)
 ) ENGINE=InnoDB;
 
 CREATE TABLE midi_notes (
@@ -994,11 +1147,32 @@ CREATE TABLE midi_notes (
   start_tick  INT UNSIGNED     NOT NULL,
   length_tick INT UNSIGNED     NOT NULL,
   channel     TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  release_velocity   TINYINT UNSIGNED NOT NULL DEFAULT 64,
+  is_muted           TINYINT(1)       NOT NULL DEFAULT 0,
+  probability        DECIMAL(3,2)     NOT NULL DEFAULT 1.00,
+  velocity_deviation TINYINT UNSIGNED NOT NULL DEFAULT 0,
   PRIMARY KEY (note_id),
   KEY idx_notes_pattern_start (pattern_id, start_tick),
   CONSTRAINT fk_notes_pattern FOREIGN KEY (pattern_id) REFERENCES patterns (pattern_id) ON DELETE CASCADE,
   CONSTRAINT chk_notes_pitch    CHECK (pitch <= 127),
-  CONSTRAINT chk_notes_velocity CHECK (velocity BETWEEN 1 AND 127)
+  CONSTRAINT chk_notes_velocity CHECK (velocity BETWEEN 1 AND 127),
+  CONSTRAINT chk_notes_release  CHECK (release_velocity <= 127),
+  CONSTRAINT chk_notes_prob     CHECK (probability BETWEEN 0.00 AND 1.00),
+  CONSTRAINT chk_notes_vel_dev  CHECK (velocity_deviation <= 127)
+) ENGINE=InnoDB;
+
+CREATE TABLE midi_cc_events (
+  event_id   BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT,
+  pattern_id BIGINT UNSIGNED   NOT NULL,
+  tick       INT UNSIGNED      NOT NULL,
+  controller SMALLINT UNSIGNED NOT NULL,
+  value      SMALLINT UNSIGNED NOT NULL,
+  channel    TINYINT UNSIGNED  NOT NULL DEFAULT 0,
+  PRIMARY KEY (event_id),
+  KEY idx_cc_pattern_tick (pattern_id, controller, tick),
+  CONSTRAINT fk_cc_pattern FOREIGN KEY (pattern_id) REFERENCES patterns (pattern_id) ON DELETE CASCADE,
+  CONSTRAINT chk_cc_controller CHECK (controller <= 129),
+  CONSTRAINT chk_cc_value      CHECK (value <= 16383)
 ) ENGINE=InnoDB;
 
 CREATE TABLE automation_lanes (
@@ -1057,6 +1231,18 @@ CREATE TABLE meter_changes (
   CONSTRAINT chk_meter_tick CHECK (tick > 0)
 ) ENGINE=InnoDB;
 
+CREATE TABLE markers (
+  marker_id  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  project_id BIGINT UNSIGNED NOT NULL,
+  tick       INT UNSIGNED    NOT NULL,
+  name       VARCHAR(50)     NOT NULL,
+  color      CHAR(7)         NULL,
+  created_at DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (marker_id),
+  KEY idx_markers_project_tick (project_id, tick),
+  CONSTRAINT fk_markers_project FOREIGN KEY (project_id) REFERENCES projects (project_id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE project_templates (
   template_id  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   owner_id     BIGINT UNSIGNED NULL,
@@ -1107,6 +1293,7 @@ CREATE TABLE export_jobs (
   range_start_tick INT UNSIGNED      NOT NULL DEFAULT 0,
   range_end_tick   INT UNSIGNED      NULL,
   render_mode      ENUM('CLIENT','SERVER') NOT NULL DEFAULT 'CLIENT',
+  export_mode      ENUM('MIXDOWN','STEMS') NOT NULL DEFAULT 'MIXDOWN',
   status           ENUM('PENDING','PROCESSING','DONE','FAILED') NOT NULL DEFAULT 'PENDING',
   progress         TINYINT UNSIGNED  NOT NULL DEFAULT 0,
   result_path      VARCHAR(500)      NULL,
@@ -1344,6 +1531,7 @@ CREATE TABLE project_snapshots (
 | 2026-10-01 | AI 제안 채택 반영: `patterns`·`launcher_scenes`(패턴·클립 런처, **`midi_notes.clip_id` → `pattern_id`**), `automation_lanes`·`automation_points`, `project_templates`, `timeline_comments`, `project_snapshots` 추가 / `tracks`: MASTER 타입·담당자·잠금 / `projects`: `scale_mode`·`template_id` / `users`: 저장 용량 / `user_settings`: 테마·배율·단축키·튜토리얼 / Gopher → Nyxi(가칭) (총 33개 테이블) |
 | 2026-10-02 | `dev_notes`(메인 페이지 Development 공지, 관리자만 작성) 추가 · `inquiries.name` NULL 허용, `inquiries.privacy_agreed_at` 추가 (총 34개 테이블). 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-02_contact_devnotes.sql` · §2.1에 남아 있던 옛 테이블 목록 삭제 |
 | 2026-10-03 | `project_sessions`(프로젝트 작업 세션) 추가 — 마이페이지 Recent Projects의 최근 7일 작업 시간 (P1-17). 총 35개 테이블. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-03_project_sessions.sql` |
+| 2026-10-06 | **시퀀서 기능 보강** ([Sequencer_Feature_Gaps.md](Sequencer_Feature_Gaps.md) A·B + PRD 02 §4.17): 새 표 `track_instruments`(레이어 악기 — `tracks.instrument_plugin_id`·`instrument_params` 삭제), `track_sends`(센드), `track_connections`(Connect to Another), `midi_cc_events`(CC·피치벤드·페달), `markers` / `tracks`: `GROUP`·`RETURN` 종류, `is_enabled`, `parent_track_id`, `frozen_sample_id` / `clips`: 페이드·Warp·음정·거꾸로 / `midi_notes`: `release_velocity`·`is_muted`·`probability`·`velocity_deviation` / `patterns.swing` / `plugins` `MIDI_EFFECT` / `samples` `BOUNCE`·`RESAMPLE` / `export_jobs.export_mode`. 총 42개 테이블. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-06_sequencer_feature_gaps.sql` |
 | 2026-10-05 | `tempo_changes`·`meter_changes` 추가 — 곡 중간 BPM 변속·박자 변경(템포·박자 지도). `projects.bpm`·`time_sig_*`는 시작 값. 총 37개 테이블. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-05_tempo_meter_changes.sql` |
 | 2026-10-05 | `users.privacy_agreed_at`, `users.privacy_version` 추가 — 가입 때 개인정보 처리방침 동의 기록 (GDPR·개인정보 보호법 동의 증빙, [Privacy_Policy_Draft.md](Privacy_Policy_Draft.md) D3). 테이블 수 그대로 35개. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-05_users_privacy_consent.sql` |
 | 2026-10-01 | 이름 **Nyxi** 확정 · `user_settings.tips_level`/`tips_state`(Nyxi 팁) · `plugins.card_asset` 및 `param_schema`의 `primary`/`group`(카드 UI·상세 모달) 추가 |
