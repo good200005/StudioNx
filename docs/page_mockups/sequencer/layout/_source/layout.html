@@ -33,9 +33,13 @@
   .tp { display: flex; gap: 3px; } .tp i { width: 24px; height: 20px; display: grid; place-items: center; font-style: normal; border: 1px solid var(--line); background: var(--panel2); border-radius: var(--r); color: var(--soft); }
   .tp i.play { color: var(--grn); border-color: var(--grn); } .tp i.rec { color: var(--red); }
   .lcd { font: 300 24px/1 "Segoe UI Light", "Segoe UI", sans-serif; padding: 1px 8px; background: rgb(0 0 0 / .28); border-radius: var(--r); color: #f1e9ff; }
+  .lcd { display: inline-flex; align-items: baseline; gap: 4px; font-variant-numeric: tabular-nums; }
   .lcd small { font-size: 9px; color: var(--faint); margin-left: 3px; }
-  .scope { width: 70px; height: 22px; background: rgb(0 0 0 / .3); border-radius: var(--r); position: relative; overflow: hidden; }
-  .scope svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .lcd em { font: 600 11px/1 "Segoe UI", sans-serif; font-style: normal; color: var(--soft); border-left: 1px solid var(--line2); padding-left: 7px; margin-left: 4px; font-variant-numeric: tabular-nums; }
+  .lcd em small { margin-left: 2px; }
+  .spec { width: 96px; height: 28px; display: flex; align-items: flex-end; gap: 1px; padding: 2px 3px 9px; background: rgb(0 0 0 / .3); border-radius: var(--r); position: relative; }
+  .spec i { flex: 1; height: var(--h); background: linear-gradient(to top, var(--grn), var(--vi)); opacity: .9; }
+  .spec b { position: absolute; bottom: 1px; font: 600 7px/1 "Segoe UI", sans-serif; color: var(--faint); } .spec b.l { left: 3px; } .spec b.r { right: 3px; }
   .hintbar { flex: 1; color: var(--soft); font-size: 11px; background: rgb(0 0 0 / .18); padding: 3px 8px; border-radius: var(--r); overflow: hidden; }
   .hintbar b { color: #fff; font-weight: 600; }
   .sc { display: flex; gap: 3px; } .sc i { display: grid; place-items: center; width: 24px; height: 22px; font-style: normal; border: 1px solid var(--line); background: var(--panel2); border-radius: var(--r); color: var(--soft); font-size: 11px; }
@@ -60,7 +64,9 @@
   .it.on { background: var(--sel); }
   .it em { font-style: normal; color: var(--faint); font-size: 10px; }
   .it .w { grid-column: 2 / -1; height: 12px; background: linear-gradient(transparent 20%, #9fe0b4 20% 80%, transparent 80%); mask: repeating-linear-gradient(90deg, #000 0 1px, transparent 1px 2px); opacity: .5; }
-  .drop { margin: 6px 10px; border: 1px dashed var(--line2); border-radius: 4px; padding: 8px; text-align: center; color: var(--faint); font-size: 10.5px; }
+  .drop { margin: 8px 10px; height: 96px; border: 1.5px dashed color-mix(in srgb, var(--vi) 60%, transparent); border-radius: var(--r); background: color-mix(in srgb, var(--vi) 7%, transparent);
+    display: grid; place-content: center; justify-items: center; gap: 3px; text-align: center; color: var(--faint); font-size: 10px; }
+  .drop .ic { font-size: 22px; line-height: 1; color: var(--vi); } .drop b { font-size: 12px; font-weight: 600; color: var(--ink); }
   .search { margin: 0; padding: 7px 10px; border-top: 1px solid var(--line); color: var(--faint); background: var(--panel2); }
   .collab { border-top: 2px solid var(--vi); display: flex; flex-direction: column; min-height: 0; overflow: hidden; background: var(--panel2); }
   .mem { display: flex; align-items: center; gap: 7px; padding: 4px 10px; }
@@ -123,6 +129,19 @@
   .aenv { position: absolute; top: 2px; bottom: 2px; border: 1px solid #c8e08a; border-radius: 3px; background: rgb(200 224 138 / .12); z-index: 2; }
   .aenv b { position: absolute; top: 0; left: 0; font-size: 10px; background: #c8e08a; color: #10120a; padding: 0 5px; white-space: nowrap; }
   .aenv svg { position: absolute; inset: 12px 0 2px; width: 100%; height: calc(100% - 14px); overflow: visible; }
+  /* 목업 14 — 맨 위 Tempo · Meter 줄 (오토메이션 모드) */
+  .gl { display: grid; grid-template-columns: 200px 1fr; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--vi) 6%, var(--panel)); position: relative; z-index: 3; }
+  .gl.tempo { height: 56px; } .gl.mtr { height: 30px; border-bottom: 2px solid color-mix(in srgb, var(--vi) 45%, transparent); }
+  .gl .gh { display: flex; align-items: center; gap: 8px; padding: 0 10px; border-right: 1px solid var(--line); border-left: 4px solid var(--vi); }
+  .gl .gh b { font-size: 11.5px; } .gl .gh small { margin-left: auto; font-size: 10px; color: var(--soft); border: 1px solid var(--line2); padding: 0 5px; }
+  .gl .gb { position: relative; }
+  .gl svg { position: absolute; inset: 6px 0; width: 100%; height: calc(100% - 12px); overflow: visible; }
+  .gl .lab { position: absolute; font-size: 10px; font-weight: 700; color: var(--vi); background: var(--panel); padding: 0 3px; transform: translate(-50%, 0); white-space: nowrap; }
+  .gl .seg { position: absolute; top: 4px; bottom: 4px; border: 1px solid var(--line2); background: var(--panel2); display: flex; align-items: center; padding-left: 8px; font-size: 11px; font-weight: 700; color: var(--soft); }
+  .gl .seg.chg { border-color: var(--vi); color: var(--vi); background: color-mix(in srgb, var(--vi) 12%, var(--panel)); }
+  .gl .split { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px solid var(--vi); }
+  .gl .split::before { content: ''; position: absolute; top: -3px; left: -5px; border: 4px solid transparent; border-top-color: var(--vi); }
+  .gl .warn { position: absolute; top: 2px; font-size: 10px; color: #ffcf5c; }
   .aenv.cut { border-right: 2px solid #ff8a5c; }
   .limit { position: absolute; top: -2px; bottom: -2px; width: 0; border-left: 2px dashed var(--red); z-index: 3; }
   .limit span { position: absolute; left: 4px; bottom: -1px; font-size: 9.5px; color: #ffb3b3; white-space: nowrap; background: rgb(11 10 15 / .85); padding: 0 4px; border-radius: 2px; }
@@ -276,6 +295,7 @@
   html.t-B .top .chip { background: transparent; border-color: rgb(255 255 255 / .38); color: #fff; }
   html.t-B .top .chip.on { background: #fff; border-color: #fff; color: var(--v); }
   html.t-B .top .tp i, html.t-B .top .sc i { background: transparent; border-color: rgb(255 255 255 / .38); color: #fff; }
+  html.t-B .top .spec i { background: #fff; } html.t-B .top .lcd em { color: #fff; border-color: rgb(255 255 255 / .38); }
   html.t-B .top .lcd { border-color: rgb(255 255 255 / .38); color: #fff; } html.t-B .top .lcd small, html.t-B .top .menu span { color: rgb(255 255 255 / .75); }
   html.t-B .hintbar { background: rgb(11 10 15 / .28); color: #fff; } html.t-B .brand svg { color: #fff; }
   html.t-B .rail .b.on { background: var(--v); box-shadow: none; }
@@ -290,6 +310,7 @@
   html.t-L .brand, html.t-L .hintbar b, html.t-L .addrow .add b, html.t-L .ctx > header b, html.t-L .langmenu div.on, html.t-L .rail .b.on, html.t-L .ph h3 { color: var(--ink); }
   html.t-L .top .chip[style], html.t-L .filt span.on, html.t-L .route.live .sel.type { color: var(--ink) !important; }
   html.t-L .badge { background: #0b0a0f; } html.t-L .badge small { color: #b9b6c4; } html.t-L .badge strong { color: #fff; }
+  html.t-L .spec, html.t-D .spec { background: rgb(11 10 15 / .05); } html.t-L .spec i { background: linear-gradient(to top, #137a45, #5a17e0); }
   html.t-L .notes i { background: #137a45; color: #fff; } html.t-L .vel i, html.t-L .vel i::after { background: #137a45; } html.t-L .notes i.s { background: var(--ink); }
   html.t-L .keys { filter: invert(.06); }
   html.t-D { --clip-label: #ffffff; --clip-note: rgb(255 255 255 / .9); --wave: #f4f3f7; }
@@ -309,17 +330,17 @@ const S = +(new URLSearchParams(location.search).get('s') ?? 1);
 const THEME = new URLSearchParams(location.search).get('theme');   // 색 시안 A·B·C·D (없으면 기존 색)
 if (THEME) document.documentElement.classList.add('t-' + THEME);
 const R = document.documentElement.style, set = (k, v) => R.setProperty(k, v);
-const COLLAB = S === 2, AUTO = S === 3 || S === 9, ACC = S === 4 || S === 5 || (S >= 10 && S <= 12), CTX = { 6: 'roll', 7: 'sample', 8: 'agent', 13: 'mixer' }[S];
+const COLLAB = S === 2, AUTO = S === 3 || S === 9 || S === 14, ACC = S === 4 || S === 5 || (S >= 10 && S <= 12), CTX = { 6: 'roll', 7: 'sample', 8: 'agent', 13: 'mixer' }[S];
 set('--side-w', '264px'); set('--collab-h', COLLAB ? '330px' : '0px'); set('--ctx-h', CTX ? '300px' : '0px'); set('--acc-h', (new URLSearchParams(location.search).get('acch') || 226) + 'px');   // ?acch= 로 펼침 높이 확인
-const RAIL = { 1: 'smp', 2: 'smp', 3: 'auto', 4: 'plug', 5: 'plug', 6: 'pat', 7: 'smp', 8: 'smp', 9: 'pat', 10: 'plug', 11: 'plug', 12: 'plug', 13: 'smp' }[S];
+const RAIL = { 1: 'smp', 2: 'smp', 3: 'auto', 4: 'plug', 5: 'plug', 6: 'pat', 7: 'smp', 8: 'smp', 9: 'pat', 10: 'plug', 11: 'plug', 12: 'plug', 13: 'smp', 14: 'auto' }[S];
 const logo = '<svg viewBox="-1 -5 98 98"><path fill="currentColor" fill-rule="evenodd" d="M73.76 16.83A42 42 0 1 0 88.14 62.36A28 28 0 1 1 73.76 16.83ZM64 -2Q66.66 14.34 83 17Q66.66 19.66 64 36Q61.34 19.66 45 17Q61.34 14.34 64 -2Z"/></svg>';
 const HINT = { 1: '<b>Draw (P)</b> — Left-click to add the selected clip · Right-click to delete', 2: '<b>Collaboration</b> — 3 people editing now · Other cursors are shown in their colors', 3: '<b>Automation mode (A)</b> — Draw a curve over a pattern to automate its parameter',
   4: '<b>Track view (V)</b> — Right + chains an effect in series · Bottom + splits into parallel', 5: '<b>Merge ↘</b> — Press on any branch to merge them before the next effect', 6: '<b>Piano roll</b> — Draw notes and adjust velocity in the lane below',
-  7: '<b>Sample settings</b> — Drag start/end to trim · Warp to match the song BPM', 8: '<b>Nyxi</b> — Double-click for advice and chat · Esc to close', 9: '<b>Automation</b> — A pattern was dropped under an existing automation. Choose how to handle it', 10: '<b>Instrument stack</b> — Every instrument plays the same notes · ＋ adds another layer', 11: '<b>Layer track</b> — Notes stay on this track. The sound joins Track 1 at its instrument stage', 12: '<b>From Track 10</b> — The layer joins Track 1 in parallel and shares its effects and mixer', 13: '<b>Mixer (Tab)</b> — Every track in one row · Tab again to go back to the previous panel' }[S];
+  7: '<b>Sample settings</b> — Drag start/end to trim · Warp to match the song BPM', 8: '<b>Nyxi</b> — Double-click for advice and chat · Esc to close', 9: '<b>Automation</b> — A pattern was dropped under an existing automation. Choose how to handle it', 10: '<b>Instrument stack</b> — Every instrument plays the same notes · ＋ adds another layer', 11: '<b>Layer track</b> — Notes stay on this track. The sound joins Track 1 at its instrument stage', 12: '<b>From Track 10</b> — The layer joins Track 1 in parallel and shares its effects and mixer', 13: '<b>Mixer (Tab)</b> — Every track in one row · Tab again to go back to the previous panel', 14: '<b>Tempo · Meter</b> — Click the Tempo line to add a change · Split the Meter bar at a bar line' }[S];
 let h = `<div class="top">
   <div><span class="brand">${logo}Studio Nx</span><span class="menu"><span>FILE</span><span>EDIT</span><span>ADD</span><span>PATTERNS</span><span>VIEW</span><span>OPTIONS</span><span>TOOLS</span><span>HELP</span></span>
-    <span class="chip">PAT</span><span class="chip on">SONG</span><span class="tp"><i class="play">▶</i><i>■</i><i class="rec">●</i></span><span class="chip">145.000</span><span class="lcd">13:02:00<small>B:S:T</small></span>
-    <span class="scope"><svg viewBox="0 0 70 22" preserveAspectRatio="none"><path d="M0 11 Q4 2 8 11 T16 11 T24 11 Q28 4 32 11 T40 11 T48 11 Q52 1 56 11 T64 11 T70 11" fill="none" stroke="#9fe0b4" stroke-width="1"/></svg></span><span class="chip">CPU 18% · 412 MB</span>
+    <span class="chip">PAT</span><span class="chip on">SONG</span><span class="tp"><i class="play">▶</i><i>■</i><i class="rec">●</i></span><span class="chip">145.000</span><span class="lcd" title="Click: switch to bars">00:20:276<small>MIN:SEC:MS</small><em>13.2.1<small>BAR</small></em></span>
+    <span class="spec" title="Spectrum (20 Hz – 20 kHz)"><i style="--h:62%"></i><i style="--h:78%"></i><i style="--h:88%"></i><i style="--h:84%"></i><i style="--h:72%"></i><i style="--h:64%"></i><i style="--h:60%"></i><i style="--h:58%"></i><i style="--h:62%"></i><i style="--h:66%"></i><i style="--h:60%"></i><i style="--h:54%"></i><i style="--h:50%"></i><i style="--h:52%"></i><i style="--h:48%"></i><i style="--h:44%"></i><i style="--h:40%"></i><i style="--h:38%"></i><i style="--h:34%"></i><i style="--h:30%"></i><i style="--h:26%"></i><i style="--h:20%"></i><i style="--h:14%"></i><i style="--h:9%"></i><b class="l">20</b><b class="r">20k</b></span><span class="chip">CPU 18% · 412 MB</span>
     <span class="sp"></span><span class="chip" style="color:#fff;border-color:var(--grn)">● Saved</span><span class="chip lang${S === 1 ? ' on' : ''}">🌐 EN ▾</span><span class="chip">💬</span><span class="chip${S === 8 ? ' on' : ''}">Nyxi</span></div>
   <div><span class="hintbar">${HINT}</span><span class="chip">Pattern: ${S === 6 ? 'Lead #2' : 'Bass #2'} ▾ ＋</span><span class="chip">Snap: Line ▾</span><span class="chip">Key: C# minor ▾</span><span class="chip">Chord: Am</span>
     <span class="sc"><i class="on" title="Playlist">▤</i><i class="${S === 6 ? 'on' : ''}" title="Piano roll">🎹</i><i title="Mixer">🎚</i><i title="Export">⤓</i></span></div></div>`;
@@ -339,7 +360,7 @@ const [ft, fc, fl, wave] = FILES[RAIL];
 h += `<div class="side"><div class="files"><div class="ph"><h3>${ft}</h3><span style="color:var(--faint);font-size:10px">${fl.length} items</span><span class="up">⤒ Upload</span></div>
   <div class="filt">${fc.map((c, i) => `<span${i === 0 ? ' class="on"' : ''}>${c}</span>`).join('')}</div>
   <div class="list">${fl.map(([ic, n, m], i) => `<div class="it${i === (RAIL === 'auto' ? 0 : RAIL === 'pat' ? 1 : 2) ? ' on' : ''}"><span>${ic}</span><span>${n}</span><em>${m}</em>${wave ? '<span class="w"></span>' : ''}</div>`).join('')}</div>
-  <div class="drop">⇣ Drop files here (WAV · MP3 · FLAC · MID)</div>
+  <div class="drop"><span class="ic">⇣</span><b>Drop files here</b><span>or press Upload · WAV · MP3 · FLAC · MID</span></div>
   <div class="search">⌕ Search ${ft.toLowerCase()} (Ctrl+F)</div></div>`;
 h += COLLAB ? `<div class="collab"><div class="ph"><h3>Members</h3><span style="color:var(--faint);font-size:10px">3 / 5 online</span><span class="up" style="background:transparent;border:1px solid var(--vi)">＋ Invite</span></div>
   ${[['K', 'taemin (you)', '#a383ff', 'Owner'], ['J', 'jiwoo', '#7ee08a', 'Editing Track 6'], ['S', 'soyeon', '#ffad33', 'Editor'], ['M', 'minho', '#6fc3ff', 'Viewer', 1]].map(([a, n, c, r, off]) => `<div class="mem"><span class="av${off ? ' off' : ''}" style="background:${c}">${a}</span>${n}<em>${r}</em></div>`).join('')}
@@ -451,6 +472,18 @@ function accordion() {
     ${live ? `<div class="dis"><b>OFF</b>Connected to<br>Track ${S === 11 ? '1 ›<br>Instruments' : '8 ›<br>Vocoder'}</div>` : ''}</div>`;
   return `<div class="acc"${S === 10 || S === 12 ? ' style="grid-template-columns:330px 1fr 170px 112px"' : ''}>${instCell}${chain}${route}${mix}</div>`;
 }
+// 목업 14: 템포·박자 지도 (BPM 범위 130~170 을 줄 높이에 맞춤)
+function globalLanes() {
+  const W = 32 * BAR, y = b => (170 - b) / 40 * 100;
+  const pts = [[0, 145], [16, 145], [20, 160], [28, 160], [28, 140], [32, 140]];
+  const line = pts.map(([bar, bpm]) => `${(bar / 32) * 100},${y(bpm)}`).join(' ');
+  const dots = [[16, 145], [20, 160], [28, 140]].map(([bar, bpm]) => `<circle cx="${(bar / 32) * 100}" cy="${y(bpm)}" r="1"/>`).join('');
+  const labs = [[2, 145, '145'], [20, 160, '160 ↗ LINEAR'], [28.6, 140, '140 STEP']].map(([bar, bpm, t]) => `<span class="lab" style="left:${bar * BAR + 14}px;top:${y(bpm) * 0.44 - 4}px">${t}</span>`).join('');
+  return `<div class="gl tempo"><div class="gh">♩ <b>Tempo</b><small>145 BPM</small></div><div class="gb">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="${line}" fill="none" stroke="var(--vi)" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>${[[16, 145], [20, 160], [28, 140]].map(([bar, bpm]) => `<i style="position:absolute;left:${bar * BAR - 4}px;top:calc(6px + ${y(bpm) / 100} * (100% - 12px) - 4px);width:8px;height:8px;border-radius:50%;background:var(--vi);box-shadow:0 0 0 2px var(--panel)"></i>`).join('')}${labs}</div></div>
+    <div class="gl mtr"><div class="gh">𝄴 <b>Meter</b><small>4/4</small></div><div class="gb">
+      <div class="seg" style="left:0;width:${28 * BAR - 2}px">4/4</div><div class="seg chg" style="left:${28 * BAR}px;width:${4 * BAR - 2}px">6/8</div><div class="split" style="left:${28 * BAR}px"></div></div></div>`;
+}
 const marks = [['prechorus', 4], ['1st drop', 12], ['breakdown', 16], ['2nd drop', 20], ['outro', 28]].map(([n, b]) => `<span style="left:${b * BAR}px">${n}</span>`).join('');
 const tools = ['✎ P', '🖌 B', '✕ D', '∅ T', '↔ S', '✂ C', '▭ E', '🔍'].map((t, i) => `<i${i === 0 && !AUTO ? ' class="on"' : ''}>${t}</i>`).join('');
 let ctx = '';
@@ -494,7 +527,7 @@ h += `<div class="main">
   <div class="pltool">${tools}<i class="${AUTO ? 'auto' : ''}">⤴ Automation A</i><span class="crumb">Playlist — Arrangement${AUTO ? ' › <b style="color:#c8e08a">Automation mode: patterns dimmed, edit curves only</b>' : ''}</span></div>
   <div class="rowx"><div class="corner"></div><div class="ruler">${Array.from({ length: 16 }, (_, i) => `<span>${1 + i * 2}</span>`).join('')}</div></div>
   <div class="rowx"><div class="corner"></div><div class="marks">${marks}</div></div>
-  <div class="tracks${AUTO ? ' automode' : ''}">${tr}<div class="addrow"><div class="add"><b>＋ Add Track</b><span><i>MIDI</i><i>Audio</i></span></div><div></div></div><div class="playhead" style="left:${200 + 12.5 * BAR}px"></div>
+  <div class="tracks${AUTO ? ' automode' : ''}">${S === 14 ? globalLanes() : ''}${tr}<div class="addrow"><div class="add"><b>＋ Add Track</b><span><i>MIDI</i><i>Audio</i></span></div><div></div></div><div class="playhead" style="left:${200 + 12.5 * BAR}px"></div>
     ${S === 3 ? `<div class="tip" style="left:${200 + 3 * BAR}px;top:${5 * 45 + 46}px;width:330px">Dropped over the <b>Bass</b> pattern (bars 16–20) → applies to <b>6. Bass › Analog › Filter Cutoff</b><br>It may run past the pattern end into empty bars,<br><span style="color:#ffb3b3">but stops at the start of the next pattern (Bass #2, bar 24).</span></div>` : ''}</div>
   ${ctx}
   ${S === 9 ? `<div class="veil"></div><div class="dlg"><header>⤴ Pattern placed under an automation</header><div class="bd">
@@ -520,6 +553,7 @@ const CAP = {
   9: ['09 오토메이션 아래 빈 칸에 패턴', '빈 칸까지 늘어난 오토메이션 아래에 새 패턴(Bass #3)을 놓으면 창이 뜸 · Trim(새 패턴 시작에서 자르기, 추천) / Split(나눠서 뒤쪽은 새 패턴에 적용) / Undo placement(놓기 취소) · "이 프로젝트에서 항상" 체크 가능'],
   10: ['10 레이어링 ① 같은 멜로디 — 악기 쌓기', '한 트랙 안 INSTRUMENTS 칸 아래 ＋ 로 악기 추가 → 같은 노트를 모든 악기가 연주 · 악기마다 볼륨·팬·Solo 만 · 합친 소리가 트랙 이펙트·믹서로 · 트랙 머리에 +1 표시'],
   11: ['11 레이어링 ② 다른 멜로디·옥타브 — 레이어 트랙', '노트는 10. Lead Hi 트랙에서 따로 찍음 · Connect to Another = Connected · Track 1 · Plugin = Instruments (layer) → 1번 트랙 악기 단계로 합류 · 자기 이펙트는 보내기 전에 적용, 믹서는 꺼짐(1번 트랙 것을 씀)'],
+  14: ['14 오토메이션 모드 — Tempo · Meter 줄', '오토메이션 모드(A)에서 맨 위에 Tempo 줄(처음엔 145 BPM 평평한 선 → 점을 찍어 변경, 16→20마디 서서히 160, 28마디 바로 140)과 Meter 줄(처음엔 4/4 한 덩어리 → 29마디에서 나눠 6/8). 노트·오토메이션은 박자 위치 그대로, 시간 표시·마디선만 다시 계산 · 마디선과 어긋난 패턴은 ⚠'],
   13: ['13 Tab → 아래 칸 믹서', '키보드 Tab(Ableton 처럼 모드 전환) 또는 왼쪽 Mixer 버튼 → 아래 칸에 모든 트랙 믹서 띠 + 오른쪽 MASTER · 띠마다 이름·악기·FX 수·팬·미터·볼륨·dB·M S ● · 트랙 펼침의 Mixer 칸과 같은 값 · 입력칸에 커서가 있을 땐 Tab 은 원래대로(다음 칸)'],
   12: ['12 레이어링 ② 받는 쪽', '1번 트랙 INSTRUMENTS 에 &lt;from Track 10&gt; 줄이 병렬로 생김(보라 점선) · 다른 악기와 똑같이 볼륨·팬·Solo · 그 뒤 1번 트랙의 이펙트·믹서를 함께 씀 · 트랙 머리에 ⇠10, 보내는 트랙엔 → 1'],
   8: ['08 Nyxi 더블 클릭 → Agent 조언·채팅', '평소엔 재생 BPM 에 맞춰 춤(fruity dance) · 더블 클릭하면 아래 칸에 조언 카드(Apply·Preview·Dismiss) + Nyxi 채팅'],
