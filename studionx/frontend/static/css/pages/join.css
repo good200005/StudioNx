@@ -40,3 +40,7 @@ body { display: flex; flex-direction: column; }
   .join { padding: var(--sp-4) var(--gutter) var(--sp-16); }
   .join__card { padding: var(--sp-6) 0 0; background: none; }
 }
+
+/* 가입 동의 (만 16세 이상 + 처리방침) — 두 줄로 넘어가도 체크박스는 첫 줄에 */
+.join__consent { align-items: flex-start; margin-top: var(--sp-2, .5rem); }
+.join__consent input { margin-top: 0.2em; }

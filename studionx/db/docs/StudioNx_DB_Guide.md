@@ -6,8 +6,8 @@
 | Database | `studionx` (문자셋 `utf8mb4` / `utf8mb4_0900_ai_ci`) |
 | 테이블 수 | 35개 |
 | 설계 원본 | `docs/DB.md` (컬럼 상세·설계 이유), `docs/ERD.md` (관계 설명) |
-| 작성일 | 2026-10-01 (최종 수정 2026-10-03) |
-| 상태 | 로컬 DB에 01~06 실행 완료, 2026-10-02 · 10-03 변경 SQL(§2.5)까지 반영 → **35개 테이블 확인** |
+| 작성일 | 2026-10-01 (최종 수정 2026-10-05) |
+| 상태 | 로컬 DB에 01~06 실행 완료, 2026-10-02 · 10-03 · 10-05 변경 SQL(§2.5)까지 반영 → **35개 테이블 확인** |
 
 ## 1. 파일 구성
 | 순서 | 파일 | 내용 | 테이블 수 | 실행 시기 (구현 계획 기준) |
@@ -75,6 +75,7 @@ mysql -u studionx_app -p studionx -e "source db/99_drop_all_tables.sql"
 ```
 mysql -u studionx_app -p studionx -e "source db/migrations/2026-10-02_contact_devnotes.sql"
 mysql -u studionx_app -p studionx -e "source db/migrations/2026-10-03_project_sessions.sql"
+mysql -u studionx_app -p studionx -e "source db/migrations/2026-10-05_users_privacy_consent.sql"
 ```
 확인: §2.3의 테이블 수가 35이고, 아래 명령 결과로 한 줄이 나오면 정상입니다.
 
@@ -86,7 +87,7 @@ mysql -u studionx_app -p studionx -e "SHOW COLUMNS FROM inquiries LIKE 'privacy_
 ### 3.1 `01_phase1_account.sql`
 | 테이블 | 설명 | 주요 키 |
 |---|---|---|
-| `users` | 회원, 저장 용량 | PK user_id · UQ email, nickname |
+| `users` | 회원, 저장 용량, 처리방침 동의 기록 | PK user_id · UQ email, nickname |
 | `inquiries` | 홈 화면 문의 (이름 선택, 개인정보 동의 시각 필수) | FK user_id (NULL = 비회원) |
 | `dev_notes` | 메인 페이지 Development 공지 (관리자만 작성) | FK author_id |
 | `projects` | 시퀀서 프로젝트 | FK owner_id, template_id |
@@ -171,3 +172,4 @@ mysql -u studionx_app -p studionx -e "SHOW COLUMNS FROM inquiries LIKE 'privacy_
 |---|---|---|
 | `migrations/2026-10-02_contact_devnotes.sql` | `inquiries.name` NULL 허용 + `privacy_agreed_at` 추가, `dev_notes` 생성 | 2026-10-02 이전에 01~06을 실행한 DB (로컬 DB 실행 완료) |
 | `migrations/2026-10-03_project_sessions.sql` | `project_sessions` 생성 (마이페이지 작업 시간, P1-17) | 2026-10-03 이전에 01을 실행한 DB (로컬 DB 실행 완료) |
+| `migrations/2026-10-05_users_privacy_consent.sql` | `users.privacy_agreed_at`·`privacy_version` 추가 (가입 때 처리방침 동의 기록) | 2026-10-05 이전에 01을 실행한 DB (로컬 DB 실행 완료) |

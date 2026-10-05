@@ -14,6 +14,8 @@ CREATE TABLE users (
   role               ENUM('USER','ADMIN') NOT NULL DEFAULT 'USER',
   status             ENUM('ACTIVE','SUSPENDED','DELETED') NOT NULL DEFAULT 'ACTIVE',
   last_login_at      DATETIME(3)     NULL,
+  privacy_agreed_at  DATETIME(3)     NOT NULL,   -- 가입 때 처리방침 동의 시각 (2026-10-05)
+  privacy_version    VARCHAR(20)     NOT NULL,   -- 동의한 처리방침 버전 (시행일)
   storage_quota_bytes BIGINT UNSIGNED NOT NULL DEFAULT 5368709120,
   storage_used_bytes BIGINT UNSIGNED NOT NULL DEFAULT 0,
   created_at         DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3),

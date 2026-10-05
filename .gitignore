@@ -24,5 +24,6 @@ __pycache__/
 *token*.txt
 *Token*.txt
 docs/googlesheetAPI.txt
+docs/sentry dsn.txt
 docs/studionx-*.json
 *-service-account*.json

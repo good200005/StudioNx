@@ -33,6 +33,8 @@ class User(Base):
     #   role                ENUM('USER','ADMIN')                 기본 'USER'
     #   status              ENUM('ACTIVE','SUSPENDED','DELETED') 기본 'ACTIVE'
     #   last_login_at       DATETIME(3) NULL
+    #   privacy_agreed_at   DATETIME(3) NOT NULL   (가입 때 처리방침 동의 시각, 2026-10-05)
+    #   privacy_version     VARCHAR(20) NOT NULL   (동의한 처리방침 버전)
     #   storage_quota_bytes BIGINT NOT NULL 기본 5368709120 (5GB)
     #   storage_used_bytes  BIGINT NOT NULL 기본 0
     #   created_at / updated_at / deleted_at  DATETIME(3)

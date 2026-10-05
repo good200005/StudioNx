@@ -95,8 +95,16 @@ def signup(db: Session, data: SignupRequest) -> User:
                                     details={"available_at": ...})
        check_nickname 도 같은 방식 (NICKNAME_TAKEN / REJOIN_TOO_SOON)
        - 3일이 지난 탈퇴 행은 check_* 안에서 release_withdrawn 으로 이미 비워짐
+    2-1. 처리방침 동의 (2026-10-05, docs/Privacy_Policy_Draft.md D3·D4)
+       - data.privacy_agreed 가 False 이면
+         AppError(ErrorCode.VALIDATION_ERROR, 422, "Please agree to the Privacy Policy.",
+                  details={"privacy_agreed": "required"})
+       - data.privacy_version != PRIVACY_VERSION (schemas/auth.py) 이면
+         422 "Please reload the page."
+         (예전 처리방침 화면에서 보낸 가입 → 새 판을 보고 다시 동의하게)
     3. user = User(email=normalize_email(data.email), nickname=data.nickname.strip(),
-                   password_hash=hash_password(data.password))
+                   password_hash=hash_password(data.password),
+                   privacy_agreed_at=지금(UTC), privacy_version=PRIVACY_VERSION)
        - role·status·용량 등은 DB 기본값('USER', 'ACTIVE', 5GB)을 그대로 씀
     4. db.add(user) → db.commit() → db.refresh(user)  (user_id·created_at 채우기)
     5. 동시에 같은 이메일로 가입하면 2번을 둘 다 통과할 수 있음

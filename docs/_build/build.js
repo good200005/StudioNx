@@ -136,6 +136,7 @@ const PDFS = [
   { out: 'StudioNx_PRD_DB_통합본.pdf', title: 'Studio Nx', subtitle: 'PRD (Phase 0~6) &amp; DB 설계 · ERD 통합본',
     files: [...fs.readdirSync(path.join(DOCS, 'PRD')).filter(f => f.endsWith('.md')).sort().map(f => 'PRD/' + f), 'DB.md', 'ERD.md'] },
   { out: 'Implementation_Plan.pdf', title: 'Studio Nx', subtitle: '구현 계획 — 3단계 목록 &amp; 간트차트', files: ['Implementation_Plan.md'] },
+  { out: 'Privacy_Policy_Draft.pdf', title: 'Studio Nx', subtitle: '개인정보 처리방침 수정안 (초안)', files: ['Privacy_Policy_Draft.md'] },
   { out: 'Ai_feedback.pdf', title: 'Studio Nx', subtitle: 'AI 제안 — 추가하면 좋을 기능', files: ['Ai_feedback.md'] },
   { out: 'Ai_feedback_moreExplain.pdf', title: 'Studio Nx', subtitle: 'AI 제안 추가 설명 — 상황 인지 팁 · 스냅샷 · 이름 추천', files: ['Ai_feedback_moreExplain.md'] },
   { out: 'Git_Manual.pdf', title: 'Studio Nx', subtitle: 'Git · GitHub 관리 매뉴얼', files: ['Git_Manual.md'] },
@@ -164,6 +165,7 @@ const PDFS = [
   { out: 'ai-notes/24_ui_review.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 24 — Phase 1 화면 점검과 수정', files: ['ai-notes/24_ui_review.md'], base: 'ai-notes' },
   { out: 'ai-notes/25_intro_logo.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 25 — 로고(S2) 확정과 첫 접속 로딩', files: ['ai-notes/25_intro_logo.md'], base: 'ai-notes' },
   { out: 'ai-notes/26_star_cursor.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 26 — 별 커서', files: ['ai-notes/26_star_cursor.md'], base: 'ai-notes' },
+  { out: 'ai-notes/27_privacy_policy.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 27 — 개인정보 처리방침 페이지와 가입 동의', files: ['ai-notes/27_privacy_policy.md'], base: 'ai-notes' },
 ];
 
 const mode = process.argv[2];
