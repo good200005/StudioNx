@@ -47,6 +47,7 @@
   .rail .b.on { background: var(--sel); color: #fff; box-shadow: inset 2px 0 0 var(--vi); }
   .rail .b.ai::after { content: ""; position: absolute; top: 5px; right: 6px; width: 5px; height: 5px; border-radius: 50%; background: var(--org); }
   .rail .b .cnt { position: absolute; top: 3px; right: 3px; font-size: 8px; background: var(--red); color: #fff; border-radius: 6px; padding: 0 3px; font-style: normal; }
+  .rail .b .key { position: absolute; top: 1px; right: 1px; font-style: normal; font-size: 7.5px; color: var(--faint); border: 1px solid var(--line2); padding: 0 2px; border-radius: 2px; background: var(--panel); }
   .rail hr { width: 30px; border: 0; border-top: 1px solid var(--line); margin: 4px 0; }
   /* 왼쪽 패널 */
   .side { grid-row: 2; background: var(--panel); border-right: 1px solid var(--line); display: grid; grid-template-rows: 1fr var(--collab-h); min-height: 0; overflow: hidden; }
@@ -217,6 +218,22 @@
   .achat { border-left: 1px solid var(--line); display: flex; flex-direction: column; padding: 8px 10px; gap: 6px; min-height: 0; }
   .bub { max-width: 88%; padding: 6px 9px; border-radius: 9px; font-size: 11.5px; line-height: 1.45; }
   .bub.n { background: rgb(106 36 246 / .25); border: 1px solid rgb(163 131 255 / .4); align-self: flex-start; } .bub.u { background: var(--panel2); align-self: flex-end; }
+  /* 아래 칸 믹서 (Tab) */
+  .mx { display: flex; min-height: 0; }
+  .mxl { flex: 1; display: flex; overflow: hidden; }
+  .mxs { width: 96px; flex: none; border-right: 1px solid var(--line); display: grid; grid-template-rows: auto auto auto 26px 1fr auto auto; justify-items: center; gap: 3px; padding: 0 0 6px; }
+  .mxs .nm { justify-self: stretch; font-size: 10.5px; font-weight: 600; color: #fff; background: var(--tc); padding: 3px 6px; white-space: nowrap; overflow: hidden; }
+  .mxs small { font-size: 9px; color: var(--faint); white-space: nowrap; max-width: 90px; overflow: hidden; }
+  .mxs .fxn { font-size: 9.5px; color: var(--soft); border: 1px solid var(--line2); padding: 0 5px; }
+  .mxs .pan2 { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--soft); position: relative; } .mxs .pan2::after { content: ''; position: absolute; left: 50%; top: 1px; width: 2px; height: 8px; background: var(--soft); transform: translateX(-50%) rotate(var(--p)); transform-origin: 50% 9px; }
+  .mxs .fz { display: flex; gap: 10px; height: 100%; min-height: 0; padding: 2px 0; }
+  .mxs .fz .fader::after { top: var(--fy); }
+  .mxs .dbv { font-size: 10px; color: var(--soft); font-variant-numeric: tabular-nums; }
+  .mxs .mb { display: flex; gap: 2px; } .mxs .mb i { width: 18px; height: 17px; display: grid; place-items: center; font-style: normal; font-size: 9.5px; font-weight: 700; border: 1px solid var(--line2); border-radius: 2px; color: var(--soft); }
+  .mxs .mb i.m.on { background: #f2c94c; border-color: #f2c94c; color: #111; } .mxs .mb i.r { color: #c97a7a; } .mxs .mb i.r.on { background: var(--red); border-color: var(--red); color: #fff; }
+  .mxs.off { opacity: .45; }
+  .mxs.master { width: 130px; border-right: 0; border-left: 2px solid var(--vi); background: var(--panel2); } .mxs.master .nm { background: var(--vi); color: #0b0a0f; text-align: center; }
+  html[class*="t-"] .mxs .mb i.m.on { background: var(--ink); border-color: var(--ink); color: var(--bg); }
   /* Nyxi */
   .nyxi { position: absolute; right: 16px; bottom: calc(var(--ctx-h) + 8px); width: 96px; height: 128px; z-index: 7; display: grid; justify-items: center; }
   .nyxi img { height: 112px; filter: drop-shadow(0 4px 10px rgb(106 36 246 / .6)); transform: rotate(-6deg); }
@@ -232,7 +249,7 @@
   html[class*="t-"] { --r: 0px; --clip-r: 0px; --wr: 0px; }
   html.t-A, html.t-B, html.t-C { --bg:#0b0a0f; --panel:#0f0d14; --panel2:#15131c; --grid:#0b0a0f; --gridline:#17151d; --line:#26232e; --line2:#3a3644; --sel:#1f1a2c;
     --ink:#f4f3f7; --soft:#b9b6c4; --faint:#7f7b8c; --v:#6a24f6; --vi:#a383ff; --grn:#7fe0a8; --red:#ff8a8a; --org:#f4f3f7; }
-  html.t-D { --bg:#f6f5f9; --panel:#ffffff; --panel2:#f1eff6; --grid:#fbfafd; --gridline:#edeaf2; --line:#e0dde8; --line2:#c9c5d3; --sel:#ebe4ff;
+  html.t-D, html.t-L { --bg:#f6f5f9; --panel:#ffffff; --panel2:#f1eff6; --grid:#fbfafd; --gridline:#edeaf2; --line:#e0dde8; --line2:#c9c5d3; --sel:#ebe4ff;
     --ink:#0b0a0f; --soft:#46424f; --faint:#75717f; --v:#6a24f6; --vi:#5a17e0; --grn:#137a45; --red:#c42b2b; --org:#0b0a0f; }
   html[class*="t-"] .tbtn i.m.on { background: var(--ink); border-color: var(--ink); color: var(--bg); }
   html[class*="t-"] .tbtn i.s.on { background: var(--vi); border-color: var(--vi); color: var(--bg); }
@@ -264,6 +281,14 @@
   html.t-C .clip { --clip-bg: color-mix(in srgb, var(--cc) 13%, #0b0a0f); --clip-bd: 1px solid color-mix(in srgb, var(--cc) 55%, transparent); --clip-label: var(--cc); --clip-note: var(--cc); --wave: var(--cc); }
   html.t-C .th::before { width: 2px; }
   /* D Light — 홈 라이트 테마 + 보라 클립, 샘플은 먹색 면 */
+  /* L C Light — 라이트 바탕 + C 규칙: 연한 면 + 트랙 색 테두리·이름·노트 (밝은 바탕용 진한 색) */
+  html.t-L .clip { --clip-bg: color-mix(in srgb, var(--cc) 10%, #ffffff); --clip-bd: 1px solid color-mix(in srgb, var(--cc) 70%, transparent); --clip-label: var(--cc); --clip-note: var(--cc); --wave: var(--cc); }
+  html.t-L .th::before { width: 2px; }
+  html.t-L .brand, html.t-L .hintbar b, html.t-L .addrow .add b, html.t-L .ctx > header b, html.t-L .langmenu div.on, html.t-L .rail .b.on, html.t-L .ph h3 { color: var(--ink); }
+  html.t-L .top .chip[style], html.t-L .filt span.on, html.t-L .route.live .sel.type { color: var(--ink) !important; }
+  html.t-L .badge { background: #0b0a0f; } html.t-L .badge small { color: #b9b6c4; } html.t-L .badge strong { color: #fff; }
+  html.t-L .notes i { background: #137a45; color: #fff; } html.t-L .vel i, html.t-L .vel i::after { background: #137a45; } html.t-L .notes i.s { background: var(--ink); }
+  html.t-L .dis { background: rgb(246 245 249 / .88); } html.t-L .keys { filter: invert(.06); }
   html.t-D { --clip-label: #ffffff; --clip-note: rgb(255 255 255 / .9); --wave: #f4f3f7; }
   html.t-D .keys { filter: invert(.06); }
   html.t-D .badge { background: #0b0a0f; }
@@ -281,13 +306,13 @@ const S = +(new URLSearchParams(location.search).get('s') ?? 1);
 const THEME = new URLSearchParams(location.search).get('theme');   // 색 시안 A·B·C·D (없으면 기존 색)
 if (THEME) document.documentElement.classList.add('t-' + THEME);
 const R = document.documentElement.style, set = (k, v) => R.setProperty(k, v);
-const COLLAB = S === 2, AUTO = S === 3 || S === 9, ACC = S === 4 || S === 5 || S >= 10, CTX = { 6: 'roll', 7: 'sample', 8: 'agent' }[S];
+const COLLAB = S === 2, AUTO = S === 3 || S === 9, ACC = S === 4 || S === 5 || (S >= 10 && S <= 12), CTX = { 6: 'roll', 7: 'sample', 8: 'agent', 13: 'mixer' }[S];
 set('--side-w', '264px'); set('--collab-h', COLLAB ? '330px' : '0px'); set('--ctx-h', CTX ? '300px' : '0px'); set('--acc-h', '226px');
-const RAIL = { 1: 'smp', 2: 'smp', 3: 'auto', 4: 'plug', 5: 'plug', 6: 'pat', 7: 'smp', 8: 'smp', 9: 'pat', 10: 'plug', 11: 'plug', 12: 'plug' }[S];
+const RAIL = { 1: 'smp', 2: 'smp', 3: 'auto', 4: 'plug', 5: 'plug', 6: 'pat', 7: 'smp', 8: 'smp', 9: 'pat', 10: 'plug', 11: 'plug', 12: 'plug', 13: 'smp' }[S];
 const logo = '<svg viewBox="-1 -5 98 98"><path fill="currentColor" fill-rule="evenodd" d="M73.76 16.83A42 42 0 1 0 88.14 62.36A28 28 0 1 1 73.76 16.83ZM64 -2Q66.66 14.34 83 17Q66.66 19.66 64 36Q61.34 19.66 45 17Q61.34 14.34 64 -2Z"/></svg>';
 const HINT = { 1: '<b>Draw (P)</b> — Left-click to add the selected clip · Right-click to delete', 2: '<b>Collaboration</b> — 3 people editing now · Other cursors are shown in their colors', 3: '<b>Automation mode (A)</b> — Draw a curve over a pattern to automate its parameter',
   4: '<b>Track view (V)</b> — Right + chains an effect in series · Bottom + splits into parallel', 5: '<b>Merge ↘</b> — Press on any branch to merge them before the next effect', 6: '<b>Piano roll</b> — Draw notes and adjust velocity in the lane below',
-  7: '<b>Sample settings</b> — Drag start/end to trim · Warp to match the song BPM', 8: '<b>Nyxi</b> — Double-click for advice and chat · Esc to close', 9: '<b>Automation</b> — A pattern was dropped under an existing automation. Choose how to handle it', 10: '<b>Instrument stack</b> — Every instrument plays the same notes · ＋ adds another layer', 11: '<b>Layer track</b> — Notes stay on this track. The sound joins Track 1 at its instrument stage', 12: '<b>From Track 10</b> — The layer joins Track 1 in parallel and shares its effects and mixer' }[S];
+  7: '<b>Sample settings</b> — Drag start/end to trim · Warp to match the song BPM', 8: '<b>Nyxi</b> — Double-click for advice and chat · Esc to close', 9: '<b>Automation</b> — A pattern was dropped under an existing automation. Choose how to handle it', 10: '<b>Instrument stack</b> — Every instrument plays the same notes · ＋ adds another layer', 11: '<b>Layer track</b> — Notes stay on this track. The sound joins Track 1 at its instrument stage', 12: '<b>From Track 10</b> — The layer joins Track 1 in parallel and shares its effects and mixer', 13: '<b>Mixer (Tab)</b> — Every track in one row · Tab again to go back to the previous panel' }[S];
 let h = `<div class="top">
   <div><span class="brand">${logo}Studio Nx</span><span class="menu"><span>FILE</span><span>EDIT</span><span>ADD</span><span>PATTERNS</span><span>VIEW</span><span>OPTIONS</span><span>TOOLS</span><span>HELP</span></span>
     <span class="chip">PAT</span><span class="chip on">SONG</span><span class="tp"><i class="play">▶</i><i>■</i><i class="rec">●</i></span><span class="chip">145.000</span><span class="lcd">13:02:00<small>B:S:T</small></span>
@@ -298,7 +323,7 @@ let h = `<div class="top">
 // 버튼 줄 — 파일 분류 5 + AI 제안 3 / 협업 2
 const rb = (k, ic, t, ai, cnt) => `<div class="b${RAIL === k ? ' on' : ''}${ai ? ' ai' : ''}">${ic}<small>${t}</small>${cnt ? `<em class="cnt">${cnt}</em>` : ''}</div>`;
 h += `<div class="rail">${rb('smp', '🎵', 'Samples')}${rb('syn', '🎛', 'Presets')}${rb('plug', '🔌', 'Plugins')}${rb('pat', '▤', 'Patterns')}${rb('auto', '⤴', 'Automation')}<hr>
-  ${rb('rec', '🎙', 'Records', 1)}${rb('ref', '🎧', 'Reference', 1)}${rb('fav', '★', 'Favorites', 1)}<span class="sp"></span><hr>
+  ${rb('rec', '🎙', 'Records', 1)}${rb('ref', '🎧', 'Reference', 1)}${rb('fav', '★', 'Favorites', 1)}<hr><div class="b${S === 13 ? ' on' : ''}" title="Mixer (Tab)">🎚<small>Mixer</small><em class="key">Tab</em></div><span class="sp"></span><hr>
   <div class="b${COLLAB ? ' on' : ''}">👥<small>Members</small></div><div class="b${COLLAB ? ' on' : ''}">💬<small>Chat</small>${COLLAB ? '' : '<em class="cnt">2</em>'}</div></div>`;
 // 왼쪽 패널
 const FILES = {
@@ -333,12 +358,13 @@ const TR = [
   ['Sub', 'Operator', '#7a2c8f', [[8, 4, 'Sub'], [20, 4, 'Sub #2']]],
   ['Vocal', 'vox_take2.wav', '#7a5a1f', [[2, 10, 'vox_take2'], [22, 4, 'vox_take2 #2']], 1],
   ['Riser', 'riser_8bar.wav', '#8a4a2c', [[8, 4, 'riser_8bar'], [16, 4, 'riser_8bar']], 1],
-  ...(S >= 11 ? [['Lead Hi', 'Analog', '#2a6f8f', [[0, 4, 'Lead Hi'], [8, 4, 'Lead Hi #2'], [16, 4, 'Lead Hi #3']]]] : []),
+  ...(S === 11 || S === 12 ? [['Lead Hi', 'Analog', '#2a6f8f', [[0, 4, 'Lead Hi'], [8, 4, 'Lead Hi #2'], [16, 4, 'Lead Hi #3']]]] : []),
 ];
 const PAL = {
   A: { midi: ['#a383ff'], audio: '#f4f3f7' },
   B: { midi: ['#6a24f6', '#5a1fd0', '#7d45f7', '#4a19ab', '#8f5ff8', '#3c158c', '#6a24f6', '#7d45f7', '#5a1fd0', '#4a19ab'], audio: '#f4f3f7' },
   C: { midi: ['#a383ff', '#7fe0a8', '#f4f3f7', '#ff8a8a', '#c9b8ff', '#7fe0a8', '#a383ff', '#ff8a8a', '#f4f3f7', '#7fe0a8'], audio: '#f4f3f7' },
+  L: { midi: ['#5a17e0', '#137a45', '#0b0a0f', '#c42b2b', '#7d45f7', '#137a45', '#5a17e0', '#c42b2b', '#0b0a0f', '#137a45'], audio: '#46424f' },
   D: { midi: ['#6a24f6', '#5a1fd0', '#7d45f7', '#4a19ab', '#8f5ff8', '#3c158c', '#6a24f6', '#7d45f7', '#5a1fd0', '#4a19ab'], audio: '#0b0a0f' },
 }[THEME];
 if (PAL) TR.forEach((t, i) => { t[2] = t[4] ? PAL.audio : PAL.midi[i % PAL.midi.length]; });
@@ -441,6 +467,18 @@ if (CTX === 'roll') {
         <div class="f"><label>Fade in · out</label><div>12 ms · 80 ms</div></div><div class="f"><label>Root note</label><div>C#4 <span>▾</span></div></div>
         <div class="tg"><i class="on">Loop</i><i>Reverse</i><i class="on">Normalize</i><i>Mono</i></div>
         <div class="ai">✦ AI stem separation — Vocals · Drums · Bass · Other</div></div></div></div>`;
+} else if (CTX === 'mixer') {
+  const strip = (t, i) => {
+    const [name, inst, col, , audio] = t, db = (-3 - i * 1.7).toFixed(1), m = 35 + (i * 23) % 50;
+    return `<div class="mxs${i === 4 ? ' off' : ''}" style="--tc:${col}"><b class="nm">${i + 1}. ${name}</b><small>${audio ? '🎵' : '🎹'} ${inst}</small>
+      <span class="fxn">FX ${[2, 1, 3, 2, 1, 2, 1, 2, 0][i]}</span><span class="pan2" style="--p:${[-20, 15, 0, -30, 25, 0, 0, 10, -15][i]}deg"></span>
+      <div class="fz"><div class="meter"><i style="--m:${m}%"></i><i style="--m:${m - 6}%"></i></div><div class="fader" style="--fy:${18 + (i * 13) % 40}%"></div></div>
+      <span class="dbv">${db}</span><span class="mb"><i class="${i === 6 ? 'm on' : 'm'}">M</i><i class="s">S</i><i class="${i === 7 ? 'r on' : 'r'}">●</i></span></div>`;
+  };
+  ctx = `<div class="ctx"><header><b>🎚 Mixer</b><span>9 tracks · MASTER</span><i class="on">Volume</i><i>Sends</i><i>I/O</i><span class="x">Tab · ✕ Close</span></header>
+    <div class="mx"><div class="mxl">${TR.map(strip).join('')}</div>
+      <div class="mxs master"><b class="nm">MASTER</b><small>Limiter · -14 LUFS</small><span class="fxn">FX 2</span><span class="pan2" style="--p:0deg"></span>
+        <div class="fz"><div class="meter"><i style="--m:72%"></i><i style="--m:69%"></i></div><div class="fader" style="--fy:22%"></div></div><span class="dbv">0.0</span><span class="mb"><i class="m">M</i></span></div></div></div>`;
 } else if (CTX === 'agent') {
   ctx = `<div class="ctx"><header><b>✦ Nyxi Agent</b><span>Reference: "Midnight Drive" (YouTube) · Genre: Future Bass</span><span class="x">✕ Close (Esc)</span></header>
     <div class="agent"><div class="adv"><h5><b>3 suggestions</b> from listening to your track</h5>
@@ -479,6 +517,7 @@ const CAP = {
   9: ['09 오토메이션 아래 빈 칸에 패턴', '빈 칸까지 늘어난 오토메이션 아래에 새 패턴(Bass #3)을 놓으면 창이 뜸 · Trim(새 패턴 시작에서 자르기, 추천) / Split(나눠서 뒤쪽은 새 패턴에 적용) / Undo placement(놓기 취소) · "이 프로젝트에서 항상" 체크 가능'],
   10: ['10 레이어링 ① 같은 멜로디 — 악기 쌓기', '한 트랙 안 INSTRUMENTS 칸 아래 ＋ 로 악기 추가 → 같은 노트를 모든 악기가 연주 · 악기마다 볼륨·팬·Solo 만 · 합친 소리가 트랙 이펙트·믹서로 · 트랙 머리에 +1 표시'],
   11: ['11 레이어링 ② 다른 멜로디·옥타브 — 레이어 트랙', '노트는 10. Lead Hi 트랙에서 따로 찍음 · Connect to Another = Connected · Track 1 · Plugin = Instruments (layer) → 1번 트랙 악기 단계로 합류 · 자기 이펙트는 보내기 전에 적용, 믹서는 꺼짐(1번 트랙 것을 씀)'],
+  13: ['13 Tab → 아래 칸 믹서', '키보드 Tab(Ableton 처럼 모드 전환) 또는 왼쪽 Mixer 버튼 → 아래 칸에 모든 트랙 믹서 띠 + 오른쪽 MASTER · 띠마다 이름·악기·FX 수·팬·미터·볼륨·dB·M S ● · 트랙 펼침의 Mixer 칸과 같은 값 · 입력칸에 커서가 있을 땐 Tab 은 원래대로(다음 칸)'],
   12: ['12 레이어링 ② 받는 쪽', '1번 트랙 INSTRUMENTS 에 &lt;from Track 10&gt; 줄이 병렬로 생김(보라 점선) · 다른 악기와 똑같이 볼륨·팬·Solo · 그 뒤 1번 트랙의 이펙트·믹서를 함께 씀 · 트랙 머리에 ⇠10, 보내는 트랙엔 → 1'],
   8: ['08 Nyxi 더블 클릭 → Agent 조언·채팅', '평소엔 재생 BPM 에 맞춰 춤(fruity dance) · 더블 클릭하면 아래 칸에 조언 카드(Apply·Preview·Dismiss) + Nyxi 채팅'],
 }[S];
@@ -486,6 +525,7 @@ const TCAP = {
   A: ['A Ink', '홈의 흑백 + 보라 포인트 그대로 — 먹색 바탕 · 종이색 글자 · 얇은 선 · 각진 모서리. 보라(#a383ff)는 선택·재생 위치·MIDI 트랙 표시에만, 샘플은 회색 파형'],
   B: ['B Band', '홈 첫 화면의 보라 띠(#6a24f6)를 헤더 면으로 · 클립은 보라 계열 명도 차이 · 샘플 클립은 종이색 면 + 먹색 파형 (Nyxi 흑백 그림처럼)'],
   C: ['C Signal', '어두운 클립 + 테두리·이름·노트만 색 — 보라 · 민트(#7fe0a8) · 코랄(#ff8a8a) · 종이색. 홈에 이미 있는 색(확인·오류·강조)만 사용'],
+  L: ['L C Light', '라이트 바탕(홈 라이트 토큰) + C Signal 규칙 — 연한 면에 트랙 색 테두리·이름·노트만. 밝은 바탕용 진한 색: 보라 #5a17e0 · 초록 #137a45 · 빨강 #c42b2b · 먹색. 다크(C)와 트랙 색 순서가 같아 테마를 바꿔도 같은 자리에 같은 계열 색'],
   D: ['D Light', '홈 라이트 테마(#f6f5f9 바탕 · 먹색 글자 · 진한 보라 #5a17e0) + 보라 클립 · 샘플 클립은 먹색 면'],
 }[THEME];
 const CAPX = TCAP ? [TCAP[0] + ' · ' + CAP[0].slice(3), TCAP[1]] : CAP;
