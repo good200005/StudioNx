@@ -76,10 +76,22 @@ export function openBottom(name) {
 
 /**
  * 상단 메뉴 (FILE~HELP, FR-2241~2248) · 언어 메뉴 드롭다운
- * - .sq-menu__item 클릭 → 해당 #menu-{name} 열기 (aria-expanded), 바깥 클릭·Esc 로 닫기
- * - 메뉴가 열린 상태에서 옆 메뉴에 마우스를 올리면 그 메뉴로 바뀜
+ * - .sq-menu__item 클릭 → aria-controls 의 #menu-{name} 열기 (aria-expanded), 바깥 클릭·Esc 로 닫기
+ * - 드롭다운 위치는 눌린 버튼 아래로 (button.offsetLeft) — HTML 의 left 값은 대략값
+ * - 메뉴가 열린 상태에서 옆 메뉴에 마우스를 올리면 그 메뉴로 바뀜, ←/→ 로 옆 메뉴, ↑/↓ 로 항목 이동
+ * - 항목 클릭 → runCommand(button.dataset.command) — 단축키·커맨드 팔레트·오른쪽 클릭 메뉴와 같은 명령 (FR-2169)
  */
 export function initMenus() {
+  // TODO
+}
+
+/**
+ * 명령 실행 — 메뉴 data-command · 단축키 · 커맨드 팔레트가 모두 이것을 부름
+ * - 'edit.undo', 'track.addReturn', 'view.automation' … (studioNx.html 의 data-command 목록)
+ * - 예: COMMANDS = { 'view.mixer': () => openBottom('mixer'), 'view.automation': () => setAutomationMode(!on), … }
+ * @param {string} command
+ */
+export function runCommand(command) {
   // TODO
 }
 
@@ -100,6 +112,116 @@ export function initRail() {
  * - #add-track → 새 트랙 (MIDI/Audio 선택)
  */
 export function initTracks() {
+  // TODO
+}
+
+/**
+ * 샘플 설정 패널 (#panel-sample, FR-2213·2214)
+ * - 오디오 클립을 누르면 그 클립 값으로 채움: 제목, #sample-form 값, 마커·페이드 위치(--at, --len = %)
+ * - 파형은 .sq-wave__canvas 에 그림 (samples 의 peaks)
+ * - 시작·끝·Warp 마커(.sq-wave__mark)는 좌우로 끌어 옮김 → PATCH /clips/{id}
+ * - 옵션 버튼(.sq-toggles)은 aria-pressed 바꿈, AI stem separation → PRD 04 작업 요청
+ * @param {object} clip
+ */
+export function openSamplePanel(clip) {
+  // TODO
+}
+
+/**
+ * Nyxi Agent 패널 (#panel-agent, PRD 05)
+ * - 제안 카드(.sq-card): Apply → 설정 적용, Preview → 잠깐 들어 보기, Dismiss → 카드 지움
+ * - #agent-form 제출 → #agent-log 에 내 말풍선(.is-user) 추가 후 Nyxi 응답(.is-nyxi)
+ */
+export function initAgent() {
+  // TODO
+}
+
+/**
+ * 오토메이션 모드 켜고 끄기 (A 키 · #automation-mode, FR-224)
+ * - body.classList.toggle('is-automation', on) → CSS 가 패턴 흐림 · .sq-auto · 템포/박자 줄(.sq-global) 표시
+ * - #automation-mode aria-pressed, 힌트 바(#hint) 문구 바꾸기
+ * @param {boolean} on
+ */
+export function setAutomationMode(on) {
+  // TODO
+}
+
+/**
+ * 오토메이션 클립 끌기 (목업 03)
+ * - 끄는 동안 .sq-auto.is-ghost 를 보여 주고, 다음 패턴 시작 위치에 .sq-auto-limit(--at) 표시
+ * - 패턴 끝을 넘어 빈 마디까지는 되지만 다음 패턴 시작을 넘지 못함 (오른쪽 끝을 거기서 멈춤)
+ * - 놓으면 POST /automation-clips (대상 = 놓은 곳의 패턴 · 파라미터)
+ * @param {PointerEvent} event
+ */
+export function dragAutomation(event) {
+  // TODO
+}
+
+/**
+ * 패턴을 오토메이션 아래에 놓았을 때 묻는 창 (#auto-overlap, 목업 09)
+ * - 문구·작은 그림(.sq-mini 의 --s · --l = %) 을 채우고 showModal()
+ * - 'Always do this' 가 체크되어 있으면 다음부터는 묻지 않고 그 선택으로 (프로젝트 설정)
+ * @param {{ pattern: object, automation: object, bar: number }} info
+ * @returns {Promise<'trim'|'split'|'undo'|null>}  close 의 returnValue 와 라디오 값
+ */
+export function askAutomationOverlap(info) {
+  // TODO
+}
+
+/**
+ * 템포 · 박자 줄 (FR-202a, 목업 14)
+ * - tempo_changes → .sq-global__pt(--at 마디, --y = (170 - bpm) / 40 * 100) + polyline points
+ * - meter_changes → .sq-global__seg(--s · --l), 바뀌는 곳은 .is-change
+ * - 점을 끌어 BPM·위치 바꾸기, 더블 클릭으로 추가
+ * @param {object[]} tempoChanges
+ * @param {object[]} meterChanges
+ */
+export function renderGlobalLanes(tempoChanges, meterChanges) {
+  // TODO
+}
+
+/**
+ * 그룹(폴더) 트랙 접기·펴기 (FR-2211)
+ * - .sq-fold 의 aria-expanded 바꾸고, data-parent 가 그 그룹인 트랙(.is-child)과 그 펼침을 hidden
+ * - 그룹 레인의 .sq-gbar 는 안쪽 트랙 클립 위치(--s · --l)를 모아 그림
+ * - 트랙을 그룹 위로 끌어 놓으면 PATCH /tracks/{id} { parent_track_id }
+ * @param {HTMLElement} groupTrack  li.sq-track--group
+ */
+export function toggleGroup(groupTrack) {
+  // TODO
+}
+
+/**
+ * 트랙 추가 (#add-track 의 MIDI · Audio · Return, FR-2212)
+ * - Return 이면 .sq-track--return 으로 ＋Add Track 아래 · MASTER 위에 넣음 (POST /tracks { type: 'RETURN' })
+ * - 그 밖에는 #tracks 끝에
+ * @param {'MIDI'|'AUDIO'|'RETURN'} type
+ */
+export async function addTrack(type) {
+  // TODO
+}
+
+/**
+ * 악기 스택 (FR-2198 · 목업 10·12) — 펼침의 .sq-istack
+ * - '＋ Add instrument' → 악기 고르기 → .sq-irow 추가 (POST /tracks/{id}/instruments)
+ * - 줄마다 켜기/끄기 · 볼륨 · 팬 · 솔로
+ * - 다른 트랙이 Connect to Another 로 'Instruments (layer)' 에 보내면 .sq-irow.is-from 줄로 보임 (지울 수 없고, 그 트랙에서 끊음)
+ * @param {HTMLElement} accordion  li.sq-acc
+ * @param {object[]} instruments   track_instruments
+ */
+export function renderInstrumentStack(accordion, instruments) {
+  // TODO
+}
+
+/**
+ * Connect to Another 바꾸기 (FR-2197 · 목업 11)
+ * - None → 트랙 번호·플러그인 칸 끄기, .sq-off 지우기
+ * - Connected → 대상 트랙 번호 + 플러그인('Instruments (layer)' 이면 레이어) 고르기,
+ *   믹서 칸에 .sq-off 덮개, 효과 칸 끝에 .sq-sendto, 트랙 이름 줄에 .sq-link('→1'), 대상 트랙에는 '⇠10'
+ * - PUT /tracks/{id}/connection (track_connections)
+ * @param {HTMLElement} accordion
+ */
+export function updateConnection(accordion) {
   // TODO
 }
 
@@ -128,7 +250,10 @@ export function initDropZone() {
 
 /**
  * 시퀀서 언어 EN / KO / JA (FR-2171, 기본 EN)
- * - [data-i18n] 의 글자만 바꿈 (트랙·파일 이름 같은 사용자 글자는 그대로)
+ * - 사전: static/i18n/sequencer.json (fetch 한 번) — text(글자 전체가 같을 때) · prefix(앞부분 정규식, $1) · templates(JS 가 값을 넣는 문장)
+ * - document.body 의 글자 노드를 돌면서 skip 선택자 안(트랙·파일 이름, 채팅, 플러그인 이름 등)은 건너뛰고 바꿈
+ *   placeholder 도 같은 방법으로, #lang-button 글자는 labels[lang], <html lang> 도 바꿈
+ * - en 으로 돌아갈 때는 처음 영어 글자를 기억해 두었다가 되돌림 (예: WeakMap 노드 → 원래 글자)
  * - 고른 언어는 사용자 설정에 저장 (PATCH /api/v1/me/settings)
  * @param {'en'|'ko'|'ja'} lang
  */

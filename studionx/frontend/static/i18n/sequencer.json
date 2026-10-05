@@ -1,0 +1,1167 @@
+{
+ "_about": "Studio Nx 시퀀서 화면 글자 사전 (PRD 02 FR-2171). 기본 en. text = 글자 전체가 같을 때, prefix = 앞부분 정규식($1 사용). skip 안의 글자(트랙·패턴·마커·파일 이름, 채팅, 플러그인 이름·파라미터)는 바꾸지 않음. 설명: docs/ai-notes/29_sequencer_screen.md",
+ "languages": [
+  "en",
+  "ko",
+  "ja"
+ ],
+ "labels": {
+  "en": "🌐 EN ▾",
+  "ko": "🌐 KO ▾",
+  "ja": "🌐 JA ▾"
+ },
+ "skip": ".sq-track__name, .sq-clip, .sq-auto b, .sq-marker, .sq-file__name, .sq-fx__head, .sq-knob, .sq-inst__name, .sq-irow__name, .sq-strip__name, .sq-strip small, .sq-member, .sq-chat__msg, .sq-bubble, .sq-note, .sq-card p b, .sq-brand, .sq-track__note b, .sq-time span, #bpm, #cpu, kbd, .sq-time, .sq-db, .sq-irow__vol, .sq-global__lab, .sq-global__head small, .sq-file:not(.is-missing) .sq-file__meta, .sq-pan, .sq-sends, .sq-msr, .sq-expand, .sq-power, .sq-strip__fx, .sq-midifx, .sq-sendto b, .sq-route select[id$=plugin] option, .sq-sset select[name=root], .sq-roll__props dd, .sq-bottom__head h2 + span, .sq-card p, .sq-dialog__body p, .sq-mini, .sq-option small, .sq-spectrum, .sq-shortcuts, .sq-tools button[title]:not(#automation-mode):not(#follow), .sq-rail__key, .sq-chip#chat-button, #nyxi-button, .sq-gbar",
+ "text": {
+  "3 suggestions": {
+   "ko": "제안 3개",
+   "ja": "3 件の提案"
+  },
+  "About Studio Nx": {
+   "ko": "버전 정보",
+   "ja": "Studio Nx について"
+  },
+  "ADD": {
+   "ko": "추가",
+   "ja": "追加"
+  },
+  "Add Track": {
+   "ko": "트랙 추가",
+   "ja": "トラック追加"
+  },
+  "AI reference analysis · Nyxi Agent": {
+   "ko": "AI 레퍼런스 분석 · Nyxi Agent",
+   "ja": "AI リファレンス分析 · Nyxi Agent"
+  },
+  "AI stem separation…": {
+   "ko": "AI 악기 분리…",
+   "ja": "AI ステム分離…"
+  },
+  "Always do this in this project": {
+   "ko": "이 프로젝트에서는 늘 이렇게",
+   "ja": "このプロジェクトでは常にこうする"
+  },
+  "Apply": {
+   "ko": "적용",
+   "ja": "適用"
+  },
+  "Ask Nyxi…": {
+   "ko": "Nyxi 에게 물어보기…",
+   "ja": "Nyxi に聞く…"
+  },
+  "Audio": {
+   "ko": "오디오",
+   "ja": "オーディオ"
+  },
+  "Audio device · buffer · latency…": {
+   "ko": "오디오 장치 · 버퍼 · 레이턴시…",
+   "ja": "オーディオデバイス · バッファ · レイテンシー…"
+  },
+  "Audio track": {
+   "ko": "오디오 트랙",
+   "ja": "オーディオトラック"
+  },
+  "Automation": {
+   "ko": "오토메이션",
+   "ja": "オートメーション"
+  },
+  "Automation arm": {
+   "ko": "오토메이션 녹음",
+   "ja": "オートメーション録音"
+  },
+  "Automation clip": {
+   "ko": "오토메이션 클립",
+   "ja": "オートメーションクリップ"
+  },
+  "Automation mode": {
+   "ko": "오토메이션 모드",
+   "ja": "オートメーションモード"
+  },
+  "BAR": {
+   "ko": "마디",
+   "ja": "小節"
+  },
+  "Bass": {
+   "ko": "베이스",
+   "ja": "ベース"
+  },
+  "Bounce pattern to audio": {
+   "ko": "패턴을 오디오로 바운스",
+   "ja": "パターンをオーディオにバウンス"
+  },
+  "Bounce to audio": {
+   "ko": "오디오로 바운스",
+   "ja": "オーディオにバウンス"
+  },
+  "Cancel": {
+   "ko": "취소",
+   "ja": "キャンセル"
+  },
+  "CC64 Sustain": {
+   "ko": "CC64 서스테인",
+   "ja": "CC64 サステイン"
+  },
+  "Chance": {
+   "ko": "확률",
+   "ja": "確率"
+  },
+  "Chat": {
+   "ko": "채팅",
+   "ja": "チャット"
+  },
+  "Chop": {
+   "ko": "자르기",
+   "ja": "チョップ"
+  },
+  "Clone pattern": {
+   "ko": "패턴 복제",
+   "ja": "パターンを複製"
+  },
+  "Close window": {
+   "ko": "창 닫기",
+   "ja": "ウィンドウを閉じる"
+  },
+  "Collaboration panel": {
+   "ko": "협업 패널",
+   "ja": "コラボパネル"
+  },
+  "Command palette": {
+   "ko": "커맨드 팔레트",
+   "ja": "コマンドパレット"
+  },
+  "Connect": {
+   "ko": "연결",
+   "ja": "接続"
+  },
+  "CONNECT TO ANOTHER": {
+   "ko": "다른 트랙에 연결",
+   "ja": "他のトラックに接続"
+  },
+  "Connected": {
+   "ko": "연결됨",
+   "ja": "接続中"
+  },
+  "Connected to": {
+   "ko": "연결 대상",
+   "ja": "接続先"
+  },
+  "Contact · report a bug": {
+   "ko": "문의하기 · 버그 신고",
+   "ja": "お問い合わせ · バグ報告"
+  },
+  "Convert sample to MIDI (later)": {
+   "ko": "샘플 → MIDI 변환 (추후)",
+   "ja": "サンプル → MIDI 変換 (今後)"
+  },
+  "Copy": {
+   "ko": "복사",
+   "ja": "コピー"
+  },
+  "Count-in": {
+   "ko": "카운트인",
+   "ja": "カウントイン"
+  },
+  "Cut": {
+   "ko": "잘라내기",
+   "ja": "切り取り"
+  },
+  "Default: English": {
+   "ko": "기본: English",
+   "ja": "デフォルト: English"
+  },
+  "Delete": {
+   "ko": "삭제",
+   "ja": "削除"
+  },
+  "Delete Time": {
+   "ko": "시간 삭제",
+   "ja": "時間を削除"
+  },
+  "Dismiss": {
+   "ko": "닫기",
+   "ja": "閉じる"
+  },
+  "Draw (P)": {
+   "ko": "그리기 (P)",
+   "ja": "描画 (P)"
+  },
+  "Drop a synth or virtual instrument here to replace": {
+   "ko": "신스·가상 악기를 여기로 끌어 놓아 바꾸기",
+   "ja": "シンセや仮想楽器をここにドロップして置き換え"
+  },
+  "Drop files here": {
+   "ko": "여기로 파일을 끌어 넣기",
+   "ja": "ここにファイルをドロップ"
+  },
+  "Drums": {
+   "ko": "드럼",
+   "ja": "ドラム"
+  },
+  "Duplicate (linked)": {
+   "ko": "링크 복제",
+   "ja": "リンク複製"
+  },
+  "Duplicate (unique)": {
+   "ko": "독립 복제",
+   "ja": "個別複製"
+  },
+  "Duplicate Time": {
+   "ko": "시간 복제",
+   "ja": "時間を複製"
+  },
+  "EDIT": {
+   "ko": "편집",
+   "ja": "編集"
+  },
+  "Edit menu": {
+   "ko": "편집 메뉴",
+   "ja": "編集メニュー"
+  },
+  "Effect": {
+   "ko": "이펙트",
+   "ja": "エフェクト"
+  },
+  "Effects": {
+   "ko": "이펙트",
+   "ja": "エフェクト"
+  },
+  "EFFECTS": {
+   "ko": "이펙트",
+   "ja": "エフェクト"
+  },
+  "Effect…": {
+   "ko": "이펙트…",
+   "ja": "エフェクト…"
+  },
+  "End": {
+   "ko": "끝",
+   "ja": "終了"
+  },
+  "English": {
+   "ko": "English",
+   "ja": "English"
+  },
+  "EQ·Dynamics": {
+   "ko": "EQ·다이내믹",
+   "ja": "EQ・ダイナミクス"
+  },
+  "Export stems…": {
+   "ko": "트랙별로 내보내기 (stems)…",
+   "ja": "ステム書き出し…"
+  },
+  "Export…": {
+   "ko": "내보내기…",
+   "ja": "書き出し…"
+  },
+  "Fade in · out": {
+   "ko": "페이드 인 · 아웃",
+   "ja": "フェードイン · アウト"
+  },
+  "Favorites": {
+   "ko": "즐겨찾기",
+   "ja": "お気に入り"
+  },
+  "FILE": {
+   "ko": "파일",
+   "ja": "ファイル"
+  },
+  "File panel": {
+   "ko": "파일 패널",
+   "ja": "ファイルパネル"
+  },
+  "Find unused samples": {
+   "ko": "안 쓰는 샘플 찾기",
+   "ja": "未使用サンプルを探す"
+  },
+  "Flip": {
+   "ko": "뒤집기",
+   "ja": "フリップ"
+  },
+  "Follow playhead": {
+   "ko": "재생 따라가기",
+   "ja": "再生位置に追従"
+  },
+  "Freeze track": {
+   "ko": "트랙 프리즈",
+   "ja": "トラックをフリーズ"
+  },
+  "from listening to your track": {
+   "ko": "— 트랙을 들어 보고",
+   "ja": "— トラックを聴いて"
+  },
+  "FX": {
+   "ko": "이펙트",
+   "ja": "エフェクト"
+  },
+  "Gain": {
+   "ko": "게인",
+   "ja": "ゲイン"
+  },
+  "Glue": {
+   "ko": "붙이기",
+   "ja": "グルー"
+  },
+  "GROUP": {
+   "ko": "그룹",
+   "ja": "グループ"
+  },
+  "Group track": {
+   "ko": "그룹 트랙",
+   "ja": "グループトラック"
+  },
+  "Group tracks": {
+   "ko": "그룹으로 묶기",
+   "ja": "グループ化"
+  },
+  "HELP": {
+   "ko": "도움말",
+   "ja": "ヘルプ"
+  },
+  "Humanize": {
+   "ko": "휴머나이즈",
+   "ja": "ヒューマナイズ"
+  },
+  "I/O": {
+   "ko": "입출력",
+   "ja": "入出力"
+  },
+  "Import audio · MIDI…": {
+   "ko": "가져오기 — 오디오 · MIDI…",
+   "ja": "読み込み — オーディオ · MIDI…"
+  },
+  "Imported": {
+   "ko": "가져옴",
+   "ja": "インポート済み"
+  },
+  "Insert Time": {
+   "ko": "시간 삽입",
+   "ja": "時間を挿入"
+  },
+  "Instrument": {
+   "ko": "악기",
+   "ja": "楽器"
+  },
+  "INSTRUMENT": {
+   "ko": "악기",
+   "ja": "インストゥルメント"
+  },
+  "Instruments": {
+   "ko": "악기",
+   "ja": "楽器"
+  },
+  "INSTRUMENTS": {
+   "ko": "악기",
+   "ja": "インストゥルメント"
+  },
+  "Instruments (layer)": {
+   "ko": "악기 (레이어)",
+   "ja": "楽器 (レイヤー)"
+  },
+  "Instrument…": {
+   "ko": "악기…",
+   "ja": "楽器…"
+  },
+  "Keyboard shortcuts": {
+   "ko": "단축키 목록",
+   "ja": "ショートカット一覧"
+  },
+  "Large spectrum": {
+   "ko": "스펙트럼 크게 보기",
+   "ja": "スペクトラム拡大"
+  },
+  "Layer track (to selected)": {
+   "ko": "레이어 트랙 (선택 트랙에 연결)",
+   "ja": "レイヤートラック (選択中に接続)"
+  },
+  "Legato": {
+   "ko": "레가토",
+   "ja": "レガート"
+  },
+  "Length": {
+   "ko": "길이",
+   "ja": "長さ"
+  },
+  "Loop": {
+   "ko": "루프",
+   "ja": "ループ"
+  },
+  "Loops": {
+   "ko": "루프",
+   "ja": "ループ"
+  },
+  "MAIN": {
+   "ko": "메인",
+   "ja": "メイン"
+  },
+  "Main output — always the last track": {
+   "ko": "메인 출력 — 늘 마지막 트랙",
+   "ja": "メイン出力 — 常に最後のトラック"
+  },
+  "Make unique": {
+   "ko": "고유하게 만들기",
+   "ja": "ユニーク化"
+  },
+  "Marker": {
+   "ko": "마커",
+   "ja": "マーカー"
+  },
+  "Markers": {
+   "ko": "마커",
+   "ja": "マーカー"
+  },
+  "MASTER": {
+   "ko": "마스터",
+   "ja": "マスター"
+  },
+  "Members": {
+   "ko": "멤버",
+   "ja": "メンバー"
+  },
+  "Merge ↘": {
+   "ko": "병합 ↘",
+   "ja": "マージ ↘"
+  },
+  "Meter": {
+   "ko": "박자",
+   "ja": "拍子"
+  },
+  "Meter change": {
+   "ko": "박자 변경점",
+   "ja": "拍子変更"
+  },
+  "Metronome": {
+   "ko": "메트로놈",
+   "ja": "メトロノーム"
+  },
+  "MIDI effect…": {
+   "ko": "MIDI 이펙트…",
+   "ja": "MIDI エフェクト…"
+  },
+  "MIDI FX": {
+   "ko": "MIDI 이펙트",
+   "ja": "MIDI エフェクト"
+  },
+  "MIDI input devices…": {
+   "ko": "MIDI 입력 장치…",
+   "ja": "MIDI 入力デバイス…"
+  },
+  "MIDI track": {
+   "ko": "MIDI 트랙",
+   "ja": "MIDI トラック"
+  },
+  "MIN:SEC:MS": {
+   "ko": "분:초:밀리초",
+   "ja": "分:秒:ミリ秒"
+  },
+  "Missing · Relink": {
+   "ko": "없음 · 다시 연결",
+   "ja": "見つかりません · 再リンク"
+  },
+  "Mixer": {
+   "ko": "믹서",
+   "ja": "ミキサー"
+  },
+  "MIXER": {
+   "ko": "믹서",
+   "ja": "ミキサー"
+  },
+  "MIXING · LOW END": {
+   "ko": "믹싱 · 저음",
+   "ja": "ミキシング · 低域"
+  },
+  "Mod (CC1)": {
+   "ko": "모듈레이션 (CC1)",
+   "ja": "モジュレーション (CC1)"
+  },
+  "Modulation": {
+   "ko": "모듈레이션",
+   "ja": "モジュレーション"
+  },
+  "Mono": {
+   "ko": "모노",
+   "ja": "モノ"
+  },
+  "Muted notes": {
+   "ko": "뮤트한 노트",
+   "ja": "ミュートノート"
+  },
+  "My uploads": {
+   "ko": "내 업로드",
+   "ja": "マイアップロード"
+  },
+  "My uploads (.mid)": {
+   "ko": "내 업로드 (.mid)",
+   "ja": "マイアップロード (.mid)"
+  },
+  "New from template…": {
+   "ko": "템플릿으로 새 프로젝트…",
+   "ja": "テンプレートから新規…"
+  },
+  "New pattern": {
+   "ko": "새 패턴",
+   "ja": "新規パターン"
+  },
+  "New project": {
+   "ko": "새 프로젝트",
+   "ja": "新規プロジェクト"
+  },
+  "None": {
+   "ko": "없음",
+   "ja": "なし"
+  },
+  "Normalize": {
+   "ko": "노멀라이즈",
+   "ja": "ノーマライズ"
+  },
+  "Nyxi dance": {
+   "ko": "Nyxi 춤",
+   "ja": "Nyxi ダンス"
+  },
+  "Nyxi tips…": {
+   "ko": "Nyxi 팁 설정…",
+   "ja": "Nyxi のヒント…"
+  },
+  "OFF": {
+   "ko": "꺼짐",
+   "ja": "オフ"
+  },
+  "Off": {
+   "ko": "끔",
+   "ja": "オフ"
+  },
+  "On · Beats": {
+   "ko": "켬 · Beats",
+   "ja": "オン · Beats"
+  },
+  "On · Complex": {
+   "ko": "켬 · Complex",
+   "ja": "オン · Complex"
+  },
+  "On · Tones": {
+   "ko": "켬 · Tones",
+   "ja": "オン · Tones"
+  },
+  "Open in piano roll": {
+   "ko": "피아노 롤에서 열기",
+   "ja": "ピアノロールで開く"
+  },
+  "Open project…": {
+   "ko": "프로젝트 열기…",
+   "ja": "プロジェクトを開く…"
+  },
+  "OPTIONS": {
+   "ko": "옵션",
+   "ja": "オプション"
+  },
+  "or press Upload · WAV · MP3 · FLAC · MID": {
+   "ko": "또는 업로드 · WAV · MP3 · FLAC · MID",
+   "ja": "またはアップロード · WAV · MP3 · FLAC · MID"
+  },
+  "Original BPM → Song": {
+   "ko": "원래 BPM → 곡",
+   "ja": "元の BPM → 曲"
+  },
+  "Paste": {
+   "ko": "붙여넣기",
+   "ja": "貼り付け"
+  },
+  "PAT": {
+   "ko": "패턴",
+   "ja": "パターン"
+  },
+  "Pattern length…": {
+   "ko": "패턴 길이…",
+   "ja": "パターンの長さ…"
+  },
+  "PATTERNS": {
+   "ko": "패턴",
+   "ja": "パターン"
+  },
+  "Patterns": {
+   "ko": "패턴",
+   "ja": "パターン"
+  },
+  "pedal down": {
+   "ko": "페달 밟음",
+   "ja": "ペダル オン"
+  },
+  "Piano roll": {
+   "ko": "피아노 롤",
+   "ja": "ピアノロール"
+  },
+  "Pitch": {
+   "ko": "음정",
+   "ja": "ピッチ"
+  },
+  "Pitch Bend": {
+   "ko": "피치벤드",
+   "ja": "ピッチベンド"
+  },
+  "Playlist — Arrangement": {
+   "ko": "플레이리스트 — 편곡",
+   "ja": "プレイリスト — アレンジメント"
+  },
+  "Plugin": {
+   "ko": "플러그인",
+   "ja": "プラグイン"
+  },
+  "Plugins": {
+   "ko": "플러그인",
+   "ja": "プラグイン"
+  },
+  "Preferences…": {
+   "ko": "환경 설정…",
+   "ja": "環境設定…"
+  },
+  "Presets": {
+   "ko": "프리셋",
+   "ja": "プリセット"
+  },
+  "Preview": {
+   "ko": "들어 보기",
+   "ja": "試聴"
+  },
+  "Privacy policy": {
+   "ko": "개인정보 처리방침",
+   "ja": "プライバシーポリシー"
+  },
+  "Project info…": {
+   "ko": "프로젝트 정보…",
+   "ja": "プロジェクト情報…"
+  },
+  "Punch in/out": {
+   "ko": "펀치 인/아웃",
+   "ja": "パンチイン/アウト"
+  },
+  "Quantize": {
+   "ko": "퀀타이즈",
+   "ja": "クオンタイズ"
+  },
+  "Recommended": {
+   "ko": "추천",
+   "ja": "おすすめ"
+  },
+  "Record mode: Overdub / Replace": {
+   "ko": "녹음 방식: 합치기 / 덮어쓰기",
+   "ja": "録音モード: オーバーダブ / 置き換え"
+  },
+  "Record quantize": {
+   "ko": "녹음 퀀타이즈",
+   "ja": "録音クオンタイズ"
+  },
+  "Records": {
+   "ko": "녹음",
+   "ja": "録音"
+  },
+  "Redo": {
+   "ko": "다시 실행",
+   "ja": "やり直し"
+  },
+  "Reference": {
+   "ko": "레퍼런스",
+   "ja": "リファレンス"
+  },
+  "REFERENCE · LOUDNESS": {
+   "ko": "레퍼런스 · 음량",
+   "ja": "リファレンス · ラウドネス"
+  },
+  "Release": {
+   "ko": "릴리즈",
+   "ja": "リリース"
+  },
+  "Relink missing samples": {
+   "ko": "누락 샘플 다시 연결",
+   "ja": "見つからないサンプルを再リンク"
+  },
+  "Remove unused patterns": {
+   "ko": "안 쓰는 패턴 정리",
+   "ja": "未使用パターンを削除"
+  },
+  "Rename · color…": {
+   "ko": "이름 · 색 바꾸기…",
+   "ja": "名前 · 色を変更…"
+  },
+  "Replay tutorial": {
+   "ko": "튜토리얼 다시 보기",
+   "ja": "チュートリアルをもう一度"
+  },
+  "Resample": {
+   "ko": "리샘플링",
+   "ja": "リサンプリング"
+  },
+  "RETURN": {
+   "ko": "리턴",
+   "ja": "リターン"
+  },
+  "Return": {
+   "ko": "리턴",
+   "ja": "リターン"
+  },
+  "Return track": {
+   "ko": "리턴 트랙",
+   "ja": "リターントラック"
+  },
+  "Reverse": {
+   "ko": "거꾸로",
+   "ja": "リバース"
+  },
+  "Root note": {
+   "ko": "기준 음",
+   "ja": "ルート音"
+  },
+  "same notes → 3 layers": {
+   "ko": "같은 노트 → 레이어 3개",
+   "ja": "同じノート → 3 レイヤー"
+  },
+  "Sample settings": {
+   "ko": "샘플 설정",
+   "ja": "サンプル設定"
+  },
+  "Samples": {
+   "ko": "샘플",
+   "ja": "サンプル"
+  },
+  "Save": {
+   "ko": "저장",
+   "ja": "保存"
+  },
+  "Save as my template…": {
+   "ko": "내 템플릿으로 저장…",
+   "ja": "マイテンプレートとして保存…"
+  },
+  "Save as…": {
+   "ko": "다른 이름으로 저장…",
+   "ja": "名前を付けて保存…"
+  },
+  "Scale": {
+   "ko": "스케일",
+   "ja": "スケール"
+  },
+  "Scale · chord helper": {
+   "ko": "스케일 · 코드 도우미",
+   "ja": "スケール · コード ヘルパー"
+  },
+  "Search patterns (Ctrl+F)": {
+   "ko": "패턴 검색 (Ctrl+F)",
+   "ja": "パターン検索 (Ctrl+F)"
+  },
+  "Search plugins (Ctrl+F)": {
+   "ko": "플러그인 검색 (Ctrl+F)",
+   "ja": "プラグイン検索 (Ctrl+F)"
+  },
+  "Search samples (Ctrl+F)": {
+   "ko": "샘플 검색 (Ctrl+F)",
+   "ja": "サンプル検索 (Ctrl+F)"
+  },
+  "Select all": {
+   "ko": "모두 선택",
+   "ja": "すべて選択"
+  },
+  "Select same pattern": {
+   "ko": "같은 패턴 선택",
+   "ja": "同じパターンを選択"
+  },
+  "Selected note": {
+   "ko": "선택한 노트",
+   "ja": "選択ノート"
+  },
+  "Send": {
+   "ko": "보내기",
+   "ja": "送信"
+  },
+  "Sends": {
+   "ko": "센드",
+   "ja": "センド"
+  },
+  "Show Nyxi": {
+   "ko": "Nyxi 보이기",
+   "ja": "Nyxi を表示"
+  },
+  "signal → (1 parallel split)": {
+   "ko": "신호 → (병렬 1개)",
+   "ja": "信号 → (並列 1つ)"
+  },
+  "signal → (all layers summed) · drag ⠿ to reorder": {
+   "ko": "신호 → (레이어 합친 뒤) · ⠿ 를 끌어 순서 변경",
+   "ja": "信号 → (全レイヤー合算) · ⠿ をドラッグで並べ替え"
+  },
+  "signal → (before sending)": {
+   "ko": "신호 → (보내기 전)",
+   "ja": "信号 → (送る前)"
+  },
+  "signal → · drag ⠿ to reorder": {
+   "ko": "신호 → · ⠿ 를 끌어 순서 변경",
+   "ja": "信号 → · ⠿ をドラッグで並べ替え"
+  },
+  "Snap…": {
+   "ko": "스냅 단위…",
+   "ja": "スナップ…"
+  },
+  "SONG": {
+   "ko": "곡",
+   "ja": "ソング"
+  },
+  "Space": {
+   "ko": "공간계",
+   "ja": "空間系"
+  },
+  "Split at playhead": {
+   "ko": "재생 위치에서 분할",
+   "ja": "再生位置で分割"
+  },
+  "Start": {
+   "ko": "시작",
+   "ja": "開始"
+  },
+  "Swing": {
+   "ko": "스윙",
+   "ja": "スイング"
+  },
+  "Swing…": {
+   "ko": "스윙…",
+   "ja": "スイング…"
+  },
+  "Switch time display (min:sec ⇄ bars)": {
+   "ko": "시간 표시 바꾸기 (분:초 ⇄ 마디)",
+   "ja": "時間表示の切替 (分:秒 ⇄ 小節)"
+  },
+  "SYNTH PRESET": {
+   "ko": "신스 프리셋",
+   "ja": "シンセプリセット"
+  },
+  "Tab · ✕": {
+   "ko": "Tab · ✕",
+   "ja": "Tab · ✕"
+  },
+  "Tempo": {
+   "ko": "템포",
+   "ja": "テンポ"
+  },
+  "Tempo change": {
+   "ko": "템포 변경점",
+   "ja": "テンポ変更"
+  },
+  "then uses Track 1’s effects and mixer": {
+   "ko": "그 뒤로는 1번 트랙의 이펙트·믹서를 씀",
+   "ja": "その後はトラック 1 のエフェクト・ミキサーを使用"
+  },
+  "TOOLS": {
+   "ko": "도구",
+   "ja": "ツール"
+  },
+  "Track": {
+   "ko": "트랙",
+   "ja": "トラック"
+  },
+  "Tuner": {
+   "ko": "튜너",
+   "ja": "チューナー"
+  },
+  "Type a message… (Enter)": {
+   "ko": "메시지 입력… (Enter)",
+   "ja": "メッセージを入力… (Enter)"
+  },
+  "Undo": {
+   "ko": "실행 취소",
+   "ja": "元に戻す"
+  },
+  "Undo placement": {
+   "ko": "놓기 취소",
+   "ja": "配置を取り消す"
+  },
+  "Unfreeze track": {
+   "ko": "프리즈 해제",
+   "ja": "フリーズ解除"
+  },
+  "Ungroup": {
+   "ko": "그룹 풀기",
+   "ja": "グループ解除"
+  },
+  "User manual": {
+   "ko": "사용 설명서",
+   "ja": "ユーザーマニュアル"
+  },
+  "Vel. random": {
+   "ko": "벨로시티 랜덤",
+   "ja": "ベロシティ ランダム"
+  },
+  "Velocity": {
+   "ko": "벨로시티",
+   "ja": "ベロシティ"
+  },
+  "Velocity · Release": {
+   "ko": "벨로시티 · 릴리즈",
+   "ja": "ベロシティ · リリース"
+  },
+  "Version snapshots": {
+   "ko": "버전 스냅샷",
+   "ja": "バージョンスナップショット"
+  },
+  "VIEW": {
+   "ko": "보기",
+   "ja": "表示"
+  },
+  "Vocal": {
+   "ko": "보컬",
+   "ja": "ボーカル"
+  },
+  "Volume": {
+   "ko": "볼륨",
+   "ja": "ボリューム"
+  },
+  "Warp": {
+   "ko": "Warp",
+   "ja": "ワープ"
+  },
+  "Warp marker": {
+   "ko": "Warp 마커",
+   "ja": "ワープマーカー"
+  },
+  "What to do": {
+   "ko": "처리 방법",
+   "ja": "処理方法"
+  },
+  "Zoom in": {
+   "ko": "확대",
+   "ja": "ズームイン"
+  },
+  "Zoom out": {
+   "ko": "축소",
+   "ja": "ズームアウト"
+  },
+  "Zoom to fit": {
+   "ko": "전체 보기",
+   "ja": "全体を表示"
+  },
+  "— Chop · Glue · Legato · Humanize · Control lane: CC64 sustain pedal is recorded with the notes": {
+   "ko": "— 자르기 · 붙이기 · 레가토 · 휴머나이즈 · 컨트롤 레인: CC64 서스테인 페달이 노트와 함께 녹음돼요",
+   "ja": "— チョップ · グルー · レガート · ヒューマナイズ · コントロールレーン: CC64 サステインペダルもノートと一緒に録音"
+  },
+  "— Every command also works from its shortcut, the command palette (Ctrl+P) and the right-click menu": {
+   "ko": "— 모든 명령은 단축키·커맨드 팔레트(Ctrl+P)·오른쪽 클릭 메뉴에서도 쓸 수 있어요",
+   "ja": "— すべてのコマンドはショートカット・コマンドパレット(Ctrl+P)・右クリックメニューからも使えます"
+  },
+  "— Left-click to add the selected clip · Right-click to delete": {
+   "ko": "— 왼쪽 클릭으로 고른 클립 추가 · 오른쪽 클릭으로 삭제",
+   "ja": "— 左クリックで選択中のクリップを追加 · 右クリックで削除"
+  },
+  "— Press on any branch to merge them before the next effect": {
+   "ko": "— 갈래 중 하나라도 누르면 다음 이펙트 전에 합쳐져요",
+   "ja": "— どちらかの分岐で押すと次のエフェクトの前で合流します"
+  },
+  "› Automation mode: patterns dimmed, edit curves only": {
+   "ko": "› 오토메이션 모드: 패턴은 흐리게, 곡선만 편집",
+   "ja": "› オートメーションモード: パターンは薄く、カーブのみ編集"
+  },
+  "→ sends to": {
+   "ko": "→ 보내는 곳",
+   "ja": "→ 送り先"
+  },
+  "⇥ Follow": {
+   "ko": "⇥ 따라가기",
+   "ja": "⇥ 追従"
+  },
+  "● REC": {
+   "ko": "● 녹음",
+   "ja": "● 録音"
+  },
+  "● Saved": {
+   "ko": "● 저장됨",
+   "ja": "● 保存済み"
+  },
+  "✦ AI stem separation — Vocals · Drums · Bass · Other": {
+   "ko": "✦ AI 악기 분리 — 보컬 · 드럼 · 베이스 · 기타",
+   "ja": "✦ AI ステム分離 — ボーカル · ドラム · ベース · その他"
+  },
+  "✦ Nyxi Agent": {
+   "ko": "✦ Nyxi Agent",
+   "ja": "✦ Nyxi Agent"
+  },
+  "⤒ Upload": {
+   "ko": "⤒ 업로드",
+   "ja": "⤒ アップロード"
+  },
+  "⤴ Automation A": {
+   "ko": "⤴ 오토메이션 A",
+   "ja": "⤴ オートメーション A"
+  },
+  "⤴ Pattern placed under an automation": {
+   "ko": "⤴ 오토메이션 아래에 패턴을 놓았어요",
+   "ja": "⤴ オートメーションの下にパターンを置きました"
+  },
+  "＋ Add branch": {
+   "ko": "＋ 갈래 추가",
+   "ja": "＋ 分岐を追加"
+  },
+  "＋ Add instrument (plays the same notes)": {
+   "ko": "＋ 악기 추가 (같은 노트 연주)",
+   "ja": "＋ 楽器を追加 (同じノートを演奏)"
+  },
+  "＋ Add Track": {
+   "ko": "＋ 트랙 추가",
+   "ja": "＋ トラック追加"
+  },
+  "＋ Invite": {
+   "ko": "＋ 초대",
+   "ja": "＋ 招待"
+  },
+  "🎚 Mixer": {
+   "ko": "🎚 믹서",
+   "ja": "🎚 ミキサー"
+  }
+ },
+ "prefix": [
+  {
+   "pattern": "^Pattern: ",
+   "ko": "패턴: ",
+   "ja": "パターン: "
+  },
+  {
+   "pattern": "^Snap: Line",
+   "ko": "스냅: 라인",
+   "ja": "スナップ: ライン"
+  },
+  {
+   "pattern": "^Key: C# minor",
+   "ko": "키: C# 마이너",
+   "ja": "キー: C# マイナー"
+  },
+  {
+   "pattern": "^Chord: ",
+   "ko": "코드: ",
+   "ja": "コード: "
+  },
+  {
+   "pattern": "^(\\d+) items$",
+   "ko": "$1개",
+   "ja": "$1件"
+  },
+  {
+   "pattern": "^(\\d+) bar$",
+   "ko": "$1마디",
+   "ja": "$1小節"
+  },
+  {
+   "pattern": "^Preset: ",
+   "ko": "프리셋: ",
+   "ja": "プリセット: "
+  },
+  {
+   "pattern": "^Track (\\d+) ›$",
+   "ko": "트랙 $1 ›",
+   "ja": "トラック $1 ›"
+  },
+  {
+   "pattern": "^Quantize (\\d+%)$",
+   "ko": "퀀타이즈 $1",
+   "ja": "クオンタイズ $1"
+  },
+  {
+   "pattern": "^Swing ◔ (\\d+%)$",
+   "ko": "스윙 ◔ $1",
+   "ja": "スイング ◔ $1"
+  },
+  {
+   "pattern": "^👻 Ghost: ",
+   "ko": "👻 흐린 노트: ",
+   "ja": "👻 ゴースト: "
+  },
+  {
+   "pattern": "^⌕ Search samples",
+   "ko": "⌕ 샘플 검색",
+   "ja": "⌕ サンプル検索"
+  },
+  {
+   "pattern": "^⌕ Search plugins",
+   "ko": "⌕ 플러그인 검색",
+   "ja": "⌕ プラグイン検索"
+  },
+  {
+   "pattern": "^⌕ Search patterns",
+   "ko": "⌕ 패턴 검색",
+   "ja": "⌕ パターン検索"
+  },
+  {
+   "pattern": "^🎹 Piano roll — ",
+   "ko": "🎹 피아노 롤 — ",
+   "ja": "🎹 ピアノロール — "
+  },
+  {
+   "pattern": "^🌐 EN ▾$",
+   "ko": "🌐 KO ▾",
+   "ja": "🌐 JA ▾"
+  },
+  {
+   "pattern": "^🎵 Sample settings —",
+   "ko": "🎵 샘플 설정 —",
+   "ja": "🎵 サンプル設定 —"
+  },
+  {
+   "pattern": "^Trim at bar (\\d+)$",
+   "ko": "$1마디에서 자르기",
+   "ja": "$1 小節でトリム"
+  },
+  {
+   "pattern": "^Split at bar (\\d+)$",
+   "ko": "$1마디에서 나누기",
+   "ja": "$1 小節で分割"
+  },
+  {
+   "pattern": "^(\\d+) / (\\d+) online$",
+   "ko": "$1 / $2 접속 중",
+   "ja": "$1 / $2 オンライン"
+  },
+  {
+   "pattern": "^Receives sends from (\\d+) tracks?$",
+   "ko": "트랙 $1개의 센드를 받음",
+   "ja": "$1 トラックからセンドを受信"
+  },
+  {
+   "pattern": "^(\\d+) tracks · MASTER$",
+   "ko": "트랙 $1개 · 마스터",
+   "ja": "$1 トラック · マスター"
+  },
+  {
+   "pattern": "^max — (.+) start$",
+   "ko": "최대 — $1 시작",
+   "ja": "最大 — $1 の開始"
+  },
+  {
+   "pattern": "^Reference:",
+   "ko": "레퍼런스:",
+   "ja": "リファレンス:"
+  },
+  {
+   "pattern": "^(\\d+) tracks ·",
+   "ko": "트랙 $1개 ·",
+   "ja": "$1 トラック ·"
+  },
+  {
+   "pattern": "^(\\d+) items?$",
+   "ko": "$1개",
+   "ja": "$1 件"
+  }
+ ],
+ "templates": {
+  "_about": "JS 가 값을 넣어 만드는 문장 ({이름} 자리에 값). 위 skip 에 들어 있는 .sq-dialog__body p · .sq-option small 등",
+  "overlap.message": {
+   "en": "<b>{pattern}</b> (bars {from}–{to}) was placed inside <b>{automation}</b>, which is applied to <b>{target}</b> (bars {aFrom}–{aTo}).",
+   "ko": "<b>{pattern}</b>({from}–{to}마디)을 <b>{target}</b>({aFrom}–{aTo}마디)에 걸린 <b>{automation}</b> 안에 놓았어요.",
+   "ja": "<b>{pattern}</b>({from}–{to} 小節)を、<b>{target}</b>({aFrom}–{aTo} 小節)にかかる <b>{automation}</b> の中に置きました。"
+  },
+  "overlap.trim": {
+   "en": "Keep the curve up to bar {bar} on {target}. The rest is removed.",
+   "ko": "{target}에는 {bar}마디까지의 곡선만 남기고 나머지는 지워요.",
+   "ja": "{target} には {bar} 小節までのカーブを残し、残りは削除します。"
+  },
+  "overlap.split": {
+   "en": "Cut into two clips — the second part ({bar}–{end}) now applies to {pattern}.",
+   "ko": "두 클립으로 나눠요 — 뒷부분({bar}–{end})은 {pattern}에 걸려요.",
+   "ja": "2 つのクリップに分割 — 後半({bar}–{end})は {pattern} にかかります。"
+  },
+  "overlap.undo": {
+   "en": "Put {pattern} back. The automation stays as it was.",
+   "ko": "{pattern}을 원래 자리로 되돌려요. 오토메이션은 그대로예요.",
+   "ja": "{pattern} を元に戻します。オートメーションはそのままです。"
+  }
+ }
+}
