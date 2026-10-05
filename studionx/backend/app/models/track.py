@@ -22,7 +22,7 @@ from app.db.session import Base
 
 
 class Track(Base):
-    """트랙. track_type: AUDIO / MIDI / MASTER (프로젝트마다 MASTER 1개)."""
+    """트랙. track_type: AUDIO / MIDI / MASTER / GROUP / RETURN (프로젝트마다 MASTER 1개)."""
 
     __tablename__ = "tracks"
 
@@ -33,8 +33,8 @@ class Track(Base):
 
     # TODO: Phase 1에 필요한 컬럼 (MASTER 트랙 생성용)
     #   name         VARCHAR(100) NOT NULL       예: 'Master'
-    #   track_type   ENUM('AUDIO','MIDI','MASTER') NOT NULL
+    #   track_type   ENUM('AUDIO','MIDI','MASTER','GROUP','RETURN') NOT NULL
     #   order_index  INT 기본 0
     # TODO(Phase 2): color, volume_db, pan, is_muted, is_solo,
-    #   instrument_plugin_id, instrument_params,
+    #   is_enabled, parent_track_id, frozen_sample_id,   (악기는 track_instruments 표, 2026-10-06)
     #   routing_mode, assignee_id, locked_by, locked_at, created_at, updated_at

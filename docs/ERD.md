@@ -1,6 +1,6 @@
 # Studio Nx — ERD (관계 설명)
 
-> 그림: [`ERD.png`](ERD.png) · 컬럼 상세: [`DB.md`](DB.md) §3 · DBMS: MySQL 8.0 (`studionx`) · 테이블 37개
+> 그림: [`ERD.png`](ERD.png) · 컬럼 상세: [`DB.md`](DB.md) §3 · DBMS: MySQL 8.0 (`studionx`) · 테이블 42개
 
 ![Studio Nx ERD](ERD.png)
 
@@ -24,7 +24,7 @@
 |---|---|---|
 | 계정 · 사이트 운영 | `users`, `user_settings`, `inquiries`, `dev_notes` | 회원(+저장 용량), UI 설정(테마·단축키·캐릭터·튜토리얼), 문의, 메인 페이지 Development 공지 |
 | 프로젝트 · 협업 | `projects`, `project_members`, `project_sessions`, `invitations`, `project_change_logs`, `chat_messages`, `timeline_comments`, `project_snapshots` | 프로젝트와 참여자·작업 세션·초대·편집이력·톡방·코멘트·스냅샷 |
-| 시퀀서 | `tracks`, `track_plugins`, `track_plugin_links`, `patterns`, `launcher_scenes`, `clips`, `midi_notes`, `automation_lanes`, `automation_points`, `tempo_changes`, `meter_changes` | 곡의 실제 내용 (트랙·디바이스·라우팅·패턴·런처·클립·노트·오토메이션·템포/박자 지도) |
+| 시퀀서 | `tracks`, `track_instruments`, `track_plugins`, `track_plugin_links`, `track_sends`, `track_connections`, `patterns`, `launcher_scenes`, `clips`, `midi_notes`, `midi_cc_events`, `automation_lanes`, `automation_points`, `tempo_changes`, `meter_changes`, `markers` | 곡의 실제 내용 (트랙·악기·디바이스·라우팅·센드·연결·패턴·런처·클립·노트·CC·오토메이션·템포/박자 지도·마커) |
 | 라이브러리 · 플러그인 · 템플릿 | `samples`, `tags`, `sample_tags`, `plugins`, `plugin_presets`, `project_templates` | 샘플 라이브러리, 태그, 웹 플러그인 목록·프리셋, 프로젝트 템플릿 |
 | 출력 · 분리 | `export_jobs`, `separation_jobs`, `separation_stems` | 오디오 출력 작업, 악기 분리 작업과 결과 |
 | AI | `reference_tracks`, `reference_tags`, `ai_analyses`, `ai_recommendations`, `assistant_messages` | 레퍼런스 분석·추천, Nyxi 도우미 대화 |
@@ -73,7 +73,15 @@
 | samples → clips | 0..1 : N | `clips.sample_id` (null) | 오디오 클립만 샘플 참조 |
 | tracks → track_plugins | 1 : N | `track_plugins.track_id` | 트랙의 이펙트 디바이스 (`slot_index` = 체인 순서) |
 | plugins → track_plugins | 1 : N | `track_plugins.plugin_id` | 어떤 플러그인의 인스턴스인지 |
-| plugins → tracks | 0..1 : N | `tracks.instrument_plugin_id` (null) | MIDI 트랙의 가상악기 |
+| tracks → track_instruments | 1 : N | `track_instruments.track_id` | MIDI 트랙의 악기들 (레이어링, `slot_index` 순서) |
+| plugins → track_instruments | 1 : N | `track_instruments.plugin_id` | 어떤 악기 플러그인인지 |
+| tracks → track_sends | 1 : N | `track_sends.track_id`, `return_track_id` | 센드 (리턴 트랙으로 보내는 양) |
+| tracks → track_connections | 1 : 0..1 | `track_connections.from_track_id` (UQ), `to_track_id` | Connect to Another (없으면 None) |
+| track_plugins → track_connections | 0..1 : N | `track_connections.to_track_plugin_id` (null) | 받는 플러그인 (레이어면 NULL) |
+| tracks → tracks | 0..1 : N | `tracks.parent_track_id` (null) | 그룹 트랙 안의 트랙 |
+| samples → tracks | 0..1 : N | `tracks.frozen_sample_id` (null) | 프리즈 결과 오디오 |
+| patterns → midi_cc_events | 1 : N | `midi_cc_events.pattern_id` | CC·피치벤드·페달 |
+| projects → markers | 1 : N | `markers.project_id` | 타임라인 마커 |
 | tracks → track_plugin_links | 1 : N | `track_plugin_links.track_id` | 패처 연결선 |
 | track_plugins → track_plugin_links | 0..1 : N | `from_track_plugin_id`, `to_track_plugin_id` (null) | NULL = 트랙 소스 / 트랙 출력 |
 
