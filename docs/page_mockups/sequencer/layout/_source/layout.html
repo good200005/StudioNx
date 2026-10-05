@@ -109,10 +109,11 @@
   .sendto { align-self: center; border: 1px dashed var(--vi); border-radius: 4px; padding: 8px 10px; color: #d6c8ff; background: rgb(106 36 246 / .12); font-size: 11px; line-height: 1.45; }
   .tn { display: grid; line-height: 1.2; overflow: hidden; } .tn b { font-weight: 600; font-size: 11.5px; white-space: nowrap; } .tn small { color: var(--faint); font-size: 9.5px; white-space: nowrap; }
   .tl { position: relative; background-image: repeating-linear-gradient(90deg, transparent 0 27.875px, var(--gridline) 27.875px 28.875px); }
-  .clip { position: absolute; top: 3px; bottom: 3px; border-radius: 3px; overflow: hidden; display: flex; flex-direction: column; background: var(--cc); }
-  .clip b { font-weight: 600; font-size: 10.5px; padding: 1px 5px; white-space: nowrap; overflow: hidden; color: #fff; }
+  .clip { position: absolute; top: 3px; bottom: 3px; border-radius: var(--clip-r, 3px); overflow: hidden; display: flex; flex-direction: column; background: var(--clip-bg, var(--cc)); border: var(--clip-bd, 0); }
+  .clip b { font-weight: 600; font-size: 10.5px; padding: 1px 5px; white-space: nowrap; overflow: hidden; color: var(--clip-label, #fff); }
+  .wv polygon { fill: var(--wave, #f3d9a6); }
   .mn { position: relative; flex: 1; margin: 2px 3px 3px; }
-  .mn i { position: absolute; height: 3px; min-width: 2px; border-radius: 1px; background: #c9f2d5; box-shadow: 0 0 0 .5px rgb(0 0 0 / .25); }
+  .mn i { position: absolute; height: 3px; min-width: 2px; border-radius: 1px; background: var(--clip-note, #c9f2d5); box-shadow: 0 0 0 .5px rgb(0 0 0 / .25); }
   .clip u { flex: 1; text-decoration: none; background-image: repeating-linear-gradient(90deg, transparent 0 7px, #9fe0b4 7px 9px); background-size: 100% 40%; background-repeat: repeat-x; background-position: 0 60%; }
   .clip.audio u { background: linear-gradient(transparent 20%, #9fe0b4 20% 80%, transparent 80%); mask: repeating-linear-gradient(90deg, #000 0 2px, transparent 2px 3px); opacity: .7; }
   .clip .wv { flex: 1; width: 100%; min-height: 0; background: rgb(0 0 0 / .2); }
@@ -226,10 +227,59 @@
   .badge strong { font: 800 18px/1 Unbounded, sans-serif; white-space: nowrap; }
   .badge small { font: 500 11px/1.45 "Malgun Gothic", sans-serif; color: var(--soft); }
   .num { position: absolute; z-index: 10; width: 20px; height: 20px; border-radius: 50%; background: var(--org); color: #111; font-weight: 800; font-size: 11px; display: grid; place-items: center; box-shadow: 0 0 0 2px #0b0a0f; }
+
+  /* ── 색 시안 (?theme=) — 홈 tokens.css 기준 ── */
+  html[class*="t-"] { --r: 0px; --clip-r: 0px; --wr: 0px; }
+  html.t-A, html.t-B, html.t-C { --bg:#0b0a0f; --panel:#0f0d14; --panel2:#15131c; --grid:#0b0a0f; --gridline:#17151d; --line:#26232e; --line2:#3a3644; --sel:#1f1a2c;
+    --ink:#f4f3f7; --soft:#b9b6c4; --faint:#7f7b8c; --v:#6a24f6; --vi:#a383ff; --grn:#7fe0a8; --red:#ff8a8a; --org:#f4f3f7; }
+  html.t-D { --bg:#f6f5f9; --panel:#ffffff; --panel2:#f1eff6; --grid:#fbfafd; --gridline:#edeaf2; --line:#e0dde8; --line2:#c9c5d3; --sel:#ebe4ff;
+    --ink:#0b0a0f; --soft:#46424f; --faint:#75717f; --v:#6a24f6; --vi:#5a17e0; --grn:#137a45; --red:#c42b2b; --org:#0b0a0f; }
+  html[class*="t-"] .tbtn i.m.on { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+  html[class*="t-"] .tbtn i.s.on { background: var(--vi); border-color: var(--vi); color: var(--bg); }
+  html[class*="t-"] .tbtn i.r.on { background: var(--red); border-color: var(--red); color: var(--bg); }
+  html[class*="t-"] .lcd { background: transparent; color: var(--ink); border: 1px solid var(--line2); }
+  html[class*="t-"] .lh, html[class*="t-"] .th { background: var(--panel); }
+  html[class*="t-"] .rail .b.on { box-shadow: inset 2px 0 0 var(--vi); }
+  html[class*="t-"] .ph .up { border-radius: 0; background: var(--bg); color: var(--vi); border: 1px solid var(--vi); }
+  html[class*="t-"] .acc { background: var(--panel2); box-shadow: inset 0 2px 6px rgb(0 0 0 / .12); }
+  html.t-D .dis { background: rgb(246 245 249 / .88); } html.t-D .route.live .sel.type { color: var(--ink); }
+  html[class*="t-"] .playhead { background: var(--vi); opacity: 1; }
+  html[class*="t-"] .marks span { color: var(--soft); } html[class*="t-"] .marks span::before { color: var(--vi); }
+  html[class*="t-"] .cell > h4 { font-family: Unbounded, sans-serif; font-size: 9px; letter-spacing: .14em; }
+  html[class*="t-"] .cell, html[class*="t-"] .fx, html[class*="t-"] .irow, html[class*="t-"] .chip, html[class*="t-"] .tp i, html[class*="t-"] .sc i { border-radius: 0; }
+  /* A Ink — 흑백 + 보라는 선택·재생 위치·강조에만 */
+  html.t-A .clip { --clip-bg: color-mix(in srgb, var(--cc) 9%, #121017); --clip-bd: 1px solid color-mix(in srgb, var(--cc) 40%, transparent); --clip-label: #f4f3f7; --clip-note: #f4f3f7; --wave: #b9b6c4; }
+  html.t-A .clip.sel { --clip-bd: 1px solid #a383ff; outline: 0; box-shadow: inset 0 0 0 1px #a383ff; }
+  /* B Band — 홈 첫 화면의 보라 띠: 헤더를 보라 면으로, 클립은 보라 계열, 샘플은 종이색(Nyxi 흑백 그림처럼) */
+  html.t-B { --clip-label: #ffffff; --clip-note: rgb(255 255 255 / .9); --wave: #0b0a0f; }
+  html.t-B .top { background: var(--v); border-bottom-color: var(--v); }
+  html.t-B .top .chip { background: transparent; border-color: rgb(255 255 255 / .38); color: #fff; }
+  html.t-B .top .chip.on { background: #fff; border-color: #fff; color: var(--v); }
+  html.t-B .top .tp i, html.t-B .top .sc i { background: transparent; border-color: rgb(255 255 255 / .38); color: #fff; }
+  html.t-B .top .lcd { border-color: rgb(255 255 255 / .38); color: #fff; } html.t-B .top .lcd small, html.t-B .top .menu span { color: rgb(255 255 255 / .75); }
+  html.t-B .hintbar { background: rgb(11 10 15 / .28); color: #fff; } html.t-B .brand svg { color: #fff; }
+  html.t-B .rail .b.on { background: var(--v); box-shadow: none; }
+  html.t-B .clip.audio b { color: #0b0a0f; }
+  /* C Signal — 어두운 클립 + 홈 색(보라·민트·코랄·종이색)으로 선·노트만 */
+  html.t-C .clip { --clip-bg: color-mix(in srgb, var(--cc) 13%, #0b0a0f); --clip-bd: 1px solid color-mix(in srgb, var(--cc) 55%, transparent); --clip-label: var(--cc); --clip-note: var(--cc); --wave: var(--cc); }
+  html.t-C .th::before { width: 2px; }
+  /* D Light — 홈 라이트 테마 + 보라 클립, 샘플은 먹색 면 */
+  html.t-D { --clip-label: #ffffff; --clip-note: rgb(255 255 255 / .9); --wave: #f4f3f7; }
+  html.t-D .keys { filter: invert(.06); }
+  html.t-D .badge { background: #0b0a0f; }
+  html.t-D .brand, html.t-D .hintbar b, html.t-D .addrow .add b, html.t-D .ctx > header b, html.t-D .langmenu div.on, html.t-D .rail .b.on, html.t-D .ph h3 { color: var(--ink); }
+  html.t-D .top .chip[style], html.t-D .filt span.on { color: var(--ink) !important; }
+  html.t-D .badge small { color: #b9b6c4; } html.t-D .badge strong { color: #fff; }
+  html.t-D .notes i { color: #fff; } html.t-D .notes i.s { background: var(--ink); }
+  /* 피아노 롤 노트·벨로시티도 홈 보라로 */
+  html[class*="t-"] .notes i, html[class*="t-"] .vel i, html[class*="t-"] .vel i::after { background: var(--vi); }
+  html.t-C .notes i, html.t-C .vel i, html.t-C .vel i::after { background: #7fe0a8; }
 </style></head><body>
 <div class="app" id="app"></div>
 <script>
 const S = +(new URLSearchParams(location.search).get('s') ?? 1);
+const THEME = new URLSearchParams(location.search).get('theme');   // 색 시안 A·B·C·D (없으면 기존 색)
+if (THEME) document.documentElement.classList.add('t-' + THEME);
 const R = document.documentElement.style, set = (k, v) => R.setProperty(k, v);
 const COLLAB = S === 2, AUTO = S === 3 || S === 9, ACC = S === 4 || S === 5 || S >= 10, CTX = { 6: 'roll', 7: 'sample', 8: 'agent' }[S];
 set('--side-w', '264px'); set('--collab-h', COLLAB ? '330px' : '0px'); set('--ctx-h', CTX ? '300px' : '0px'); set('--acc-h', '226px');
@@ -285,6 +335,13 @@ const TR = [
   ['Riser', 'riser_8bar.wav', '#8a4a2c', [[8, 4, 'riser_8bar'], [16, 4, 'riser_8bar']], 1],
   ...(S >= 11 ? [['Lead Hi', 'Analog', '#2a6f8f', [[0, 4, 'Lead Hi'], [8, 4, 'Lead Hi #2'], [16, 4, 'Lead Hi #3']]]] : []),
 ];
+const PAL = {
+  A: { midi: ['#a383ff'], audio: '#f4f3f7' },
+  B: { midi: ['#6a24f6', '#5a1fd0', '#7d45f7', '#4a19ab', '#8f5ff8', '#3c158c', '#6a24f6', '#7d45f7', '#5a1fd0', '#4a19ab'], audio: '#f4f3f7' },
+  C: { midi: ['#a383ff', '#7fe0a8', '#f4f3f7', '#ff8a8a', '#c9b8ff', '#7fe0a8', '#a383ff', '#ff8a8a', '#f4f3f7', '#7fe0a8'], audio: '#f4f3f7' },
+  D: { midi: ['#6a24f6', '#5a1fd0', '#7d45f7', '#4a19ab', '#8f5ff8', '#3c158c', '#6a24f6', '#7d45f7', '#5a1fd0', '#4a19ab'], audio: '#0b0a0f' },
+}[THEME];
+if (PAL) TR.forEach((t, i) => { t[2] = t[4] ? PAL.audio : PAL.midi[i % PAL.midi.length]; });
 const OPEN = !ACC ? -1 : S === 10 || S === 12 ? 0 : S === 11 ? 9 : 1;
 // 샘플(오디오) 클립은 트랙에서도 파형으로 그림
 const waveSvg = (w, seed, rise) => { let r = seed * 7919 + 13, up = '', dn = ''; for (let x = 0; x <= w; x += 2) { r = (r * 9301 + 49297) % 233280; const env = rise ? 0.12 + 0.88 * (x / w) : 0.35 + 0.65 * Math.abs(Math.sin(x / 23 + seed)); const a = (0.25 + 0.75 * r / 233280) * env * 13; up += `${x},${(15 - a).toFixed(1)} `; dn = `${x},${(15 + a).toFixed(1)} ` + dn; } return `<svg class="wv" viewBox="0 0 ${w} 30" preserveAspectRatio="none"><polygon points="${up}${dn}" fill="#f3d9a6" opacity=".85"/></svg>`; };
@@ -425,6 +482,13 @@ const CAP = {
   12: ['12 레이어링 ② 받는 쪽', '1번 트랙 INSTRUMENTS 에 &lt;from Track 10&gt; 줄이 병렬로 생김(보라 점선) · 다른 악기와 똑같이 볼륨·팬·Solo · 그 뒤 1번 트랙의 이펙트·믹서를 함께 씀 · 트랙 머리에 ⇠10, 보내는 트랙엔 → 1'],
   8: ['08 Nyxi 더블 클릭 → Agent 조언·채팅', '평소엔 재생 BPM 에 맞춰 춤(fruity dance) · 더블 클릭하면 아래 칸에 조언 카드(Apply·Preview·Dismiss) + Nyxi 채팅'],
 }[S];
-document.body.insertAdjacentHTML('beforeend', `<div class="badge"><strong>${CAP[0]}</strong><small>${CAP[1]}</small></div>`);
+const TCAP = {
+  A: ['A Ink', '홈의 흑백 + 보라 포인트 그대로 — 먹색 바탕 · 종이색 글자 · 얇은 선 · 각진 모서리. 보라(#a383ff)는 선택·재생 위치·MIDI 트랙 표시에만, 샘플은 회색 파형'],
+  B: ['B Band', '홈 첫 화면의 보라 띠(#6a24f6)를 헤더 면으로 · 클립은 보라 계열 명도 차이 · 샘플 클립은 종이색 면 + 먹색 파형 (Nyxi 흑백 그림처럼)'],
+  C: ['C Signal', '어두운 클립 + 테두리·이름·노트만 색 — 보라 · 민트(#7fe0a8) · 코랄(#ff8a8a) · 종이색. 홈에 이미 있는 색(확인·오류·강조)만 사용'],
+  D: ['D Light', '홈 라이트 테마(#f6f5f9 바탕 · 먹색 글자 · 진한 보라 #5a17e0) + 보라 클립 · 샘플 클립은 먹색 면'],
+}[THEME];
+const CAPX = TCAP ? [TCAP[0] + ' · ' + CAP[0].slice(3), TCAP[1]] : CAP;
+document.body.insertAdjacentHTML('beforeend', `<div class="badge"><strong>${CAPX[0]}</strong><small>${CAPX[1]}</small></div>`);
 </script>
 </body></html>
