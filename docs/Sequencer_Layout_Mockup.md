@@ -6,6 +6,7 @@
 | 이전 문서 | [Sequencer_UI_Reference_Analysis.md](Sequencer_UI_Reference_Analysis.md) — Ableton : FL 유사도 목업 |
 | 작성일 | 2026-10-05 |
 | 목업 | `docs/page_mockups/sequencer/layout/` — 상태별 14장 + 개요, 소스 `_source/layout.html?s=1..14` |
+| PRD | [PRD 02](PRD/02_Phase2_Sequencer_Core.md) §4.17 FR-2191~2202 에 이 문서의 결정을 반영 (2026-10-05) · 빠진 기능 후보는 [Sequencer_Feature_Gaps.md](Sequencer_Feature_Gaps.md) |
 | 색 시안 | `docs/page_mockups/sequencer/color/` — home.html 색 배치 기준 5개 × 3장 (§7), 소스는 같은 `layout.html?s=N&theme=A|B|C|D|L` |
 | 상태 | 화면 배치 확인용 목업 (HTML/CSS 목업, 실제 화면 코드 아님). **Q1~Q12 모두 결정 (2026-10-05, §5)** |
 | 갱신 | 2026-10-05 사용자 의견 반영: ① 샘플 클립은 트랙에서도 파형 ② 가(연결)를 단순하게 — Connect to Another ③ 화면 글자는 영어 (협업 채팅·Nyxi 채팅·목업 아래 설명 줄은 한국어) ④ M·S·● 버튼을 Cubase처럼 트랙 이름 옆으로 ⑤ 마지막 트랙 아래 `＋ Add Track` (트랙 머리와 같은 폭·높이) ⑥ 오토메이션 범위 규칙 + 빈 칸에 패턴이 들어올 때 창 (09) ⑦ 언어 설정 영어/한국어/일본어, 기본 영어 (01 상단바 `EN ▾`) ⑧ MIDI 패턴 클립 안에 실제 노트(음 높이·길이)를 작게 표시 ⑨ 레이어링 두 가지 (10~12, §4.4) |
