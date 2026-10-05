@@ -415,7 +415,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | tips_level | ENUM('OFF','IMPORTANT','ALL') | N | 'IMPORTANT' | | Nyxi 팁 레벨 (끄기 / 중요한 것만 / 모두) |
 | tips_state | JSON | Y | NULL | | 다시 보지 않기 팁 목록, 팁별 마지막 표시 시각, **익숙해짐 확인창(프로젝트 5개) 표시 시각** |
 | bottom_panel_state | JSON | Y | NULL | | 하단 패널 높이, 마지막으로 연 탭(톡방/Nyxi) |
-| ui_settings | JSON | Y | NULL | | 기타 UI 설정 (글자 크기, 고대비, 패널 위치·너비, 파형·미터 스타일, 스냅·자동저장 기본값, 오디오 버퍼, 녹음 레이턴시 보정값, 로컬 캐시 상한 등) |
+| ui_settings | JSON | Y | NULL | | 기타 UI 설정 (**`language`: 시퀀서 언어 `en`·`ko`·`ja`, 없으면 `en`**, 글자 크기, 고대비, 패널 위치·너비, 파형·미터 스타일, 스냅·자동저장 기본값, 오디오 버퍼, 녹음 레이턴시 보정값, 로컬 캐시 상한 등) |
 | updated_at | DATETIME(3) | N | CURRENT (ON UPDATE) | | |
 
 ---
