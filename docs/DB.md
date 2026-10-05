@@ -78,35 +78,34 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | 11 | `track_plugins` | 트랙 디바이스 — 체인 순서 + 패처 노드 위치 | 2 |
 | 12 | `track_plugin_links` | 패처 모드의 디바이스 연결선(라우팅) | 2 |
 | 13 | `patterns` | MIDI 패턴 (링크 클립이 공유하는 노트 묶음) | 2 |
-| 14 | `launcher_scenes` | 클립 런처의 씬(행) | 2 |
-| 15 | `clips` | 타임라인/런처 위의 오디오·MIDI 클립 | 2 |
-| 16 | `midi_notes` | 패턴의 노트 | 2 |
-| 17 | `automation_lanes` | 오토메이션 레인 (대상 파라미터) | 2 |
-| 18 | `automation_points` | 오토메이션 포인트 | 2 |
-| 19 | `project_templates` | 프로젝트 템플릿 (시스템/내 템플릿) | 2 |
-| 20 | `user_settings` | 사용자 UI 설정 (테마·단축키·캐릭터·하단 패널·튜토리얼) | 2 |
-| 21 | `export_jobs` | 오디오 출력 작업 | 3 |
-| 22 | `separation_jobs` | 악기 분리 작업 | 4 |
-| 23 | `separation_stems` | 분리 결과 stem | 4 |
-| 24 | `reference_tracks` | 레퍼런스 트랙(링크/파일) | 5 |
-| 25 | `reference_tags` | 레퍼런스-태그(장르) 연결 | 5 |
-| 26 | `ai_analyses` | AI 분석 결과 | 5 |
-| 27 | `ai_recommendations` | AI 추천 설정(프리셋/믹싱/마스터링) | 5 |
-| 28 | `assistant_messages` | Nyxi 도우미(AI) 대화 기록 | 5 |
-| 29 | `invitations` | 프로젝트 초대 | 6 |
-| 30 | `project_change_logs` | 실시간 편집 변경 이력 | 6 |
-| 31 | `chat_messages` | 프로젝트 단체 채팅(톡방) | 6 |
-| 32 | `timeline_comments` | 타임라인 코멘트 (위치 댓글·답글·해결) | 6 |
-| 33 | `project_snapshots` | 버전 스냅샷 | 6 |
-| 34 | `dev_notes` | 메인 페이지 Development 공지 (관리자만 작성) | 1 |
-| 35 | `project_sessions` | 프로젝트 작업 세션 (마이페이지 최근 7일 작업 시간) | 1 (표시) / 2 (기록) |
-| 36 | `tempo_changes` | 곡 중간 템포 변경점 (템포 지도) | 2 |
-| 37 | `meter_changes` | 곡 중간 박자 변경점 (박자 지도) | 2 |
-| 38 | `track_instruments` | 트랙의 악기 (레이어링: 한 트랙에 여러 악기) | 2 |
-| 39 | `track_sends` | 센드 (트랙 → 리턴 트랙으로 보내는 양) | 2 |
-| 40 | `track_connections` | Connect to Another (다른 트랙의 플러그인·악기 단계로 연결) | 2 |
-| 41 | `midi_cc_events` | 패턴의 CC · 피치벤드 · 페달 이벤트 | 2 |
-| 42 | `markers` | 타임라인 마커 (Intro · Drop …) | 2 |
+| 14 | `clips` | 타임라인 위의 오디오·MIDI 클립 | 2 |
+| 15 | `midi_notes` | 패턴의 노트 | 2 |
+| 16 | `automation_lanes` | 오토메이션 레인 (대상 파라미터) | 2 |
+| 17 | `automation_points` | 오토메이션 포인트 | 2 |
+| 18 | `project_templates` | 프로젝트 템플릿 (시스템/내 템플릿) | 2 |
+| 19 | `user_settings` | 사용자 UI 설정 (테마·단축키·캐릭터·하단 패널·튜토리얼) | 2 |
+| 20 | `export_jobs` | 오디오 출력 작업 | 3 |
+| 21 | `separation_jobs` | 악기 분리 작업 | 4 |
+| 22 | `separation_stems` | 분리 결과 stem | 4 |
+| 23 | `reference_tracks` | 레퍼런스 트랙(링크/파일) | 5 |
+| 24 | `reference_tags` | 레퍼런스-태그(장르) 연결 | 5 |
+| 25 | `ai_analyses` | AI 분석 결과 | 5 |
+| 26 | `ai_recommendations` | AI 추천 설정(프리셋/믹싱/마스터링) | 5 |
+| 27 | `assistant_messages` | Nyxi 도우미(AI) 대화 기록 | 5 |
+| 28 | `invitations` | 프로젝트 초대 | 6 |
+| 29 | `project_change_logs` | 실시간 편집 변경 이력 | 6 |
+| 30 | `chat_messages` | 프로젝트 단체 채팅(톡방) | 6 |
+| 31 | `timeline_comments` | 타임라인 코멘트 (위치 댓글·답글·해결) | 6 |
+| 32 | `project_snapshots` | 버전 스냅샷 | 6 |
+| 33 | `dev_notes` | 메인 페이지 Development 공지 (관리자만 작성) | 1 |
+| 34 | `project_sessions` | 프로젝트 작업 세션 (마이페이지 최근 7일 작업 시간) | 1 (표시) / 2 (기록) |
+| 35 | `tempo_changes` | 곡 중간 템포 변경점 (템포 지도) | 2 |
+| 36 | `meter_changes` | 곡 중간 박자 변경점 (박자 지도) | 2 |
+| 37 | `track_instruments` | 트랙의 악기 (레이어링: 한 트랙에 여러 악기) | 2 |
+| 38 | `track_sends` | 센드 (트랙 → 리턴 트랙으로 보내는 양) | 2 |
+| 39 | `track_connections` | Connect to Another (다른 트랙의 플러그인·악기 단계로 연결) | 2 |
+| 40 | `midi_cc_events` | 패턴의 CC · 피치벤드 · 페달 이벤트 | 2 |
+| 41 | `markers` | 타임라인 마커 (Intro · Drop …) | 2 |
 
 ---
 
@@ -374,9 +373,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | clip_type | ENUM('AUDIO','MIDI') | N | | | 트랙 타입과 일치해야 함 |
 | sample_id | BIGINT UNSIGNED | Y | NULL | FK → samples | AUDIO 클립일 때만 사용 |
 | pattern_id | BIGINT UNSIGNED | Y | NULL | FK → patterns, IDX | **MIDI 클립은 필수.** 같은 패턴을 가리키는 클립끼리 링크(하나를 고치면 모두 바뀜) |
-| scene_id | BIGINT UNSIGNED | Y | NULL | FK → launcher_scenes, UQ(track_id, scene_id) | NULL = 타임라인 클립 / 값 있음 = 클립 런처 슬롯 (이때 `start_tick`=0) |
 | name | VARCHAR(100) | Y | NULL | | |
-| start_tick | INT UNSIGNED | N | | | 타임라인 시작 위치 (런처 클립은 0) |
+| start_tick | INT UNSIGNED | N | | | 타임라인 시작 위치 |
 | length_tick | INT UNSIGNED | N | | | 클립 길이 |
 | offset_tick | INT UNSIGNED | N | 0 | | 샘플 앞부분 잘라낸 양 (트리밍) |
 | gain_db | DECIMAL(5,2) | N | 0.00 | | 클립 게인 (노멀라이즈는 피크를 계산해 이 값으로 설정) |
@@ -430,15 +428,6 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | swing | DECIMAL(3,2) | N | 0.00 | | 스윙 정도 (0.00 ~ 1.00, 짝수 16분음표를 뒤로 밂) |
 | created_at | DATETIME(3) | N | CURRENT | | |
 | updated_at | DATETIME(3) | N | CURRENT (ON UPDATE) | | |
-
-#### `launcher_scenes` — 클립 런처 씬
-| 컬럼 | 타입 | NULL | 기본값 | 키 | 설명 |
-|---|---|---|---|---|---|
-| scene_id | BIGINT UNSIGNED | N | AUTO_INCREMENT | PK | |
-| project_id | BIGINT UNSIGNED | N | | FK → projects, UQ(project_id, scene_index) | |
-| scene_index | SMALLINT UNSIGNED | N | | | 위→아래 순서 |
-| name | VARCHAR(100) | Y | NULL | | 씬 이름 (예: `Verse`, `Drop`) |
-| created_at | DATETIME(3) | N | CURRENT | | |
 
 #### `automation_lanes` — 오토메이션 레인
 | 컬럼 | 타입 | NULL | 기본값 | 키 | 설명 |
@@ -744,7 +733,6 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | projects → tracks → clips | CASCADE | 프로젝트 구성요소는 프로젝트와 생명주기가 같음 |
 | projects → patterns → midi_notes | CASCADE | |
 | patterns → clips | RESTRICT | 클립이 쓰는 패턴은 지울 수 없음 (마지막 클립이 지워지면 애플리케이션이 패턴 정리) |
-| projects → launcher_scenes → clips(scene_id) | CASCADE | 씬을 지우면 그 행의 런처 클립도 삭제 |
 | tracks → automation_lanes → automation_points | CASCADE | |
 | projects → tempo_changes, meter_changes, markers | CASCADE | 템포·박자 지도·마커는 프로젝트의 일부 |
 | tracks → track_instruments, track_sends, track_connections | CASCADE | 트랙(보내는 쪽·받는 쪽 모두)이 지워지면 함께 삭제 → 연결은 None 으로 |
@@ -1089,24 +1077,12 @@ CREATE TABLE patterns (
   CONSTRAINT chk_patterns_swing  CHECK (swing BETWEEN 0.00 AND 1.00)
 ) ENGINE=InnoDB;
 
-CREATE TABLE launcher_scenes (
-  scene_id    BIGINT UNSIGNED   NOT NULL AUTO_INCREMENT,
-  project_id  BIGINT UNSIGNED   NOT NULL,
-  scene_index SMALLINT UNSIGNED NOT NULL,
-  name        VARCHAR(100)      NULL,
-  created_at  DATETIME(3)       NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  PRIMARY KEY (scene_id),
-  UNIQUE KEY uq_scenes_index (project_id, scene_index),
-  CONSTRAINT fk_scenes_project FOREIGN KEY (project_id) REFERENCES projects (project_id) ON DELETE CASCADE
-) ENGINE=InnoDB;
-
 CREATE TABLE clips (
   clip_id     BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   track_id    BIGINT UNSIGNED NOT NULL,
   clip_type   ENUM('AUDIO','MIDI') NOT NULL,
   sample_id   BIGINT UNSIGNED NULL,
   pattern_id  BIGINT UNSIGNED NULL,
-  scene_id    BIGINT UNSIGNED NULL,
   name        VARCHAR(100)    NULL,
   start_tick  INT UNSIGNED    NOT NULL,
   length_tick INT UNSIGNED    NOT NULL,
@@ -1126,11 +1102,9 @@ CREATE TABLE clips (
   PRIMARY KEY (clip_id),
   KEY idx_clips_track_start (track_id, start_tick),
   CONSTRAINT fk_clips_track  FOREIGN KEY (track_id)  REFERENCES tracks (track_id) ON DELETE CASCADE,
-  UNIQUE KEY uq_clips_launcher_slot (track_id, scene_id),
   KEY idx_clips_pattern (pattern_id),
   CONSTRAINT fk_clips_sample  FOREIGN KEY (sample_id)  REFERENCES samples (sample_id),
   CONSTRAINT fk_clips_pattern FOREIGN KEY (pattern_id) REFERENCES patterns (pattern_id),
-  CONSTRAINT fk_clips_scene   FOREIGN KEY (scene_id)   REFERENCES launcher_scenes (scene_id) ON DELETE CASCADE,
   CONSTRAINT chk_clips_kind CHECK (
     (clip_type = 'MIDI'  AND pattern_id IS NOT NULL AND sample_id IS NULL) OR
     (clip_type = 'AUDIO' AND sample_id  IS NOT NULL AND pattern_id IS NULL)
@@ -1531,6 +1505,7 @@ CREATE TABLE project_snapshots (
 | 2026-10-01 | AI 제안 채택 반영: `patterns`·`launcher_scenes`(패턴·클립 런처, **`midi_notes.clip_id` → `pattern_id`**), `automation_lanes`·`automation_points`, `project_templates`, `timeline_comments`, `project_snapshots` 추가 / `tracks`: MASTER 타입·담당자·잠금 / `projects`: `scale_mode`·`template_id` / `users`: 저장 용량 / `user_settings`: 테마·배율·단축키·튜토리얼 / Gopher → Nyxi(가칭) (총 33개 테이블) |
 | 2026-10-02 | `dev_notes`(메인 페이지 Development 공지, 관리자만 작성) 추가 · `inquiries.name` NULL 허용, `inquiries.privacy_agreed_at` 추가 (총 34개 테이블). 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-02_contact_devnotes.sql` · §2.1에 남아 있던 옛 테이블 목록 삭제 |
 | 2026-10-03 | `project_sessions`(프로젝트 작업 세션) 추가 — 마이페이지 Recent Projects의 최근 7일 작업 시간 (P1-17). 총 35개 테이블. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-03_project_sessions.sql` |
+| 2026-10-06 | **클립 런처 제거** (사용자 결정 — 런치패드 공연용 기능): `launcher_scenes` 표, `clips.scene_id`·`uq_clips_launcher_slot`·`fk_clips_scene` 삭제. 총 41개 테이블. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-06_remove_clip_launcher.sql` |
 | 2026-10-06 | **시퀀서 기능 보강** ([Sequencer_Feature_Gaps.md](Sequencer_Feature_Gaps.md) A·B + PRD 02 §4.17): 새 표 `track_instruments`(레이어 악기 — `tracks.instrument_plugin_id`·`instrument_params` 삭제), `track_sends`(센드), `track_connections`(Connect to Another), `midi_cc_events`(CC·피치벤드·페달), `markers` / `tracks`: `GROUP`·`RETURN` 종류, `is_enabled`, `parent_track_id`, `frozen_sample_id` / `clips`: 페이드·Warp·음정·거꾸로 / `midi_notes`: `release_velocity`·`is_muted`·`probability`·`velocity_deviation` / `patterns.swing` / `plugins` `MIDI_EFFECT` / `samples` `BOUNCE`·`RESAMPLE` / `export_jobs.export_mode`. 총 42개 테이블. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-06_sequencer_feature_gaps.sql` |
 | 2026-10-05 | `tempo_changes`·`meter_changes` 추가 — 곡 중간 BPM 변속·박자 변경(템포·박자 지도). `projects.bpm`·`time_sig_*`는 시작 값. 총 37개 테이블. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-05_tempo_meter_changes.sql` |
 | 2026-10-05 | `users.privacy_agreed_at`, `users.privacy_version` 추가 — 가입 때 개인정보 처리방침 동의 기록 (GDPR·개인정보 보호법 동의 증빙, [Privacy_Policy_Draft.md](Privacy_Policy_Draft.md) D3). 테이블 수 그대로 35개. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-05_users_privacy_consent.sql` |

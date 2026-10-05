@@ -1,6 +1,6 @@
 # Studio Nx — ERD (관계 설명)
 
-> 그림: [`ERD.png`](ERD.png) · 컬럼 상세: [`DB.md`](DB.md) §3 · DBMS: MySQL 8.0 (`studionx`) · 테이블 42개
+> 그림: [`ERD.png`](ERD.png) · 컬럼 상세: [`DB.md`](DB.md) §3 · DBMS: MySQL 8.0 (`studionx`) · 테이블 41개
 
 ![Studio Nx ERD](ERD.png)
 
@@ -24,7 +24,7 @@
 |---|---|---|
 | 계정 · 사이트 운영 | `users`, `user_settings`, `inquiries`, `dev_notes` | 회원(+저장 용량), UI 설정(테마·단축키·캐릭터·튜토리얼), 문의, 메인 페이지 Development 공지 |
 | 프로젝트 · 협업 | `projects`, `project_members`, `project_sessions`, `invitations`, `project_change_logs`, `chat_messages`, `timeline_comments`, `project_snapshots` | 프로젝트와 참여자·작업 세션·초대·편집이력·톡방·코멘트·스냅샷 |
-| 시퀀서 | `tracks`, `track_instruments`, `track_plugins`, `track_plugin_links`, `track_sends`, `track_connections`, `patterns`, `launcher_scenes`, `clips`, `midi_notes`, `midi_cc_events`, `automation_lanes`, `automation_points`, `tempo_changes`, `meter_changes`, `markers` | 곡의 실제 내용 (트랙·악기·디바이스·라우팅·센드·연결·패턴·런처·클립·노트·CC·오토메이션·템포/박자 지도·마커) |
+| 시퀀서 | `tracks`, `track_instruments`, `track_plugins`, `track_plugin_links`, `track_sends`, `track_connections`, `patterns`, `clips`, `midi_notes`, `midi_cc_events`, `automation_lanes`, `automation_points`, `tempo_changes`, `meter_changes`, `markers` | 곡의 실제 내용 (트랙·악기·디바이스·라우팅·센드·연결·패턴·클립·노트·CC·오토메이션·템포/박자 지도·마커) |
 | 라이브러리 · 플러그인 · 템플릿 | `samples`, `tags`, `sample_tags`, `plugins`, `plugin_presets`, `project_templates` | 샘플 라이브러리, 태그, 웹 플러그인 목록·프리셋, 프로젝트 템플릿 |
 | 출력 · 분리 | `export_jobs`, `separation_jobs`, `separation_stems` | 오디오 출력 작업, 악기 분리 작업과 결과 |
 | AI | `reference_tracks`, `reference_tags`, `ai_analyses`, `ai_recommendations`, `assistant_messages` | 레퍼런스 분석·추천, Nyxi 도우미 대화 |
@@ -63,8 +63,6 @@
 | projects → patterns | 1 : N | `patterns.project_id` | MIDI 패턴 (노트 묶음) |
 | patterns → midi_notes | 1 : N | `midi_notes.pattern_id` | 노트는 **패턴**에 속함 |
 | patterns → clips | 0..1 : N | `clips.pattern_id` (null) | MIDI 클립은 패턴 필수. 같은 패턴을 쓰는 클립 = 링크 클립 |
-| projects → launcher_scenes | 1 : N | `launcher_scenes.project_id` | 클립 런처 씬(행) |
-| launcher_scenes → clips | 0..1 : N | `clips.scene_id` (null) | NULL = 타임라인 클립, 값 = 런처 슬롯 `(track_id, scene_id)` 유일 |
 | tracks → automation_lanes | 1 : N | `automation_lanes.track_id` | 트랙별 오토메이션 레인 (MASTER 포함) |
 | track_plugins → automation_lanes | 0..1 : N | `automation_lanes.track_plugin_id` (null) | 디바이스 파라미터 오토메이션 |
 | automation_lanes → automation_points | 1 : N | `automation_points.lane_id` | 포인트 (tick, 값, 곡선) |
@@ -116,7 +114,7 @@
 | projects → assistant_messages | 0..1 : N | `assistant_messages.project_id` (null) | 대화가 일어난 프로젝트 |
 
 ## 5. 꼭 알아둘 규칙
-1. **프로젝트를 지우면** 트랙·클립·패턴·노트·디바이스·연결선·오토메이션·씬·멤버·초대·이력·채팅·코멘트·스냅샷·출력이 함께 지워집니다(CASCADE). 레퍼런스·추천·Nyxi 대화는 `project_id`만 NULL이 됩니다.
+1. **프로젝트를 지우면** 트랙·클립·패턴·노트·디바이스·연결선·오토메이션·멤버·초대·이력·채팅·코멘트·스냅샷·출력이 함께 지워집니다(CASCADE). 레퍼런스·추천·Nyxi 대화는 `project_id`만 NULL이 됩니다.
 2. **회원·샘플·프로젝트는 소프트 삭제**(`deleted_at`)입니다. 실제 DELETE가 거의 일어나지 않아 users FK는 RESTRICT입니다.
 3. **N:M 연결 테이블은 3개**: `project_members`, `sample_tags`, `reference_tags` (모두 복합 PK).
 4. **분리 결과와 출력 결과는 `samples`에 다시 들어갑니다** (`source = 'SEPARATION' / 'EXPORT'`). 그래서 타임라인에서 일반 샘플처럼 쓸 수 있습니다.
