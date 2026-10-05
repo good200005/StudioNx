@@ -17,7 +17,7 @@
    ..\.venv\Scripts\python -m pytest -q
    ```
    `.venv`가 없으면 `docs/ai-notes/01_dev_environment.md` 절차로 만든다. 설치한 패키지가 있었으면 사용자에게 알린다. `ModuleNotFoundError`가 나면 먼저 이 단계를 다시 한다.
-3. 작업 전에 **`docs/context_*.md` 중 날짜가 가장 최신인 파일을 먼저 읽는다** (1번으로 최신 브랜치에 맞춘 뒤, 현재: `docs/context_2026-10-04.md`). 지금까지의 결정·진행 상황·남은 일·사용자 주의 사항(PowerShell 사용 등)이 정리되어 있다. Claude Code 메모리는 컴퓨터마다 따로라서 이 파일이 맥락을 이어 준다.
+3. 작업 전에 **`docs/context_*.md` 중 날짜가 가장 최신인 파일을 먼저 읽는다** (1번으로 최신 브랜치에 맞춘 뒤, 현재: `docs/context_2026-10-05.md`). 지금까지의 결정·진행 상황·남은 일·사용자 주의 사항(PowerShell 사용 등)이 정리되어 있다. Claude Code 메모리는 컴퓨터마다 따로라서 이 파일이 맥락을 이어 준다.
 
 ## 프로젝트 원칙 (반드시 지킬 것)
 @StudioNx_CLAUDE.md
