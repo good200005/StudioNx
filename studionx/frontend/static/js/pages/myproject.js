@@ -6,7 +6,7 @@
 import { initAuthState } from '../core/auth-ui.js';
 import { requireLogin, logout } from '../core/auth.js';
 import { initModalFallback } from '../core/modal.js';
-import { canOpenStudio, showDesktopOnly, initDesktopOnlyLinks } from '../core/studio.js';
+import { canOpenStudio, showDesktopOnly, initDesktopOnlyLinks, openStudio } from '../core/studio.js';
 import { includePartials } from '../core/include.js';
 
 /** 한 페이지에 보여 줄 프로젝트 수 (FR-123) */
@@ -72,7 +72,9 @@ export function initSearch() {
  *   (#new-sig 의 '7/8' 을 num 7 / den 8 로 나눠서)
  * - 서버가 OWNER 멤버 + MASTER 트랙까지 한 트랜잭션으로 만듦 (P1-13)
  * - 성공 (FR-129):
- *   · canOpenStudio() 이면 location.href = `studioNx.html?projectId=${project_id}`
+ *   · canOpenStudio() 이면 openStudio(project_id, { isNew: true })  — 별도 창 + 로딩 "새 프로젝트" 모드
+ *     (팝업이 막히지 않게: 제출 클릭 때 빈 창을 먼저 열고, 응답 뒤 그 창 주소를 바꿈 — studio.js openStudio 설명)
+ *     만든 뒤 이 목록 창은 그대로 두고 목록만 다시 받음 (새 프로젝트가 맨 위)
  *   · 아니면 모달 닫고 목록 다시 받기(새 프로젝트가 맨 위) + showDesktopOnly('created', title)
  * - 실패: #new-project-error 에 서버 메시지 (hidden 해제). 전송 중 버튼 disabled
  */
