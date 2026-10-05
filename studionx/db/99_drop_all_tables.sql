@@ -21,6 +21,8 @@ DROP TABLE IF EXISTS separation_jobs;
 DROP TABLE IF EXISTS export_jobs;
 DROP TABLE IF EXISTS user_settings;
 DROP TABLE IF EXISTS project_templates;
+DROP TABLE IF EXISTS meter_changes;
+DROP TABLE IF EXISTS tempo_changes;
 DROP TABLE IF EXISTS automation_points;
 DROP TABLE IF EXISTS automation_lanes;
 DROP TABLE IF EXISTS midi_notes;

@@ -4,17 +4,17 @@
 |---|---|
 | DBMS | MySQL 8.0 (CHECK 제약 사용 → 8.0.16 이상 필요) |
 | Database | `studionx` (문자셋 `utf8mb4` / `utf8mb4_0900_ai_ci`) |
-| 테이블 수 | 35개 |
+| 테이블 수 | 37개 |
 | 설계 원본 | `docs/DB.md` (컬럼 상세·설계 이유), `docs/ERD.md` (관계 설명) |
 | 작성일 | 2026-10-01 (최종 수정 2026-10-05) |
-| 상태 | 로컬 DB에 01~06 실행 완료, 2026-10-02 · 10-03 · 10-05 변경 SQL(§2.5)까지 반영 → **35개 테이블 확인** |
+| 상태 | 로컬 DB에 01~06 실행 완료, 2026-10-02 · 10-03 · 10-05 변경 SQL(§2.5)까지 반영 → **37개 테이블 확인** |
 
 ## 1. 파일 구성
 | 순서 | 파일 | 내용 | 테이블 수 | 실행 시기 (구현 계획 기준) |
 |---|---|---|---|---|
 | 0 | `00_create_database.sql` | database `studionx` + 앱 계정 `studionx_app` 생성 | — | 개발 시작 시 (root 계정) |
 | 1 | `01_phase1_account.sql` | 회원, 문의, Development 공지, 프로젝트, 프로젝트 멤버 | 5 | 1단계 S1-02 |
-| 2 | `02_phase2_sequencer.sql` | 샘플·태그·플러그인·트랙·디바이스·패턴·클립·노트·오토메이션·템플릿·UI 설정 | 16 | 1단계 S1-05 ~ |
+| 2 | `02_phase2_sequencer.sql` | 샘플·태그·플러그인·트랙·디바이스·패턴·클립·노트·오토메이션·템포/박자 지도·템플릿·UI 설정 | 18 | 1단계 S1-05 ~ |
 | 3 | `03_phase3_export.sql` | 오디오 출력 작업 | 1 | 1단계 S1-11 |
 | 4 | `04_phase4_separation.sql` | 악기 분리 작업·결과 | 2 | 2단계 S2-14 |
 | 5 | `05_phase5_ai.sql` | 레퍼런스·AI 분석·추천·Nyxi 대화 | 5 | 2단계 S2-12 |
@@ -23,7 +23,7 @@
 
 - 파일 번호 순서대로 실행해야 합니다. 뒤 파일의 테이블이 앞 파일의 테이블을 외래키로 참조합니다.
 - 한 번에 모두 만들어도 되고, 구현 단계에 맞춰 필요한 파일만 실행해도 됩니다.
-- 확인한 것: 35개 테이블 중복 없음, 모든 외래키 대상이 먼저 생성됨, MySQL 문법 파싱 통과, 로컬 MySQL 8.0에서 실제 실행.
+- 확인한 것: 37개 테이블 중복 없음, 모든 외래키 대상이 먼저 생성됨, MySQL 문법 파싱 통과, 로컬 MySQL 8.0에서 실제 실행.
 
 ## 2. 실행 방법
 > **PowerShell에서는 `<`를 쓸 수 없습니다** (`The '<' operator is reserved for future use.` 오류).
@@ -76,6 +76,7 @@ mysql -u studionx_app -p studionx -e "source db/99_drop_all_tables.sql"
 mysql -u studionx_app -p studionx -e "source db/migrations/2026-10-02_contact_devnotes.sql"
 mysql -u studionx_app -p studionx -e "source db/migrations/2026-10-03_project_sessions.sql"
 mysql -u studionx_app -p studionx -e "source db/migrations/2026-10-05_users_privacy_consent.sql"
+mysql -u studionx_app -p studionx -e "source db/migrations/2026-10-05_tempo_meter_changes.sql"
 ```
 확인: §2.3의 테이블 수가 35이고, 아래 명령 결과로 한 줄이 나오면 정상입니다.
 
@@ -111,6 +112,8 @@ mysql -u studionx_app -p studionx -e "SHOW COLUMNS FROM inquiries LIKE 'privacy_
 | `midi_notes` | 패턴의 노트 | FK pattern_id |
 | `automation_lanes` | 오토메이션 레인 | FK track_id, track_plugin_id |
 | `automation_points` | 오토메이션 포인트 | FK lane_id |
+| `tempo_changes` | 곡 중간 템포 변경점 (시작 템포는 `projects.bpm`) | FK project_id, UQ (project_id, tick) |
+| `meter_changes` | 곡 중간 박자 변경점 (시작 박자는 `projects.time_sig_*`) | FK project_id, UQ (project_id, tick) |
 | `project_templates` | 프로젝트 템플릿 | FK owner_id, genre_tag_id |
 | `user_settings` | 테마·단축키·캐릭터·팁·튜토리얼 설정 | PK = FK user_id |
 
@@ -151,12 +154,14 @@ mysql -u studionx_app -p studionx -e "SHOW COLUMNS FROM inquiries LIKE 'privacy_
 | `clips` | `chk_clips_kind` | MIDI 클립 = pattern_id 필수·sample_id 없음 / AUDIO 클립 = 그 반대 |
 | `midi_notes` | `chk_notes_pitch`, `chk_notes_velocity` | 음높이 0~127, 벨로시티 1~127 |
 | `automation_points` | `chk_points_curve` | 곡선 정도 -1.00 ~ 1.00 |
+| `tempo_changes` | `chk_tempo_bpm`, `chk_tempo_tick` | 템포 20 ~ 300, 위치 > 0 (0 위치는 `projects.bpm`) |
+| `meter_changes` | `chk_meter_num`, `chk_meter_den`, `chk_meter_tick` | 분자 1 ~ 32, 분모 1·2·4·8·16·32, 위치 > 0 |
 | `reference_tracks` | `chk_ref_source` | LINK면 source_url, FILE이면 file_path 필수 |
 
 ### 5.2 삭제 정책 요약
 | 경우 | 동작 |
 |---|---|
-| 프로젝트 삭제 | 트랙·클립·패턴·노트·디바이스·오토메이션·씬·멤버·작업 세션·초대·이력·채팅·코멘트·스냅샷·출력이 함께 삭제 (CASCADE) |
+| 프로젝트 삭제 | 트랙·클립·패턴·노트·디바이스·오토메이션·템포/박자 변경점·씬·멤버·작업 세션·초대·이력·채팅·코멘트·스냅샷·출력이 함께 삭제 (CASCADE) |
 | 프로젝트 삭제 시 레퍼런스·AI 추천·Nyxi 대화 | `project_id`만 NULL (SET NULL) |
 | 사용 중인 샘플·패턴 | 바로 삭제 불가 (RESTRICT) — 샘플은 소프트 삭제 |
 | 트랙·클립 삭제 시 코멘트 | 코멘트는 남고 `track_id`/`clip_id`만 NULL |
@@ -173,3 +178,4 @@ mysql -u studionx_app -p studionx -e "SHOW COLUMNS FROM inquiries LIKE 'privacy_
 | `migrations/2026-10-02_contact_devnotes.sql` | `inquiries.name` NULL 허용 + `privacy_agreed_at` 추가, `dev_notes` 생성 | 2026-10-02 이전에 01~06을 실행한 DB (로컬 DB 실행 완료) |
 | `migrations/2026-10-03_project_sessions.sql` | `project_sessions` 생성 (마이페이지 작업 시간, P1-17) | 2026-10-03 이전에 01을 실행한 DB (로컬 DB 실행 완료) |
 | `migrations/2026-10-05_users_privacy_consent.sql` | `users.privacy_agreed_at`·`privacy_version` 추가 (가입 때 처리방침 동의 기록) | 2026-10-05 이전에 01을 실행한 DB (로컬 DB 실행 완료) |
+| `migrations/2026-10-05_tempo_meter_changes.sql` | `tempo_changes`·`meter_changes` 생성 (곡 중간 BPM 변속·박자 변경) | 2026-10-05 이전에 02를 실행한 DB |

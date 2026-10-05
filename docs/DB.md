@@ -44,6 +44,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 시퀀서의 위치·길이는 초(sec)가 아닌 **tick** 단위로 저장합니다. BPM이 바뀌어도 음표 위치가 틀어지지 않기 위함입니다.
 - **PPQ(4분음표 1개당 tick 수) = 960**
 - 예: 4/4 박자 1마디 = 960 × 4 = 3840 tick
+- **템포·박자 지도**: 시작 BPM·박자는 `projects.bpm`, `time_sig_num/den`, 곡 중간 변경은 `tempo_changes`·`meter_changes` (2026-10-05). tick 은 그대로이고, **실제 시간(초)과 마디 번호는 이 지도로 계산**합니다. 그래서 BPM·박자를 바꿔도 노트·클립·오토메이션은 박자 위치에 붙어 있습니다.
+- 6/8 처럼 분모가 8 이면 1마디 = 960 × 6 ÷ 2 = 2880 tick (1마디 tick = 960 × 4 ÷ 분모 × 분자)
 
 ### 1.5 파일 저장 정책
 - 오디오/MIDI/이미지 파일은 **DB에 BLOB으로 저장하지 않습니다.**
@@ -98,6 +100,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | 33 | `project_snapshots` | 버전 스냅샷 | 6 |
 | 34 | `dev_notes` | 메인 페이지 Development 공지 (관리자만 작성) | 1 |
 | 35 | `project_sessions` | 프로젝트 작업 세션 (마이페이지 최근 7일 작업 시간) | 1 (표시) / 2 (기록) |
+| 36 | `tempo_changes` | 곡 중간 템포 변경점 (템포 지도) | 2 |
+| 37 | `meter_changes` | 곡 중간 박자 변경점 (박자 지도) | 2 |
 
 ---
 
@@ -165,8 +169,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | owner_id | BIGINT UNSIGNED | N | | FK → users, IDX | 생성자(소유자) |
 | title | VARCHAR(100) | N | | | 프로젝트 이름 |
 | description | VARCHAR(500) | Y | NULL | | 설명 |
-| bpm | DECIMAL(6,2) | N | 120.00 | | 템포 |
-| time_sig_num | TINYINT UNSIGNED | N | 4 | | 박자 분자 (4/4의 앞 4) |
+| bpm | DECIMAL(6,2) | N | 120.00 | | **시작** 템포 (곡 중간 변경은 `tempo_changes`) |
+| time_sig_num | TINYINT UNSIGNED | N | 4 | | **시작** 박자 분자 (4/4의 앞 4, 곡 중간 변경은 `meter_changes`) |
 | time_sig_den | TINYINT UNSIGNED | N | 4 | | 박자 분모 |
 | music_key | VARCHAR(10) | Y | NULL | | 조성 (예: `C#m`) |
 | scale_mode | VARCHAR(20) | Y | NULL | | 스케일 (`major`, `minor`, `dorian`, `pentatonic_minor` 등) — 스케일 도우미용 |
@@ -386,6 +390,28 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | tick | INT UNSIGNED | N | | | 타임라인 위치 |
 | value | DECIMAL(12,4) | N | | | 파라미터 **실제 단위** 값 (dB, Hz 등) |
 | curve | DECIMAL(3,2) | N | 0.00 | | 다음 포인트까지 곡선 정도 (-1.00 ~ 1.00, 0 = 직선) |
+
+#### `tempo_changes` — 템포 변경점 (템포 지도)
+| 컬럼 | 타입 | NULL | 기본값 | 키 | 설명 |
+|---|---|---|---|---|---|
+| tempo_change_id | BIGINT UNSIGNED | N | AUTO_INCREMENT | PK | |
+| project_id | BIGINT UNSIGNED | N | | FK → projects, UQ(project_id, tick) | |
+| tick | INT UNSIGNED | N | | | 변경 위치 (> 0. 0 위치의 템포는 `projects.bpm`) |
+| bpm | DECIMAL(6,2) | N | | | 템포 (20.00 ~ 300.00) |
+| ramp | ENUM('STEP','LINEAR') | N | 'STEP' | | `STEP` = 이 위치에서 바로 바뀜 / `LINEAR` = 직전 템포 지점부터 이 위치까지 서서히 바뀜 |
+| created_at | DATETIME(3) | N | CURRENT | | |
+
+#### `meter_changes` — 박자 변경점 (박자 지도)
+| 컬럼 | 타입 | NULL | 기본값 | 키 | 설명 |
+|---|---|---|---|---|---|
+| meter_change_id | BIGINT UNSIGNED | N | AUTO_INCREMENT | PK | |
+| project_id | BIGINT UNSIGNED | N | | FK → projects, UQ(project_id, tick) | |
+| tick | INT UNSIGNED | N | | | 변경 위치 (> 0, **마디 경계만** — 애플리케이션에서 검사) |
+| time_sig_num | TINYINT UNSIGNED | N | | | 분자 (1 ~ 32) |
+| time_sig_den | TINYINT UNSIGNED | N | | | 분모 (1·2·4·8·16·32) |
+| created_at | DATETIME(3) | N | CURRENT | | |
+
+> 시퀀서 화면: 오토메이션 모드에서 맨 위 **Tempo** 줄(점·계단/직선)과 **Meter** 줄(마디 단위 덩어리)로 편집합니다. 처음엔 변경점이 없어 평평한 선·한 덩어리입니다 ([Sequencer_Layout_Mockup.md](Sequencer_Layout_Mockup.md) 목업 14).
 
 #### `project_templates` — 프로젝트 템플릿
 | 컬럼 | 타입 | NULL | 기본값 | 키 | 설명 |
@@ -637,6 +663,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | patterns → clips | RESTRICT | 클립이 쓰는 패턴은 지울 수 없음 (마지막 클립이 지워지면 애플리케이션이 패턴 정리) |
 | projects → launcher_scenes → clips(scene_id) | CASCADE | 씬을 지우면 그 행의 런처 클립도 삭제 |
 | tracks → automation_lanes → automation_points | CASCADE | |
+| projects → tempo_changes, meter_changes | CASCADE | 템포·박자 지도는 프로젝트의 일부 |
 | track_plugins → automation_lanes | CASCADE | 디바이스를 지우면 그 파라미터 오토메이션도 삭제 |
 | projects → timeline_comments, project_snapshots | CASCADE | |
 | tracks / clips → timeline_comments | SET NULL | 트랙·클립이 지워져도 코멘트는 tick 위치로 남음 |
@@ -1001,6 +1028,35 @@ CREATE TABLE automation_points (
   CONSTRAINT chk_points_curve CHECK (curve BETWEEN -1.00 AND 1.00)
 ) ENGINE=InnoDB;
 
+CREATE TABLE tempo_changes (
+  tempo_change_id BIGINT UNSIGNED       NOT NULL AUTO_INCREMENT,
+  project_id      BIGINT UNSIGNED       NOT NULL,
+  tick            INT UNSIGNED          NOT NULL,
+  bpm             DECIMAL(6,2)          NOT NULL,
+  ramp            ENUM('STEP','LINEAR') NOT NULL DEFAULT 'STEP',
+  created_at      DATETIME(3)           NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (tempo_change_id),
+  UNIQUE KEY uq_tempo_project_tick (project_id, tick),
+  CONSTRAINT fk_tempo_project FOREIGN KEY (project_id) REFERENCES projects (project_id) ON DELETE CASCADE,
+  CONSTRAINT chk_tempo_bpm  CHECK (bpm BETWEEN 20.00 AND 300.00),
+  CONSTRAINT chk_tempo_tick CHECK (tick > 0)
+) ENGINE=InnoDB;
+
+CREATE TABLE meter_changes (
+  meter_change_id BIGINT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  project_id      BIGINT UNSIGNED  NOT NULL,
+  tick            INT UNSIGNED     NOT NULL,
+  time_sig_num    TINYINT UNSIGNED NOT NULL,
+  time_sig_den    TINYINT UNSIGNED NOT NULL,
+  created_at      DATETIME(3)      NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (meter_change_id),
+  UNIQUE KEY uq_meter_project_tick (project_id, tick),
+  CONSTRAINT fk_meter_project FOREIGN KEY (project_id) REFERENCES projects (project_id) ON DELETE CASCADE,
+  CONSTRAINT chk_meter_num  CHECK (time_sig_num BETWEEN 1 AND 32),
+  CONSTRAINT chk_meter_den  CHECK (time_sig_den IN (1, 2, 4, 8, 16, 32)),
+  CONSTRAINT chk_meter_tick CHECK (tick > 0)
+) ENGINE=InnoDB;
+
 CREATE TABLE project_templates (
   template_id  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   owner_id     BIGINT UNSIGNED NULL,
@@ -1288,5 +1344,6 @@ CREATE TABLE project_snapshots (
 | 2026-10-01 | AI 제안 채택 반영: `patterns`·`launcher_scenes`(패턴·클립 런처, **`midi_notes.clip_id` → `pattern_id`**), `automation_lanes`·`automation_points`, `project_templates`, `timeline_comments`, `project_snapshots` 추가 / `tracks`: MASTER 타입·담당자·잠금 / `projects`: `scale_mode`·`template_id` / `users`: 저장 용량 / `user_settings`: 테마·배율·단축키·튜토리얼 / Gopher → Nyxi(가칭) (총 33개 테이블) |
 | 2026-10-02 | `dev_notes`(메인 페이지 Development 공지, 관리자만 작성) 추가 · `inquiries.name` NULL 허용, `inquiries.privacy_agreed_at` 추가 (총 34개 테이블). 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-02_contact_devnotes.sql` · §2.1에 남아 있던 옛 테이블 목록 삭제 |
 | 2026-10-03 | `project_sessions`(프로젝트 작업 세션) 추가 — 마이페이지 Recent Projects의 최근 7일 작업 시간 (P1-17). 총 35개 테이블. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-03_project_sessions.sql` |
+| 2026-10-05 | `tempo_changes`·`meter_changes` 추가 — 곡 중간 BPM 변속·박자 변경(템포·박자 지도). `projects.bpm`·`time_sig_*`는 시작 값. 총 37개 테이블. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-05_tempo_meter_changes.sql` |
 | 2026-10-05 | `users.privacy_agreed_at`, `users.privacy_version` 추가 — 가입 때 개인정보 처리방침 동의 기록 (GDPR·개인정보 보호법 동의 증빙, [Privacy_Policy_Draft.md](Privacy_Policy_Draft.md) D3). 테이블 수 그대로 35개. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-05_users_privacy_consent.sql` |
 | 2026-10-01 | 이름 **Nyxi** 확정 · `user_settings.tips_level`/`tips_state`(Nyxi 팁) · `plugins.card_asset` 및 `param_schema`의 `primary`/`group`(카드 UI·상세 모달) 추가 |
