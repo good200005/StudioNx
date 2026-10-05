@@ -5,8 +5,9 @@
 | 기준 | 사용자 레퍼런스 `studionx/frontend-reference/images/sequencer reference/sequencer 기본 배치.pdf` (5쪽, 2026-10-05) |
 | 이전 문서 | [Sequencer_UI_Reference_Analysis.md](Sequencer_UI_Reference_Analysis.md) — Ableton : FL 유사도 목업 |
 | 작성일 | 2026-10-05 |
-| 목업 | `docs/page_mockups/sequencer/layout/` — 상태별 14장 + 개요, 소스 `_source/layout.html?s=1..14` |
+| 목업 | `docs/page_mockups/sequencer/layout/` — 상태별 18장 + 개요, 소스 `_source/layout.html?s=1..18` |
 | PRD | [PRD 02](PRD/02_Phase2_Sequencer_Core.md) §4.17 FR-2191~2202 에 이 문서의 결정을 반영 (2026-10-05) · 빠진 기능 후보는 [Sequencer_Feature_Gaps.md](Sequencer_Feature_Gaps.md) |
+| 언어 목업 | `docs/page_mockups/sequencer/lang/` — 영어(기본)·한국어·일본어 × 01·05·17·18 (§8), 소스 `layout.html?s=N&theme=C&lang=en|ko|ja` + `_source/i18n.js` |
 | 색 시안 | `docs/page_mockups/sequencer/color/` — home.html 색 배치 기준 5개 × 3장 (§7), 소스는 같은 `layout.html?s=N&theme=A|B|C|D|L` |
 | 상태 | 화면 배치 확인용 목업 (HTML/CSS 목업, 실제 화면 코드 아님). **Q1~Q12 모두 결정 (2026-10-05, §5)** |
 | 갱신 | 2026-10-05 사용자 의견 반영: ① 샘플 클립은 트랙에서도 파형 ② 가(연결)를 단순하게 — Connect to Another ③ 화면 글자는 영어 (협업 채팅·Nyxi 채팅·목업 아래 설명 줄은 한국어) ④ M·S·● 버튼을 Cubase처럼 트랙 이름 옆으로 ⑤ 마지막 트랙 아래 `＋ Add Track` (트랙 머리와 같은 폭·높이) ⑥ 오토메이션 범위 규칙 + 빈 칸에 패턴이 들어올 때 창 (09) ⑦ 언어 설정 영어/한국어/일본어, 기본 영어 (01 상단바 `EN ▾`) ⑧ MIDI 패턴 클립 안에 실제 노트(음 높이·길이)를 작게 표시 ⑨ 레이어링 두 가지 (10~12, §4.4) |
@@ -14,14 +15,14 @@
 ---
 
 ## 1. 한눈에
-![기본 배치 목업 14장](page_mockups/sequencer/layout/00_overview.png)
+![기본 배치 목업 18장](page_mockups/sequencer/layout/00_overview.png)
 
 | 번호 | 파일 | 상태 |
 |---|---|---|
 | 01 | `01_default.png` | 기본 (평소) |
 | 02 | `02_collab.png` | 협업 패널 열림 (협업자 + 채팅) |
 | 03 | `03_automation.png` | 오토메이션 모드 (A) |
-| 04 | `04_track_serial.png` | 트랙 펼침 (V) — 이펙트 직렬 |
+| 04 | `04_track_serial.png` | 트랙 펼침 (V) — 이펙트 직렬, **카드 끌어서 순서 바꾸기** (＋ 는 마지막 이펙트 뒤에만) |
 | 05 | `05_track_parallel.png` | 트랙 펼침 — 병렬 분기·병합, Connect to Another 연결 → Mixer 꺼짐 |
 | 06 | `06_piano_roll.png` | MIDI 패턴 클릭 → 피아노 롤 |
 | 07 | `07_sample.png` | 샘플 클릭 → 샘플 설정 |
@@ -32,6 +33,10 @@
 | 12 | `12_layer_from.png` | 레이어링 ② 받는 쪽 — `<from Track 10>` |
 | 13 | `13_mixer.png` | `Tab` 또는 왼쪽 `Mixer` 버튼 → 아래 칸에 모든 트랙 믹서 + MASTER |
 | 14 | `14_tempo_meter.png` | 오토메이션 모드 맨 위 **Tempo · Meter 줄** — 곡 중간 BPM 변속·박자 변경 |
+| 15 | `15_group_return.png` | **그룹(폴더) 트랙 · 리턴 트랙 · MASTER 맨 아래** · Mixer 칸 Send A·B · MIDI FX (PRD 02 FR-2211·2212·2225) |
+| 16 | `16_arrange_edit.png` | **편곡 편집** — 마커 줄, 시간 범위 선택 + Insert/Delete/Duplicate Time 메뉴, 페이드·크로스페이드, 프리즈, 펀치, Follow, 오토메이션 Arm, Missing/Unused 샘플 (FR-2213·2215~2217·2221·2222·2224·2230) |
+| 18 | `18_menu_edit.png` | **상단 메뉴 — 편집 펼침** (파일~도움말 항목은 PRD 02 §4.19 FR-2241~2249) |
+| 17 | `17_pianoroll_plus.png` | **피아노롤 확장** — Chop·Glue·Legato·Humanize·Quantize %, 스윙, 노트 뮤트·확률, 다른 트랙 흐린 노트, Control 레인(CC64 서스테인·피치벤드) (FR-2219·2220·2223·2226·2227) |
 
 ## 2. PDF 요구 → 목업 반영
 | PDF 요구 | 목업 |
@@ -174,9 +179,9 @@
 ## 6. 다시 만들기
 ```powershell
 cd docs/page_mockups/sequencer/layout/_source
-node shot.mjs ..        # 01~14 PNG (Chrome headless, 1440×960)
+node shot.mjs ..        # 01~18 PNG (Chrome headless, 1440×960), 일부만: node shot.mjs .. 15,16
 ```
-개요(`00_overview.png`)는 14장을 이어 붙인 그림입니다.
+개요(`00_overview.png`)는 18장을 이어 붙인 그림입니다. 모든 장면에서 **MASTER 트랙은 트랙 목록 맨 아래** (2026-10-06 결정).
 
 ## 7. 색 시안 — home.html 색 배치 기준 (2026-10-05)
 ![색 시안 5개](page_mockups/sequencer/color/00_overview.png)
@@ -218,5 +223,22 @@ node shot.mjs ..        # 01~14 PNG (Chrome headless, 1440×960)
 ```powershell
 cd docs/page_mockups/sequencer/color/_source
 node shot.mjs ..        # A~D·L × 01·05·06 PNG (node shot.mjs .. L 처럼 일부만도 가능)
+```
+
+## 8. 언어 목업 — 영어 · 한국어 · 일본어 (2026-10-06)
+![언어 목업](page_mockups/sequencer/lang/00_overview.png)
+
+| 항목 | 내용 |
+|---|---|
+| 기준 | PRD 02 FR-2171 — 영어(기본) / 한국어 / 일본어, 상단바 `🌐 EN ▾` 에서 바꿈 |
+| 바뀌는 것 | 화면 글자 — 메뉴, 버튼, 왼쪽 분류, 칸 제목(INSTRUMENT·EFFECTS·CONNECT TO ANOTHER·MIXER), 안내 줄, 시간 단위(분:초:밀리초·마디), 피아노롤 명령·속성·레인 탭, 배지(MAIN·GROUP·RETURN) |
+| 그대로인 것 | 사용자가 정한 이름(트랙·패턴·마커·파일), 채팅 내용, 플러그인 이름과 파라미터 이름(Wavetable · Osc · Filter 등 — 플러그인이 정함), 음 이름(C#5), 단위·숫자(BPM, dB, LUFS), MASTER · PAT/SONG · MIDI 같은 DAW 고유 이름 |
+| 파일 | `lang/en_01·05·17·18.png`, `ko_…`, `ja_…`, 개요 `00_overview.png` (18 = 편집 메뉴) |
+| 번역표 | `layout/_source/i18n.js` — 실제 구현 때 언어 파일(예: `static/i18n/ko.json`)로 옮기면 됨 |
+| 확인한 점 | 한국어·일본어는 글자가 길어져도 칸 안에 들어감. 왼쪽 버튼 줄 이름(オートメーション 등)은 작게 줄어 보이므로 실제 화면에서는 아이콘 툴팁으로 보완 권장 |
+
+```powershell
+cd docs/page_mockups/sequencer/lang/_source
+node shot.mjs ..        # en·ko·ja × 01·05·17·18 PNG
 ```
 
