@@ -174,13 +174,16 @@
   .route .row { display: flex; gap: 6px; align-items: center; }
   .route .note { font-size: 10px; color: var(--soft); line-height: 1.4; }
   .route.live .sel.type { border-color: var(--org); color: #fff; }
-  .mixc { flex: 1; display: grid; grid-template-columns: 1fr 1fr; padding: 8px 6px; gap: 4px; justify-items: center; position: relative; }
+  .mixc { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 6px 10px; }
+  .vm { flex: 1; min-height: 0; display: flex; gap: 12px; }          /* 볼륨(왼쪽) · 미터(오른쪽) — 남는 높이를 채워 펼침 높이에 비례 */
+  .dbv2 { font-size: 10.5px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .panrow { display: flex; align-items: center; gap: 5px; font-size: 9.5px; font-weight: 700; color: var(--faint); }
   .meter { width: 14px; height: 100%; display: flex; gap: 2px; } .meter i { flex: 1; background: rgb(0 0 0 / .4); position: relative; } .meter i::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: var(--m); background: linear-gradient(#ff5d5d, #ffd166 25%, #7ee08a 45%); }
   .fader { width: 6px; height: 100%; background: rgb(0 0 0 / .4); position: relative; } .fader::after { content: ""; position: absolute; left: -8px; right: -8px; top: 34%; height: 10px; background: #d8d3dc; border-radius: 2px; }
   .mixc .db { grid-column: 1 / -1; font-size: 10px; color: var(--soft); display: flex; gap: 6px; align-items: center; }
   .mixc .pan { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--soft); position: relative; } .mixc .pan::after { content: ""; position: absolute; left: 50%; top: 1px; width: 2px; height: 8px; background: var(--soft); transform: translateX(-50%) rotate(-25deg); transform-origin: 50% 9px; }
   .mixc .ms { grid-column: 1 / -1; display: flex; gap: 3px; } .mixc .ms i { font-style: normal; border: 1px solid var(--line2); padding: 0 5px; font-size: 10px; color: var(--soft); }
-  .dis { position: absolute; inset: 22px 0 0; background: rgb(20 16 22 / .82); display: grid; place-items: center; text-align: center; padding: 6px; font-size: 10px; color: var(--soft); line-height: 1.4; }
+  .dis { position: absolute; inset: 25px 0 0; z-index: 2; background: var(--panel); display: grid; place-items: center; text-align: center; padding: 6px; font-size: 10px; color: var(--soft); line-height: 1.4; }
   .dis b { color: var(--org); display: block; font-size: 11px; }
   /* 아래 칸 */
   .ctx { border-top: 2px solid var(--vi); background: var(--panel); display: grid; grid-template-rows: 26px 1fr; min-height: 0; overflow: hidden; }
@@ -221,7 +224,7 @@
   /* 아래 칸 믹서 (Tab) */
   .mx { display: flex; min-height: 0; }
   .mxl { flex: 1; display: flex; overflow: hidden; }
-  .mxs { width: 96px; flex: none; border-right: 1px solid var(--line); display: grid; grid-template-rows: auto auto auto 26px 1fr auto auto; justify-items: center; gap: 3px; padding: 0 0 6px; }
+  .mxs { width: 96px; flex: none; border-right: 1px solid var(--line); display: grid; grid-template-rows: auto auto auto 1fr auto auto auto; justify-items: center; gap: 3px; padding: 0 0 6px; }
   .mxs .nm { justify-self: stretch; font-size: 10.5px; font-weight: 600; color: #fff; background: var(--tc); padding: 3px 6px; white-space: nowrap; overflow: hidden; }
   .mxs small { font-size: 9px; color: var(--faint); white-space: nowrap; max-width: 90px; overflow: hidden; }
   .mxs .fxn { font-size: 9.5px; color: var(--soft); border: 1px solid var(--line2); padding: 0 5px; }
@@ -259,7 +262,7 @@
   html[class*="t-"] .rail .b.on { box-shadow: inset 2px 0 0 var(--vi); }
   html[class*="t-"] .ph .up { border-radius: 0; background: var(--bg); color: var(--vi); border: 1px solid var(--vi); }
   html[class*="t-"] .acc { background: var(--panel2); box-shadow: inset 0 2px 6px rgb(0 0 0 / .12); }
-  html.t-D .dis { background: rgb(246 245 249 / .88); } html.t-D .route.live .sel.type { color: var(--ink); }
+  html.t-D .route.live .sel.type { color: var(--ink); }
   html[class*="t-"] .playhead { background: var(--vi); opacity: 1; }
   html[class*="t-"] .marks span { color: var(--soft); } html[class*="t-"] .marks span::before { color: var(--vi); }
   html[class*="t-"] .cell > h4 { font-family: Unbounded, sans-serif; font-size: 9px; letter-spacing: .14em; }
@@ -288,7 +291,7 @@
   html.t-L .top .chip[style], html.t-L .filt span.on, html.t-L .route.live .sel.type { color: var(--ink) !important; }
   html.t-L .badge { background: #0b0a0f; } html.t-L .badge small { color: #b9b6c4; } html.t-L .badge strong { color: #fff; }
   html.t-L .notes i { background: #137a45; color: #fff; } html.t-L .vel i, html.t-L .vel i::after { background: #137a45; } html.t-L .notes i.s { background: var(--ink); }
-  html.t-L .dis { background: rgb(246 245 249 / .88); } html.t-L .keys { filter: invert(.06); }
+  html.t-L .keys { filter: invert(.06); }
   html.t-D { --clip-label: #ffffff; --clip-note: rgb(255 255 255 / .9); --wave: #f4f3f7; }
   html.t-D .keys { filter: invert(.06); }
   html.t-D .badge { background: #0b0a0f; }
@@ -307,7 +310,7 @@ const THEME = new URLSearchParams(location.search).get('theme');   // 색 시안
 if (THEME) document.documentElement.classList.add('t-' + THEME);
 const R = document.documentElement.style, set = (k, v) => R.setProperty(k, v);
 const COLLAB = S === 2, AUTO = S === 3 || S === 9, ACC = S === 4 || S === 5 || (S >= 10 && S <= 12), CTX = { 6: 'roll', 7: 'sample', 8: 'agent', 13: 'mixer' }[S];
-set('--side-w', '264px'); set('--collab-h', COLLAB ? '330px' : '0px'); set('--ctx-h', CTX ? '300px' : '0px'); set('--acc-h', '226px');
+set('--side-w', '264px'); set('--collab-h', COLLAB ? '330px' : '0px'); set('--ctx-h', CTX ? '300px' : '0px'); set('--acc-h', (new URLSearchParams(location.search).get('acch') || 226) + 'px');   // ?acch= 로 펼침 높이 확인
 const RAIL = { 1: 'smp', 2: 'smp', 3: 'auto', 4: 'plug', 5: 'plug', 6: 'pat', 7: 'smp', 8: 'smp', 9: 'pat', 10: 'plug', 11: 'plug', 12: 'plug', 13: 'smp' }[S];
 const logo = '<svg viewBox="-1 -5 98 98"><path fill="currentColor" fill-rule="evenodd" d="M73.76 16.83A42 42 0 1 0 88.14 62.36A28 28 0 1 1 73.76 16.83ZM64 -2Q66.66 14.34 83 17Q66.66 19.66 64 36Q61.34 19.66 45 17Q61.34 14.34 64 -2Z"/></svg>';
 const HINT = { 1: '<b>Draw (P)</b> — Left-click to add the selected clip · Right-click to delete', 2: '<b>Collaboration</b> — 3 people editing now · Other cursors are shown in their colors', 3: '<b>Automation mode (A)</b> — Draw a curve over a pattern to automate its parameter',
@@ -443,9 +446,9 @@ function accordion() {
     <label>Connect</label><div class="sel type">${live ? 'Connected' : 'None'} <span>▾</span></div>
     <label>Track</label><div class="tnum" style="width:100%">${S === 11 ? '1' : live ? '8' : '—'} <span>⇅</span></div>
     <label>Plugin</label><div class="sel">${S === 11 ? 'Instruments (layer)' : live ? 'Vocoder' : '—'} <span>▾</span></div></div></div>`;
-  const mix = `<div class="cell"><h4>MIXER</h4><div class="mixc"><div class="meter"><i style="--m:62%"></i><i style="--m:55%"></i></div><div class="fader"></div>
-    <div class="db"><span>-4.7 dB</span><span class="pan"></span></div>
-    ${live ? `<div class="dis"><b>OFF</b>Connected to<br>Track ${S === 11 ? '1 ›<br>Instruments' : '8 ›<br>Vocoder'}</div>` : ''}</div></div>`;
+  const mix = `<div class="cell"><h4>MIXER</h4><div class="mixc"><div class="vm"><div class="fader"></div><div class="meter"><i style="--m:62%"></i><i style="--m:55%"></i></div></div>
+    <span class="dbv2">-4.7 dB</span><span class="panrow">L<span class="pan"></span>R</span></div>
+    ${live ? `<div class="dis"><b>OFF</b>Connected to<br>Track ${S === 11 ? '1 ›<br>Instruments' : '8 ›<br>Vocoder'}</div>` : ''}</div>`;
   return `<div class="acc"${S === 10 || S === 12 ? ' style="grid-template-columns:330px 1fr 170px 112px"' : ''}>${instCell}${chain}${route}${mix}</div>`;
 }
 const marks = [['prechorus', 4], ['1st drop', 12], ['breakdown', 16], ['2nd drop', 20], ['outro', 28]].map(([n, b]) => `<span style="left:${b * BAR}px">${n}</span>`).join('');
@@ -471,14 +474,14 @@ if (CTX === 'roll') {
   const strip = (t, i) => {
     const [name, inst, col, , audio] = t, db = (-3 - i * 1.7).toFixed(1), m = 35 + (i * 23) % 50;
     return `<div class="mxs${i === 4 ? ' off' : ''}" style="--tc:${col}"><b class="nm">${i + 1}. ${name}</b><small>${audio ? '🎵' : '🎹'} ${inst}</small>
-      <span class="fxn">FX ${[2, 1, 3, 2, 1, 2, 1, 2, 0][i]}</span><span class="pan2" style="--p:${[-20, 15, 0, -30, 25, 0, 0, 10, -15][i]}deg"></span>
-      <div class="fz"><div class="meter"><i style="--m:${m}%"></i><i style="--m:${m - 6}%"></i></div><div class="fader" style="--fy:${18 + (i * 13) % 40}%"></div></div>
-      <span class="dbv">${db}</span><span class="mb"><i class="${i === 6 ? 'm on' : 'm'}">M</i><i class="s">S</i><i class="${i === 7 ? 'r on' : 'r'}">●</i></span></div>`;
+      <span class="fxn">FX ${[2, 1, 3, 2, 1, 2, 1, 2, 0][i]}</span>
+      <div class="fz"><div class="fader" style="--fy:${18 + (i * 13) % 40}%"></div><div class="meter"><i style="--m:${m}%"></i><i style="--m:${m - 6}%"></i></div></div>
+      <span class="dbv">${db} dB</span><span class="panrow">L<span class="pan2" style="--p:${[-20, 15, 0, -30, 25, 0, 0, 10, -15][i]}deg"></span>R</span><span class="mb"><i class="${i === 6 ? 'm on' : 'm'}">M</i><i class="s">S</i><i class="${i === 7 ? 'r on' : 'r'}">●</i></span></div>`;
   };
   ctx = `<div class="ctx"><header><b>🎚 Mixer</b><span>9 tracks · MASTER</span><i class="on">Volume</i><i>Sends</i><i>I/O</i><span class="x">Tab · ✕ Close</span></header>
     <div class="mx"><div class="mxl">${TR.map(strip).join('')}</div>
-      <div class="mxs master"><b class="nm">MASTER</b><small>Limiter · -14 LUFS</small><span class="fxn">FX 2</span><span class="pan2" style="--p:0deg"></span>
-        <div class="fz"><div class="meter"><i style="--m:72%"></i><i style="--m:69%"></i></div><div class="fader" style="--fy:22%"></div></div><span class="dbv">0.0</span><span class="mb"><i class="m">M</i></span></div></div></div>`;
+      <div class="mxs master"><b class="nm">MASTER</b><small>Limiter · -14 LUFS</small><span class="fxn">FX 2</span>
+        <div class="fz"><div class="fader" style="--fy:22%"></div><div class="meter"><i style="--m:72%"></i><i style="--m:69%"></i></div></div><span class="dbv">0.0 dB</span><span class="panrow">L<span class="pan2" style="--p:0deg"></span>R</span><span class="mb"><i class="m">M</i></span></div></div></div>`;
 } else if (CTX === 'agent') {
   ctx = `<div class="ctx"><header><b>✦ Nyxi Agent</b><span>Reference: "Midnight Drive" (YouTube) · Genre: Future Bass</span><span class="x">✕ Close (Esc)</span></header>
     <div class="agent"><div class="adv"><h5><b>3 suggestions</b> from listening to your track</h5>
