@@ -118,6 +118,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | role | ENUM('USER','ADMIN') | N | 'USER' | | 권한 |
 | status | ENUM('ACTIVE','SUSPENDED','DELETED') | N | 'ACTIVE' | | 계정 상태 |
 | last_login_at | DATETIME(3) | Y | NULL | | 마지막 로그인 |
+| privacy_agreed_at | DATETIME(3) | N | | | 가입 때 개인정보 처리방침 동의(+만 16세 이상 확인) 시각 — 동의 없이는 가입 불가 |
+| privacy_version | VARCHAR(20) | N | | | 동의한 처리방침 버전(시행일, 예: `2026-10-05`) — 처리방침이 바뀌면 어느 판에 동의했는지 확인 |
 | storage_quota_bytes | BIGINT UNSIGNED | N | 5368709120 | | 저장 한도 (기본 5GB) |
 | storage_used_bytes | BIGINT UNSIGNED | N | 0 | | 현재 사용량 (파일 생성·삭제 시 증감, 하루 1회 재계산) |
 | created_at | DATETIME(3) | N | CURRENT | | 가입일 |
@@ -672,6 +674,8 @@ CREATE TABLE users (
   role               ENUM('USER','ADMIN') NOT NULL DEFAULT 'USER',
   status             ENUM('ACTIVE','SUSPENDED','DELETED') NOT NULL DEFAULT 'ACTIVE',
   last_login_at      DATETIME(3)     NULL,
+  privacy_agreed_at  DATETIME(3)     NOT NULL,
+  privacy_version    VARCHAR(20)     NOT NULL,
   storage_quota_bytes BIGINT UNSIGNED NOT NULL DEFAULT 5368709120,
   storage_used_bytes BIGINT UNSIGNED NOT NULL DEFAULT 0,
   created_at         DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -1284,4 +1288,5 @@ CREATE TABLE project_snapshots (
 | 2026-10-01 | AI 제안 채택 반영: `patterns`·`launcher_scenes`(패턴·클립 런처, **`midi_notes.clip_id` → `pattern_id`**), `automation_lanes`·`automation_points`, `project_templates`, `timeline_comments`, `project_snapshots` 추가 / `tracks`: MASTER 타입·담당자·잠금 / `projects`: `scale_mode`·`template_id` / `users`: 저장 용량 / `user_settings`: 테마·배율·단축키·튜토리얼 / Gopher → Nyxi(가칭) (총 33개 테이블) |
 | 2026-10-02 | `dev_notes`(메인 페이지 Development 공지, 관리자만 작성) 추가 · `inquiries.name` NULL 허용, `inquiries.privacy_agreed_at` 추가 (총 34개 테이블). 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-02_contact_devnotes.sql` · §2.1에 남아 있던 옛 테이블 목록 삭제 |
 | 2026-10-03 | `project_sessions`(프로젝트 작업 세션) 추가 — 마이페이지 Recent Projects의 최근 7일 작업 시간 (P1-17). 총 35개 테이블. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-03_project_sessions.sql` |
+| 2026-10-05 | `users.privacy_agreed_at`, `users.privacy_version` 추가 — 가입 때 개인정보 처리방침 동의 기록 (GDPR·개인정보 보호법 동의 증빙, [Privacy_Policy_Draft.md](Privacy_Policy_Draft.md) D3). 테이블 수 그대로 35개. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-05_users_privacy_consent.sql` |
 | 2026-10-01 | 이름 **Nyxi** 확정 · `user_settings.tips_level`/`tips_state`(Nyxi 팁) · `plugins.card_asset` 및 `param_schema`의 `primary`/`group`(카드 UI·상세 모달) 추가 |

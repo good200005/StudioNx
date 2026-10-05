@@ -18,6 +18,9 @@ export function initDuplicateChecks() {
   // TODO
 }
 
+/** 동의한 처리방침 버전 = privacy.html 의 Version (2026-10-05). 처리방침을 바꾸면 서버 PRIVACY_VERSION 과 함께 올림 */
+export const PRIVACY_VERSION = '2026-10-05';
+
 /** 비밀번호 조건 (PRD 01 FR-102) — 서버(P1-04)도 같은 규칙으로 다시 검사 */
 export const PASSWORD_RULES = {
   length: (pw) => pw.length >= 8 && pw.length <= 20,
@@ -46,7 +49,8 @@ export function initPasswordRules() {
 /**
  * 가입 전송
  * - 이메일·닉네임 중복 확인을 통과했는지, 비밀번호 규칙·확인이 맞는지 검사
- * - POST /api/v1/auth/signup  JSON { email, nickname, password }
+ * - #join-agree(만 16세 이상 + 처리방침 동의)가 체크돼 있어야 전송 (브라우저 required 검사)
+ * - POST /api/v1/auth/signup  JSON { email, nickname, password, privacy_agreed: true, privacy_version: PRIVACY_VERSION }
  * - 성공: home.html#login 으로 이동 (로그인 모달이 열림) — 또는 바로 로그인 처리
  * - 실패: #join-error 에 서버 메시지, hidden 해제
  * - 전송 중에는 Create account 버튼 disabled

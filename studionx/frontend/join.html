@@ -83,6 +83,14 @@
           <p class="field__msg" id="join-password2-msg" aria-live="polite"></p>
         </div>
 
+        <!-- 가입 동의 (2026-10-05, 처리방침 D3·D4): 만 16세 이상 + 처리방침 동의 — 체크해야 가입.
+             join.js 가 { privacy_agreed: true, privacy_version } 를 함께 보냄 → users.privacy_agreed_at·privacy_version -->
+        <p class="form-consent join__consent">
+          <input id="join-agree" name="privacy_agreed" type="checkbox" required>
+          <label for="join-agree">I'm 16 or older and agree to the
+            <a class="text-link text-link--strong" href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</label>
+        </p>
+
         <p class="form-error" id="join-error" role="alert" hidden></p>
         <button type="submit" class="btn btn--primary btn--block">Create account</button>
       </form>

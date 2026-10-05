@@ -24,6 +24,10 @@ from pydantic import BaseModel, Field
 # 닉네임 길이 (PRD 01 FR-101) — 화면(join.html, userInfo.html)과 같은 규칙
 NICKNAME_MIN, NICKNAME_MAX = 2, 20
 
+# 지금 시행 중인 개인정보 처리방침 버전
+# (privacy.html Version 줄, join.js PRIVACY_VERSION 과 같아야 함)
+PRIVACY_VERSION = "2026-10-05"
+
 
 class SignupRequest(BaseModel):
     """POST /auth/signup  — join.js 가 보내는 JSON { email, nickname, password }
@@ -38,6 +42,8 @@ class SignupRequest(BaseModel):
     email: str = Field(max_length=255)
     nickname: str = Field(min_length=NICKNAME_MIN, max_length=NICKNAME_MAX)
     password: str = Field(min_length=1, max_length=100)  # 정확한 8~20자 검사는 check_password_rules
+    privacy_agreed: bool  # 만 16세 이상 + 처리방침 동의 체크 (2026-10-05, 처리방침 D3·D4)
+    privacy_version: str = Field(max_length=20)  # 화면이 본 처리방침 버전
 
     # TODO(P1-04): 이메일 형식 검사
     #   - 방법 1: pydantic EmailStr (requirements.txt 에 email-validator 추가 필요)
