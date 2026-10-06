@@ -12,10 +12,25 @@
 # ──────────────────────────────────────────────────────────────────────
 """users 테이블 (DB.md §3.1, db/01_phase1_account.sql) — 뼈대: 구현은 직접 (P1-03)."""
 
-from sqlalchemy import BigInteger
+from datetime import datetime
+from enum import StrEnum
+
+from sqlalchemy import BigInteger, Enum, FetchedValue, String, text
+from sqlalchemy.dialects.mysql import DATETIME
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.session import Base
+
+
+class UserRole(StrEnum):
+    USER = "USER"
+    ADMIN = "ADMIN"
+
+
+class UserStatus(StrEnum):
+    ACTIVE = "ACTIVE"
+    SUSPENDED = "SUSPENDED"
+    DELETED = "DELETED"
 
 
 class User(Base):
@@ -25,22 +40,24 @@ class User(Base):
 
     user_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
 
-    # TODO: 나머지 컬럼 (SQL과 같은 이름·타입·NULL 여부)
-    #   email               VARCHAR(255) NOT NULL, UNIQUE
-    #   password_hash       VARCHAR(255) NOT NULL
-    #   nickname            VARCHAR(50)  NOT NULL, UNIQUE
-    #   profile_image_path  VARCHAR(500) NULL
-    #   role                ENUM('USER','ADMIN')                 기본 'USER'
-    #   status              ENUM('ACTIVE','SUSPENDED','DELETED') 기본 'ACTIVE'
-    #   last_login_at       DATETIME(3) NULL
-    #   privacy_agreed_at   DATETIME(3) NOT NULL   (가입 때 처리방침 동의 시각, 2026-10-05)
-    #   privacy_version     VARCHAR(20) NOT NULL   (동의한 처리방침 버전)
-    #   storage_quota_bytes BIGINT NOT NULL 기본 5368709120 (5GB)
-    #   storage_used_bytes  BIGINT NOT NULL 기본 0
-    #   created_at / updated_at / deleted_at  DATETIME(3)
-    #   - 기본값·자동 갱신은 DB가 처리 → server_default 로 표시만
-    #     (예: server_default=func.now())
-    #   - ENUM은 Python Enum 클래스 + sqlalchemy.Enum(..., native_enum=True) 권장
+    email: Mapped[str] = mapped_column(String(255), unique=True)
+    password_hash: Mapped[str] = mapped_column(String(255))
+    nickname: Mapped[str] = mapped_column(String(50), unique=True)
+    profile_image_path: Mapped[str | None] = mapped_column(String(500))
+    role: Mapped[UserRole] = mapped_column(Enum(UserRole), server_default=UserRole.USER)
+    status: Mapped[UserStatus] = mapped_column(Enum(UserStatus), server_default=UserStatus.ACTIVE)
+    last_login_at: Mapped[datetime | None] = mapped_column(DATETIME(fsp=3))
+    privacy_agreed_at: Mapped[datetime] = mapped_column(DATETIME(fsp=3))
+    privacy_version: Mapped[str] = mapped_column(String(20))
+    storage_quota_bytes: Mapped[int] = mapped_column(BigInteger, server_default=text("5368709120"))
+    storage_used_bytes: Mapped[int] = mapped_column(BigInteger, server_default=text("0"))
+    created_at: Mapped[datetime] = mapped_column(
+        DATETIME(fsp=3), server_default=text("CURRENT_TIMESTAMP(3)")
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DATETIME(fsp=3), server_default=text("CURRENT_TIMESTAMP(3)"), server_onupdate=FetchedValue()
+    )
+    deleted_at: Mapped[datetime | None] = mapped_column(DATETIME(fsp=3))
 
     # TODO: 관계 (필요해지면)
     #   projects: Mapped[list["Project"]] = relationship(back_populates="owner")

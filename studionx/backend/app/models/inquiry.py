@@ -12,10 +12,20 @@
 # ──────────────────────────────────────────────────────────────────────
 """inquiries 테이블 (DB.md §3.1) — 뼈대: 구현은 직접 (P1-03, 사용처는 P1-12)."""
 
-from sqlalchemy import BigInteger
+from datetime import datetime
+from enum import StrEnum
+
+from sqlalchemy import BigInteger, Enum, FetchedValue, ForeignKey, String, Text, text
+from sqlalchemy.dialects.mysql import DATETIME
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.session import Base
+
+
+class InquiryStatus(StrEnum):
+    RECEIVED = "RECEIVED"
+    ANSWERED = "ANSWERED"
+    CLOSED = "CLOSED"
 
 
 class Inquiry(Base):
@@ -25,14 +35,20 @@ class Inquiry(Base):
 
     inquiry_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
 
-    # TODO: 나머지 컬럼
-    #   user_id            BIGINT NULL, FK → users.user_id (로그인 상태로 보냈을 때만)
-    #   name               VARCHAR(50)  NULL   (폼에서 받지 않음, 예비)
-    #   email              VARCHAR(255) NOT NULL
-    #   title              VARCHAR(200) NOT NULL
-    #   content            TEXT         NOT NULL (최대 2,000자는 스키마에서 검사)
-    #   privacy_agreed_at  DATETIME(3)  NOT NULL
-    #   status             ENUM('RECEIVED','ANSWERED','CLOSED') 기본 'RECEIVED'
-    #   answer             TEXT NULL
-    #   answered_at        DATETIME(3) NULL
-    #   created_at / updated_at
+    user_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("users.user_id"))
+    name: Mapped[str | None] = mapped_column(String(50))
+    email: Mapped[str] = mapped_column(String(255))
+    title: Mapped[str] = mapped_column(String(200))
+    content: Mapped[str] = mapped_column(Text)
+    privacy_agreed_at: Mapped[datetime] = mapped_column(DATETIME(fsp=3))
+    status: Mapped[InquiryStatus] = mapped_column(
+        Enum(InquiryStatus), server_default=InquiryStatus.RECEIVED
+    )
+    answer: Mapped[str | None] = mapped_column(Text)
+    answered_at: Mapped[datetime | None] = mapped_column(DATETIME(fsp=3))
+    created_at: Mapped[datetime] = mapped_column(
+        DATETIME(fsp=3), server_default=text("CURRENT_TIMESTAMP(3)")
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DATETIME(fsp=3), server_default=text("CURRENT_TIMESTAMP(3)"), server_onupdate=FetchedValue()
+    )

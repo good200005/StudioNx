@@ -30,6 +30,8 @@ export async function init() {
  * - GET /api/v1/projects/{id}/full → { project, tracks, clips, patterns, markers, tempo_changes, meter_changes }
  * - 예시로 들어 있는 #tracks 의 li.sq-track 들을 지우고 renderTrack() 로 다시 채움
  * - 상단 BPM(#bpm) · 박자 · Key(#key) · 마커 줄 · 루프 구간도 채움
+ * - 실패하면 (2026-10-06 결정) 404 → location.replace('errors/404.html'), 403 → errors/403.html, 500 이상 → errors/500.html
+ *   401 은 api.js 재발급 실패 → requireLogin() 흐름
  * @param {number|string} projectId
  */
 export async function loadProject(projectId) {

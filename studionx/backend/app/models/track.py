@@ -15,10 +15,24 @@
 Phase 1에서는 프로젝트 생성 시 MASTER 트랙 1개를 만드는 데만 씀 (PRD 01 FR-122).
 """
 
-from sqlalchemy import BigInteger, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column
+from enum import StrEnum
+from typing import TYPE_CHECKING
+
+from sqlalchemy import BigInteger, Enum, ForeignKey, Integer, String, text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
+
+if TYPE_CHECKING:  # 타입 표시용 (실행 중에는 불러오지 않음)
+    from app.models.project import Project
+
+
+class TrackType(StrEnum):
+    AUDIO = "AUDIO"
+    MIDI = "MIDI"
+    MASTER = "MASTER"
+    GROUP = "GROUP"
+    RETURN = "RETURN"
 
 
 class Track(Base):
@@ -31,10 +45,13 @@ class Track(Base):
         BigInteger, ForeignKey("projects.project_id", ondelete="CASCADE")
     )
 
-    # TODO: Phase 1에 필요한 컬럼 (MASTER 트랙 생성용)
-    #   name         VARCHAR(100) NOT NULL       예: 'Master'
-    #   track_type   ENUM('AUDIO','MIDI','MASTER','GROUP','RETURN') NOT NULL
-    #   order_index  INT 기본 0
+    # Phase 1 칸 (MASTER 트랙 생성용). 나머지 칸은 DB 기본값 · NULL 로 채워진다
+    name: Mapped[str] = mapped_column(String(100))
+    track_type: Mapped[TrackType] = mapped_column(Enum(TrackType))
+    order_index: Mapped[int] = mapped_column(Integer, server_default=text("0"))
+
+    project: Mapped["Project"] = relationship(back_populates="tracks")
+
     # TODO(Phase 2): color, volume_db, pan, is_muted, is_solo,
     #   is_enabled, parent_track_id, frozen_sample_id,   (악기는 track_instruments 표, 2026-10-06)
     #   routing_mode, assignee_id, locked_by, locked_at, created_at, updated_at

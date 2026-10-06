@@ -25,13 +25,20 @@
 
 from enum import StrEnum
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from app.schemas.common import ErrorBody, ErrorResponse
 
 
 class ErrorCode(StrEnum):
     """프론트(JS)가 분기에 쓰는 오류 코드. 새 오류가 생기면 여기에 추가."""
 
     VALIDATION_ERROR = "VALIDATION_ERROR"  # 422 입력값 형식 오류
+    BAD_REQUEST = "BAD_REQUEST"  # 400 그 밖의 잘못된 요청 (FastAPI 기본 오류, 03)
+    METHOD_NOT_ALLOWED = "METHOD_NOT_ALLOWED"  # 405 주소는 있는데 방식(GET/POST…)이 다름 (03)
     UNAUTHORIZED = "UNAUTHORIZED"  # 401 토큰 없음·만료 → 프론트가 재발급 시도 (P1-02)
     INVALID_CREDENTIALS = "INVALID_CREDENTIALS"  # 401 이메일 또는 비밀번호 틀림 (FR-103 통일 문구)
     WRONG_PASSWORD = "WRONG_PASSWORD"  # 400 로그인한 상태에서 재확인 비밀번호 틀림 (P1-09)
@@ -76,17 +83,99 @@ class AppError(Exception):
         self.details = details
 
 
+def error_json(
+    status_code: int,
+    code: str,
+    message: str,
+    details: dict | None = None,
+) -> JSONResponse:
+    """오류 응답 하나를 만든다 — 모든 처리기가 이 함수로 같은 모양을 만든다.
+
+    (구현: AI — 2026-10-06, 함수 하나씩 검토)
+    """
+    body = ErrorResponse(error=ErrorBody(code=code, message=message, details=details))
+    return JSONResponse(status_code=status_code, content=body.model_dump())
+
+
+async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
+    """AppError(서비스·라우터가 일부러 던진 오류) → 정해 둔 상태 코드와 문구 그대로.
+
+    (구현: AI — 2026-10-06, 함수 하나씩 검토)
+    """
+    return error_json(exc.status_code, exc.code, exc.message, exc.details)
+
+
+async def validation_error_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    """입력값 형식 오류(FastAPI 가 요청을 스키마와 비교해 낸 오류) → 422, 칸별 문구.
+
+    (구현: AI — 2026-10-06, 함수 하나씩 검토)
+    - details = {칸 이름: 문구} — 칸 이름은 loc 의 마지막 값 (예: ("body", "email") → "email")
+    - 한 칸에 오류가 여러 개면 첫 번째만 (화면은 칸 아래에 한 줄만 보여 줌)
+    - 사용자가 보낸 값(input)은 응답에 넣지 않음 — 비밀번호가 되돌아가지 않게
+    """
+    details: dict[str, str] = {}
+    for err in exc.errors():
+        loc = err.get("loc") or ()
+        field = str(loc[-1]) if loc else "body"
+        details.setdefault(field, err.get("msg", "Invalid value."))
+    return error_json(422, ErrorCode.VALIDATION_ERROR, "Check the highlighted fields.", details)
+
+
+# FastAPI·Starlette 가 직접 내는 오류(HTTPException)의 상태 → (code, 문구)  (03)
+HTTP_ERRORS: dict[int, tuple[ErrorCode, str]] = {
+    400: (ErrorCode.BAD_REQUEST, "Bad request."),
+    401: (ErrorCode.UNAUTHORIZED, "Please sign in."),
+    403: (ErrorCode.FORBIDDEN, "You do not have permission."),
+    404: (ErrorCode.NOT_FOUND, "Not found."),
+    405: (ErrorCode.METHOD_NOT_ALLOWED, "Method not allowed."),
+    413: (ErrorCode.FILE_TOO_LARGE, "The file is too large."),
+    415: (ErrorCode.UNSUPPORTED_FILE_TYPE, "Unsupported file type."),
+    429: (ErrorCode.TOO_MANY_REQUESTS, "Too many requests. Please try again later."),
+}
+
+
+async def http_error_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
+    """FastAPI·Starlette 기본 오류(없는 API 주소 404, 방식이 다름 405 …) → 같은 오류 모양.
+
+    (구현: AI — 2026-10-06, 함수 하나씩 검토)
+    - 표(HTTP_ERRORS)에 없는 상태: 500 이상은 INTERNAL_ERROR, 그 밖은 BAD_REQUEST
+    - 문구는 표의 고정 문장 — exc.detail(라이브러리가 만든 문장)은 그대로 내보내지 않음
+    - exc.headers 는 유지 (405 의 Allow 등 — 표준이 요구하는 헤더)
+    """
+    if exc.status_code in HTTP_ERRORS:
+        code, message = HTTP_ERRORS[exc.status_code]
+    elif exc.status_code >= 500:
+        code, message = ErrorCode.INTERNAL_ERROR, "Something went wrong. Please try again."
+    else:
+        code, message = ErrorCode.BAD_REQUEST, "Bad request."
+    response = error_json(exc.status_code, code, message)
+    if exc.headers:
+        response.headers.update(exc.headers)
+    return response
+
+
+async def unexpected_error_handler(request: Request, exc: Exception) -> JSONResponse:
+    """예상 못 한 오류(버그 · DB 끊김 등) → 500, 일반 문장만.
+
+    (구현: AI — 2026-10-06, 함수 하나씩 검토)
+    - 오류 내용(exc)은 응답에 넣지 않음 — SQL · 파일 경로 · 비밀값이 섞일 수 있음
+    - 기록은 따로 하지 않음: Starlette 가 이 응답을 보낸 뒤 오류를 다시 던지므로
+      uvicorn 로그와 Sentry 가 원래 오류를 그대로 기록함
+    """
+    return error_json(500, ErrorCode.INTERNAL_ERROR, "Something went wrong. Please try again.")
+
+
 def register_exception_handlers(app: FastAPI) -> None:
     """main.py 에서 한 번 호출. 아래 오류들을 모두 ErrorResponse 모양으로 바꾼다.
 
-    TODO:
-    - AppError                → status_code 그대로, {"error": {code, message, details}}
-    - RequestValidationError  → 422, code=VALIDATION_ERROR, details={칸 이름: 문구}
-                                (exc.errors() 의 loc 마지막 값을 칸 이름으로)
-    - StarletteHTTPException  → 404 등 FastAPI 기본 오류도 같은 모양으로 (code는 상태별로 매핑)
-    - Exception (그 외)       → 500, code=INTERNAL_ERROR, message는 일반 문장만
-                                (오류 내용은 응답에 넣지 않음 — Sentry가 기록)
-    - 응답 본문에 비밀번호·토큰이 섞이지 않게 주의 (PRD 01 §5)
+    - AppError                → status_code 그대로 ✅ app_error_handler (2026-10-06)
+
+    - RequestValidationError  → 422 VALIDATION_ERROR ✅ validation_error_handler (2026-10-06)
+
+    - StarletteHTTPException  → 404·405 등 같은 모양 ✅ http_error_handler (2026-10-06)
+
+    - Exception (그 외)       → 500 INTERNAL_ERROR ✅ unexpected_error_handler (2026-10-06)
+    - 응답 본문에 비밀번호·토큰이 섞이지 않게 — 네 처리기 모두 입력값·오류 내용을 넣지 않음
 
     TODO(P1-22) 오류 페이지 — API 요청과 페이지 요청을 나눠서 응답:
     - request.url.path 가 settings.api_prefix("/api/v1")로 시작 → 지금처럼 JSON (ErrorResponse)
@@ -97,4 +186,7 @@ def register_exception_handlers(app: FastAPI) -> None:
       API 404 도 ErrorResponse 모양({"error": {"code": "NOT_FOUND", ...}})으로 바꾸면 됨
     - 503(점검)은 점검 모드 설정값을 두고 미들웨어에서 errors/503.html 로 응답 (선택)
     """
-    # TODO: @app.exception_handler(AppError) ... 등록
+    app.add_exception_handler(AppError, app_error_handler)
+    app.add_exception_handler(RequestValidationError, validation_error_handler)
+    app.add_exception_handler(StarletteHTTPException, http_error_handler)
+    app.add_exception_handler(Exception, unexpected_error_handler)

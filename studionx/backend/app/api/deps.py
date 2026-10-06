@@ -23,6 +23,8 @@ from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
+from app.core.errors import AppError, ErrorCode
+from app.core.security import decode_access_token
 from app.db.session import get_db
 from app.models import User
 
@@ -47,7 +49,13 @@ def get_current_user(
     5. return user
     - 프론트(P1-02)는 401 + code=UNAUTHORIZED 를 받으면 /auth/refresh 로 재발급 후 한 번 다시 요청
     """
-    raise NotImplementedError
+    if credentials is None:
+        raise AppError(ErrorCode.UNAUTHORIZED, 401, "Please sign in.")
+    user_id = decode_access_token(credentials.credentials)
+    user = db.get(User, user_id)
+    if user is None or user.status != "ACTIVE":
+        raise AppError(ErrorCode.UNAUTHORIZED, 401, "Please sign in again.")
+    return user
 
 
 def get_current_user_optional(
@@ -58,7 +66,12 @@ def get_current_user_optional(
 
     TODO: credentials 가 없으면 None, 있으면 get_current_user 와 같은 검사 (실패하면 None)
     """
-    raise NotImplementedError
+    if credentials is None:
+        return None
+    try:
+        return get_current_user(credentials, db)
+    except AppError:
+        return None
 
 
 # 라우터에서 짧게 쓰기 위한 별칭

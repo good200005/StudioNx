@@ -18,6 +18,7 @@ export const PHOTO_MAX_BYTES = 2 * 1024 * 1024;
  * - #profile-nickname value, #profile-email value, #withdraw-nickname 글자
  * - #profile-joined ← 'Joined Oct 1, 2026'
  * - #profile-avatar: 사진이 있으면 안에 <img src alt="">, 없으면 닉네임 첫 글자 (myPage 와 같음)
+ * - 실패하면 (2026-10-06 결정) 404 → location.replace('errors/404.html'), 403 → errors/403.html, 500 이상 → errors/500.html
  */
 export async function loadMe() {
   // TODO
