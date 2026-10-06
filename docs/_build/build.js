@@ -174,6 +174,16 @@ const PDFS = [
   { out: 'ai-notes/29_sequencer_screen.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 29 — 시퀀서 화면 (studioNx.html)', files: ['ai-notes/29_sequencer_screen.md'], base: 'ai-notes' },
   { out: 'ai-notes/30_sequencer_arrange_drag.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 30 — 시퀀서 편곡 · 피아노롤 · 오토메이션', files: ['ai-notes/30_sequencer_arrange_drag.md'], base: 'ai-notes' },
   { out: 'ai-notes/31_sequencer_buttons.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 31 — 시퀀서 화면 버튼 전체', files: ['ai-notes/31_sequencer_buttons.md'], base: 'ai-notes' },
+  { out: 'ai-notes/javascript/01_api_refreshAccessToken.pdf', title: 'Studio Nx', subtitle: 'JS 01 — refreshAccessToken()', files: ['ai-notes/javascript/01_api_refreshAccessToken.md'], base: 'ai-notes/javascript' },
+  { out: 'ai-notes/javascript/02_api_apiFetch.pdf', title: 'Studio Nx', subtitle: 'JS 02 — apiFetch()', files: ['ai-notes/javascript/02_api_apiFetch.md'], base: 'ai-notes/javascript' },
+  { out: 'ai-notes/javascript/03_auth_safeNextPath.pdf', title: 'Studio Nx', subtitle: 'JS 03 — safeNextPath()', files: ['ai-notes/javascript/03_auth_safeNextPath.md'], base: 'ai-notes/javascript' },
+  { out: 'ai-notes/javascript/04_auth_loginUrl.pdf', title: 'Studio Nx', subtitle: 'JS 04 — loginUrl()', files: ['ai-notes/javascript/04_auth_loginUrl.md'], base: 'ai-notes/javascript' },
+  { out: 'ai-notes/javascript/05_auth_parseLoginHash.pdf', title: 'Studio Nx', subtitle: 'JS 05 — parseLoginHash()', files: ['ai-notes/javascript/05_auth_parseLoginHash.md'], base: 'ai-notes/javascript' },
+  { out: 'ai-notes/javascript/06_auth_isLoggedIn.pdf', title: 'Studio Nx', subtitle: 'JS 06 — isLoggedIn()', files: ['ai-notes/javascript/06_auth_isLoggedIn.md'], base: 'ai-notes/javascript' },
+  { out: 'ai-notes/javascript/07_auth_requireLogin.pdf', title: 'Studio Nx', subtitle: 'JS 07 — requireLogin()', files: ['ai-notes/javascript/07_auth_requireLogin.md'], base: 'ai-notes/javascript' },
+  { out: 'ai-notes/javascript/08_auth_logout.pdf', title: 'Studio Nx', subtitle: 'JS 08 — logout()', files: ['ai-notes/javascript/08_auth_logout.md'], base: 'ai-notes/javascript' },
+  { out: 'ai-notes/javascript/P1-02_frontend_api_core.pdf', title: 'Studio Nx', subtitle: 'P1-02 프론트 공통 JS — 함수 설명 합본 (01~08)', files: ['ai-notes/javascript/01_api_refreshAccessToken.md', 'ai-notes/javascript/02_api_apiFetch.md', 'ai-notes/javascript/03_auth_safeNextPath.md', 'ai-notes/javascript/04_auth_loginUrl.md', 'ai-notes/javascript/05_auth_parseLoginHash.md', 'ai-notes/javascript/06_auth_isLoggedIn.md', 'ai-notes/javascript/07_auth_requireLogin.md', 'ai-notes/javascript/08_auth_logout.md'], base: 'ai-notes/javascript' },
+  { out: 'ai-notes/32_p1-02_frontend_api_core.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 32 — P1-02 프론트 공통 JS', files: ['ai-notes/32_p1-02_frontend_api_core.md'], base: 'ai-notes' },
 ];
 
 const mode = process.argv[2];
