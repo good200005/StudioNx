@@ -22,7 +22,7 @@
 ## 프로젝트 원칙 (반드시 지킬 것)
 @StudioNx_CLAUDE.md
 
-요약: HTML/CSS는 AI가 작성(먼저 `studionx/frontend-reference/` 확인) · JS/백엔드는 **템플릿만**(요청 시에만 구현) · C++(`studionx/native/`)은 손대지 않음 · AI가 구현한 코드는 `docs/ai-notes/`에 설명 문서 필수.
+요약: HTML/CSS는 AI가 작성(먼저 `studionx/frontend-reference/` 확인) · JS/백엔드는 **AI가 함수 하나씩 구현 → 멈추고 사용자 검토 → OK 후 다음 함수** (2026-10-06 변경) · C++(`studionx/native/`)은 손대지 않음 · AI가 구현한 코드는 `docs/ai-notes/`에 설명 문서 필수.
 
 ## 구조
 | 경로 | 내용 |

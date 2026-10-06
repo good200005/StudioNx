@@ -14,10 +14,11 @@ export const LOGIN_PAGE = 'home.html';
  * 로그인 상태인지 확인 (토큰이 없으면 리프레시 쿠키로 재발급 시도)
  * @returns {Promise<boolean>}
  * TODO: getAccessToken() 이 있으면 true, 없으면 await refreshAccessToken()
+ * (구현: AI — 2026-10-06, 함수 하나씩 검토)
  */
 export async function isLoggedIn() {
-  // TODO
-  return Boolean(getAccessToken());
+  if (getAccessToken()) return true;
+  return refreshAccessToken();
 }
 
 /**
@@ -26,9 +27,11 @@ export async function isLoggedIn() {
  * TODO:
  * - await isLoggedIn() 가 false 면
  *   location.replace(loginUrl(location.pathname + location.search)) 후 false
+ * (구현: AI — 2026-10-06, 함수 하나씩 검토) 해시(#new 등)까지 돌아올 주소에 넣음
  */
 export async function requireLogin() {
-  // TODO
+  if (await isLoggedIn()) return true;
+  location.replace(loginUrl(location.pathname + location.search + location.hash));
   return false;
 }
 
@@ -37,10 +40,11 @@ export async function requireLogin() {
  * @param {string} [next]  로그인 후 돌아갈 경로 (예: '/myPage.html')
  * @returns {string}  예: 'home.html#login?next=%2FmyPage.html'
  * TODO: next 가 있으면 encodeURIComponent 해서 붙이고, 없으면 'home.html#login'
+ * (구현: AI — 2026-10-06, 함수 하나씩 검토) 안전한 경로(safeNextPath)일 때만 next 를 붙임
  */
 export function loginUrl(next) {
-  // TODO
-  return `${LOGIN_PAGE}#login`;
+  const path = safeNextPath(next);
+  return path ? `${LOGIN_PAGE}#login?next=${encodeURIComponent(path)}` : `${LOGIN_PAGE}#login`;
 }
 
 /**
@@ -50,10 +54,14 @@ export function loginUrl(next) {
  * TODO:
  * - hash 가 '#login' 으로 시작하면 open = true
  * - '?' 뒤를 URLSearchParams 로 읽어 next 를 꺼내고 safeNextPath 로 검사
+ * (구현: AI — 2026-10-06, 함수 하나씩 검토)
  */
 export function parseLoginHash(hash = location.hash) {
-  // TODO
-  return { open: false, next: null };
+  if (typeof hash !== 'string' || !hash.startsWith('#login')) return { open: false, next: null };
+  const rest = hash.slice('#login'.length);               // '' 또는 '?next=…'
+  if (rest && !rest.startsWith('?')) return { open: false, next: null };   // '#loginHelp' 같은 다른 해시
+  const next = new URLSearchParams(rest.slice(1)).get('next');           // %2F → / 로 되돌려 줌
+  return { open: true, next: safeNextPath(next) };
 }
 
 /**
@@ -64,10 +72,17 @@ export function parseLoginHash(hash = location.hash) {
  * - '/' 로 시작하고 '//' 로 시작하지 않는 같은 사이트 경로만 허용
  *   (또는 new URL(next, location.origin).origin === location.origin)
  * - 'javascript:' 등은 거부
+ * (구현: AI — 2026-10-06, 함수 하나씩 검토)
+ * @param {string} [origin=location.origin]  비교할 우리 사이트 주소 (시험용으로만 바꿈)
  */
-export function safeNextPath(next) {
-  // TODO
-  return null;
+export function safeNextPath(next, origin = location.origin) {
+  if (typeof next !== 'string' || !next.startsWith('/')) return null;   // 상대 경로 · 'https://…' · 'javascript:' 거부
+  if (next.startsWith('//') || next.includes('\\')) return null;      // '//evil.com' · '/\evil.com' = 다른 사이트
+  try {
+    return new URL(next, origin).origin === origin ? next : null;     // 브라우저가 해석해도 우리 사이트인지 마지막 확인
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -77,7 +92,16 @@ export function safeNextPath(next) {
  *   (서버가 리프레시 쿠키 삭제)
  * - clearAccessToken()
  * - location.href = LOGIN_PAGE  (home.html — 헤더가 Sign In·Join Us 로 돌아옴)
+ * (구현: AI — 2026-10-06, 함수 하나씩 검토)
+ * - auth:false — 토큰이 없어도 재발급을 시도하지 않고 바로 로그아웃 요청 (서버는 쿠키만 지움)
+ * - href 대신 replace — 뒤로 가기로 로그인 전용 페이지가 다시 보이지 않게
  */
 export async function logout() {
-  // TODO
+  try {
+    await api.post('/auth/logout', undefined, { auth: false });
+  } catch {
+    // 이미 만료 · 네트워크 오류여도 화면에서는 로그아웃을 계속함
+  }
+  clearAccessToken();
+  location.replace(LOGIN_PAGE);
 }
