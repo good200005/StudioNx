@@ -50,11 +50,13 @@
         <button type="button" class="is-play" id="btn-play" aria-label="Play (Space)">▶</button>
         <button type="button" id="btn-stop" aria-label="Stop">■</button>
         <button type="button" class="is-rec" id="btn-rec" aria-label="Record">●</button>
+        <!-- Loop 켜기 — 범위는 마커 줄에서 오른쪽 버튼으로 끌어 정함 (2026-10-06) -->
+        <button type="button" class="is-loop" id="btn-loop" aria-pressed="false" aria-label="Loop" title="Loop — right-drag on the marker row to set the range">⟲</button>
       </div>
       <span class="sq-rec-badge">● REC</span>
       <button type="button" class="sq-chip sq-num" id="bpm" title="Tempo (BPM)">145.000</button>
       <!-- 시간: 큰 글씨 분:초:밀리초 + 작은 글씨 마디.박.틱, 누르면 서로 바뀜 -->
-      <button type="button" class="sq-time sq-num" id="time" title="Click: switch to bars">
+      <button type="button" class="sq-time sq-num" id="time" data-mode="time" title="Click: switch between min:sec and bars">
         <span id="time-main">00:20:276</span><small>MIN:SEC:MS</small>
         <span class="sq-time__bars"><span id="time-bars">13.2.1</span> <small>BAR</small></span>
       </button>
@@ -71,10 +73,12 @@
       <button type="button" class="sq-chip" id="nyxi-button">Nyxi</button>
     </div>
     <div class="sq-top__row">
-      <p class="sq-hint" id="hint"><b>Draw (P)</b> — Left-click to add the selected clip · Right-click to delete</p>
-      <button type="button" class="sq-chip" id="pattern-select">Pattern: Bass #2 ▾ ＋</button>
-      <button type="button" class="sq-chip" id="snap">Snap: Line ▾</button>
-      <button type="button" class="sq-chip" id="key">Key: C# minor ▾</button>
+      <p class="sq-hint" id="hint"><b>Draw (P)</b> — Left-click to add the selected clip · Select and press Delete to remove</p>
+      <button type="button" class="sq-chip" id="pattern-select" aria-haspopup="menu">Pattern: Bass #2 ▾</button><button type="button" class="sq-chip" id="pattern-new" title="New pattern">＋</button>
+      <button type="button" class="sq-chip" id="snap" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-snap" title="Snap — hold Alt while dragging to ignore the grid">Snap: Line ▾</button>
+      <!-- 셋잇단 격자 (2026-10-06) — 켜면 박 단계 1/12(8분 셋잇단) · 1/16 단계 1/24(16분 셋잇단)로 선·스냅이 바뀜 -->
+      <button type="button" class="sq-chip sq-triplet" id="triplet" aria-pressed="false" title="Triplet grid — zoom in to see beat lines">³ Triplet</button>
+      <button type="button" class="sq-chip" id="key" aria-haspopup="menu">Key: C# minor ▾</button>
       <span class="sq-chip" id="chord">Chord: Am</span>
       <div class="sq-shortcuts" role="group" aria-label="Windows">
         <button type="button" aria-pressed="true" title="Playlist">▤</button>
@@ -144,11 +148,15 @@
       <li role="separator"><hr></li>
       <li><button type="button" role="menuitem" data-command="view.files">File panel <kbd></kbd></button></li>
       <li><button type="button" role="menuitem" data-command="view.collab">Collaboration panel <kbd></kbd></button></li>
-      <li><button type="button" role="menuitem" data-command="view.follow">Follow playhead <kbd></kbd></button></li>
+      <li><button type="button" role="menuitemradio" aria-checked="true" data-command="view.followPage">Playback: playhead moves <kbd></kbd></button></li>
+      <li><button type="button" role="menuitemradio" aria-checked="false" data-command="view.followScroll">Playback: tracks move <kbd></kbd></button></li>
       <li role="separator"><hr></li>
       <li><button type="button" role="menuitem" data-command="view.zoomIn">Zoom in <kbd>Ctrl+Wheel</kbd></button></li>
       <li><button type="button" role="menuitem" data-command="view.zoomOut">Zoom out <kbd>Ctrl+Wheel</kbd></button></li>
       <li><button type="button" role="menuitem" data-command="view.zoomFit">Zoom to fit <kbd>Z</kbd></button></li>
+      <li><button type="button" role="menuitem" data-command="view.tracksTaller">Taller tracks <kbd></kbd></button></li>
+      <li><button type="button" role="menuitem" data-command="view.tracksShorter">Shorter tracks <kbd></kbd></button></li>
+      <li><button type="button" role="menuitem" data-command="view.tracksReset">Reset track heights <kbd></kbd></button></li>
       <li><button type="button" role="menuitem" data-command="view.timeFormat">Switch time display (min:sec ⇄ bars) <kbd></kbd></button></li>
       <li role="separator"><hr></li>
       <li><button type="button" role="menuitem" data-command="view.nyxi">Show Nyxi <kbd></kbd></button></li>
@@ -159,6 +167,7 @@
       <li><button type="button" role="menuitem" data-command="options.metronome">Metronome <kbd></kbd></button></li>
       <li><button type="button" role="menuitem" data-command="options.countIn">Count-in <kbd></kbd></button></li>
       <li><button type="button" role="menuitem" data-command="options.snap">Snap… <kbd></kbd></button></li>
+      <li><button type="button" role="menuitemcheckbox" aria-checked="false" data-command="options.triplet">Triplet grid <kbd></kbd></button></li>
       <li role="separator"><hr></li>
       <li><button type="button" role="menuitem" data-command="record.punch">Punch in/out <kbd></kbd></button></li>
       <li><button type="button" role="menuitem" data-command="record.mode">Record mode: Overdub / Replace <kbd></kbd></button></li>
@@ -225,6 +234,12 @@
       <li><button type="button" role="menuitem" data-command="track.ungroup">Ungroup <kbd>Ctrl+Shift+G</kbd></button></li>
     </ul>
     <!-- 언어 메뉴 (FR-2171) -->
+    <!-- 스냅 메뉴 (2026-10-06) — Line: 보이는 격자선에 붙음 · Off: 격자 무시(1틱 단위). 끄는 동안 Alt 를 누르면 그때만 Off -->
+    <ul class="sq-dropdown" id="menu-snap" role="menu" hidden style="min-width:12rem">
+      <li><button type="button" role="menuitemradio" aria-checked="true" data-snap="line">Line <kbd>grid</kbd></button></li>
+      <li><button type="button" role="menuitemradio" aria-checked="false" data-snap="off">Off <kbd>free</kbd></button></li>
+      <li class="sq-dropdown__note">Hold Alt while dragging to ignore the grid</li>
+    </ul>
     <ul class="sq-dropdown" id="menu-lang" role="menu" hidden style="right:4.6rem; top:1.9rem; min-width:9rem">
       <li><button type="button" role="menuitemradio" aria-checked="true" data-lang="en">English</button></li>
       <li><button type="button" role="menuitemradio" aria-checked="false" data-lang="ko">한국어</button></li>
@@ -262,18 +277,30 @@
         <input type="file" id="upload-input" accept=".wav,.mp3,.flac,.ogg,.aif,.aiff,.mid,.midi" multiple hidden>
       </div>
       <div class="sq-filters" role="group" aria-label="Filter">
-        <button type="button" aria-pressed="true">Drums</button><button type="button" aria-pressed="false">Bass</button><button type="button" aria-pressed="false">FX</button>
+        <button type="button" aria-pressed="false">Drums</button><button type="button" aria-pressed="false">Bass</button><button type="button" aria-pressed="false">FX</button>
         <button type="button" aria-pressed="false">Vocal</button><button type="button" aria-pressed="false">Loops</button><button type="button" aria-pressed="false">My uploads</button>
       </div>
       <ul class="sq-filelist" id="file-list" role="listbox" aria-label="Samples">
-        <li class="sq-file" role="option" aria-selected="false" draggable="true"><span>🥁</span><span class="sq-file__name">kick_808_punch.wav</span><span class="sq-file__meta sq-num">0:01 · C</span><span class="sq-file__wave"></span></li>
-        <li class="sq-file" role="option" aria-selected="false" draggable="true"><span>🥁</span><span class="sq-file__name">snare_tight_02.wav</span><span class="sq-file__meta sq-num">0:01</span><span class="sq-file__wave"></span></li>
-        <li class="sq-file" role="option" aria-selected="true" draggable="true"><span>🎤</span><span class="sq-file__name">vox_take2.wav</span><span class="sq-file__meta sq-num">0:12 · 145</span><span class="sq-file__wave"></span></li>
-        <li class="sq-file" role="option" aria-selected="false" draggable="true"><span>🔁</span><span class="sq-file__name">drum_loop_145.wav</span><span class="sq-file__meta sq-num">0:06 · 145</span><span class="sq-file__wave"></span></li>
-        <li class="sq-file" role="option" aria-selected="false" draggable="true"><span>🎸</span><span class="sq-file__name">gtr_strum_Am.wav</span><span class="sq-file__meta sq-num">0:08 · Am</span><span class="sq-file__wave"></span></li>
-        <li class="sq-file" role="option" aria-selected="false" draggable="true"><span>✨</span><span class="sq-file__name">riser_8bar.wav</span><span class="sq-file__meta sq-num">0:13</span><span class="sq-file__wave"></span></li>
-        <li class="sq-file" role="option" aria-selected="false" draggable="true"><span>🥁</span><span class="sq-file__name">hat_open_01.wav</span><span class="sq-file__meta sq-num">0:01</span><span class="sq-file__wave"></span></li>
-        <li class="sq-file is-missing" role="option" aria-selected="false" draggable="true"><span>⚠</span><span class="sq-file__name">piano_chop_C#m.wav</span><span class="sq-file__meta">Missing · Relink</span><span class="sq-file__wave"></span></li>
+        <li class="sq-file" role="option" aria-selected="false" draggable="true" data-kind="audio" data-name="kick_808_punch" data-bars="0.25"><span>🥁</span><span class="sq-file__name">kick_808_punch.wav</span><span class="sq-file__meta sq-num">0:01 · C</span><span class="sq-file__wave"></span></li>
+        <li class="sq-file" role="option" aria-selected="false" draggable="true" data-kind="audio" data-name="snare_tight_02" data-bars="0.25"><span>🥁</span><span class="sq-file__name">snare_tight_02.wav</span><span class="sq-file__meta sq-num">0:01</span><span class="sq-file__wave"></span></li>
+        <li class="sq-file" role="option" aria-selected="true" draggable="true" data-kind="audio" data-name="vox_take2" data-bars="7.25"><span>🎤</span><span class="sq-file__name">vox_take2.wav</span><span class="sq-file__meta sq-num">0:12 · 145</span><span class="sq-file__wave"></span></li>
+        <li class="sq-file" role="option" aria-selected="false" draggable="true" data-kind="audio" data-name="drum_loop_145" data-bars="4"><span>🔁</span><span class="sq-file__name">drum_loop_145.wav</span><span class="sq-file__meta sq-num">0:06 · 145</span><span class="sq-file__wave"></span></li>
+        <li class="sq-file" role="option" aria-selected="false" draggable="true" data-kind="audio" data-name="gtr_strum_Am" data-bars="5"><span>🎸</span><span class="sq-file__name">gtr_strum_Am.wav</span><span class="sq-file__meta sq-num">0:08 · Am</span><span class="sq-file__wave"></span></li>
+        <li class="sq-file" role="option" aria-selected="false" draggable="true" data-kind="audio" data-name="riser_8bar" data-bars="8"><span>✨</span><span class="sq-file__name">riser_8bar.wav</span><span class="sq-file__meta sq-num">0:13</span><span class="sq-file__wave"></span></li>
+        <li class="sq-file" role="option" aria-selected="false" draggable="true" data-kind="audio" data-name="hat_open_01" data-bars="0.25"><span>🥁</span><span class="sq-file__name">hat_open_01.wav</span><span class="sq-file__meta sq-num">0:01</span><span class="sq-file__wave"></span></li>
+        <li class="sq-file is-missing" role="option" aria-selected="false" draggable="false"><span>⚠</span><span class="sq-file__name">piano_chop_C#m.wav</span><span class="sq-file__meta">Missing · Relink</span><span class="sq-file__wave"></span></li>
+      </ul>
+      <!-- 패턴 목록 — 왼쪽 Patterns 버튼으로 보임. 트랙(MIDI)에 끌어 놓으면 클립이 생김 -->
+      <ul class="sq-filelist" id="pattern-list" role="listbox" aria-label="Patterns" hidden>
+        <li class="sq-file sq-pattern" role="option" aria-selected="false" draggable="true" data-kind="midi" data-name="Lead" data-bars="4" data-color="1"><span>▤</span><span class="sq-file__name">Lead</span><span class="sq-file__meta sq-num">4 bar</span></li>
+        <li class="sq-file sq-pattern" role="option" aria-selected="false" draggable="true" data-kind="midi" data-name="Lead #2" data-bars="4" data-color="1"><span>▤</span><span class="sq-file__name">Lead #2</span><span class="sq-file__meta sq-num">4 bar</span></li>
+        <li class="sq-file sq-pattern" role="option" aria-selected="false" draggable="true" data-kind="midi" data-name="Strum" data-bars="12" data-color="2"><span>▤</span><span class="sq-file__name">Strum</span><span class="sq-file__meta sq-num">12 bar</span></li>
+        <li class="sq-file sq-pattern" role="option" aria-selected="false" draggable="true" data-kind="midi" data-name="Drums" data-bars="12" data-color="3"><span>▤</span><span class="sq-file__name">Drums</span><span class="sq-file__meta sq-num">12 bar</span></li>
+        <li class="sq-file sq-pattern" role="option" aria-selected="false" draggable="true" data-kind="midi" data-name="Chords" data-bars="12" data-color="4"><span>▤</span><span class="sq-file__name">Chords</span><span class="sq-file__meta sq-num">12 bar</span></li>
+        <li class="sq-file sq-pattern" role="option" aria-selected="false" draggable="true" data-kind="midi" data-name="Pad" data-bars="4" data-color="5"><span>▤</span><span class="sq-file__name">Pad</span><span class="sq-file__meta sq-num">4 bar</span></li>
+        <li class="sq-file sq-pattern" role="option" aria-selected="false" draggable="true" data-kind="midi" data-name="Bass" data-bars="4" data-color="2"><span>▤</span><span class="sq-file__name">Bass</span><span class="sq-file__meta sq-num">4 bar</span></li>
+        <li class="sq-file sq-pattern" role="option" aria-selected="false" draggable="true" data-kind="midi" data-name="Sub" data-bars="4" data-color="1"><span>▤</span><span class="sq-file__name">Sub</span><span class="sq-file__meta sq-num">4 bar</span></li>
+        <li class="sq-file sq-pattern" role="option" aria-selected="false" draggable="true" data-kind="midi" data-name="Lead Hi" data-bars="4" data-color="5"><span>▤</span><span class="sq-file__name">Lead Hi</span><span class="sq-file__meta sq-num">4 bar</span></li>
       </ul>
       <div class="sq-drop" id="drop-zone">
         <span class="sq-drop__icon" aria-hidden="true">⇣</span>
@@ -301,28 +328,38 @@
   <!-- ───────── 편곡 (플레이리스트) ───────── -->
   <main class="sq-main" id="main">
     <div class="sq-tools" role="toolbar" aria-label="Playlist tools">
-      <button type="button" aria-pressed="true" title="Draw (P)">✎ P</button>
-      <button type="button" aria-pressed="false" title="Paint (B)">🖌 B</button>
-      <button type="button" aria-pressed="false" title="Delete (D)">✕ D</button>
-      <button type="button" aria-pressed="false" title="Mute (T)">∅ T</button>
-      <button type="button" aria-pressed="false" title="Slip (S)">↔ S</button>
-      <button type="button" aria-pressed="false" title="Slice (C)">✂ C</button>
-      <button type="button" aria-pressed="false" title="Select (E)">▭ E</button>
-      <button type="button" aria-pressed="false" title="Zoom">🔍</button>
+      <button type="button" aria-pressed="true" data-tool="draw" title="Draw (P)">✎ P</button>
+      <button type="button" aria-pressed="false" data-tool="paint" title="Paint (B)">🖌 B</button>
+      <button type="button" aria-pressed="false" data-tool="delete" title="Delete (D)">✕ D</button>
+      <button type="button" aria-pressed="false" data-tool="mute" title="Mute (T)">∅ T</button>
+      <button type="button" aria-pressed="false" data-tool="slip" title="Slip (S)">↔ S</button>
+      <button type="button" aria-pressed="false" data-tool="slice" title="Slice (C)">✂ C</button>
+      <button type="button" aria-pressed="false" data-tool="select" title="Select (E)">▭ E</button>
+      <button type="button" aria-pressed="false" data-tool="zoom" title="Zoom">🔍</button>
       <button type="button" class="sq-tools__auto" aria-pressed="false" id="automation-mode" title="Automation mode (A)">⤴ Automation A</button>
-      <button type="button" aria-pressed="true" id="follow" title="Follow playhead">⇥ Follow</button>
+      <!-- 재생 방식 (수정 사항2, 2026-10-06): 트랙은 그대로 · 재생선이 움직임 / 재생선은 그대로 · 트랙이 움직임 -->
+      <span class="sq-follow" role="radiogroup" aria-label="During playback" id="follow">
+        <button type="button" role="radio" aria-checked="true" data-follow="page" title="Tracks stay · the playhead moves right">⇥ Playhead moves</button>
+        <button type="button" role="radio" aria-checked="false" data-follow="scroll" title="The playhead stays · tracks move left">⇆ Tracks move</button>
+      </span>
+      <!-- 전체 트랙 높이 (2026-10-06) — 한 트랙만은 트랙 아래 경계를 끌기, Alt+끌기는 전체 -->
+      <span class="sq-heightctl" role="group" aria-label="Track height">
+        <button type="button" data-height="-1" title="All tracks shorter (or Alt+drag a track edge)">↕−</button>
+        <button type="button" data-height="1" title="All tracks taller (or Alt+drag a track edge)">↕+</button>
+      </span>
       <span class="sq-tools__crumb">Playlist — Arrangement<b class="sq-tools__mode"> › Automation mode: patterns dimmed, edit curves only</b></span>
     </div>
 
+    <!-- 편곡 격자 — JS 가 보이는 부분만 그림 (확대해도 선이 또렷하게) -->
+    <canvas class="sq-grid-canvas" id="grid-canvas" aria-hidden="true"></canvas>
     <div class="sq-scroll" id="arrange">
-      <div class="sq-lanes" style="--bars: 32">
+      <div class="sq-lanes" id="lanes">
         <!-- 마디 눈금 · 루프 구간 -->
         <div class="sq-ruler">
           <div class="sq-corner"></div>
           <div class="sq-ruler__bars sq-num">
-            <span style="--bar:1">1</span><span style="--bar:3">3</span><span style="--bar:5">5</span><span style="--bar:7">7</span><span style="--bar:9">9</span><span style="--bar:11">11</span><span style="--bar:13">13</span><span style="--bar:15">15</span>
-            <span style="--bar:17">17</span><span style="--bar:19">19</span><span style="--bar:21">21</span><span style="--bar:23">23</span><span style="--bar:25">25</span><span style="--bar:27">27</span><span style="--bar:29">29</span><span style="--bar:31">31</span>
-            <i class="sq-loop" style="--s:12; --l:4" title="Loop"></i>
+            <span style="--bar:1">1</span><span style="--bar:3">3</span><span style="--bar:5">5</span><span style="--bar:7">7</span><span style="--bar:9">9</span><span style="--bar:11">11</span><span style="--bar:13">13</span><span style="--bar:15">15</span><span style="--bar:17">17</span><span style="--bar:19">19</span><span style="--bar:21">21</span><span style="--bar:23">23</span><span style="--bar:25">25</span><span style="--bar:27">27</span><span style="--bar:29">29</span><span style="--bar:31">31</span><span style="--bar:33">33</span><span style="--bar:35">35</span><span style="--bar:37">37</span><span style="--bar:39">39</span><span style="--bar:41">41</span><span style="--bar:43">43</span><span style="--bar:45">45</span><span style="--bar:47">47</span><span style="--bar:49">49</span><span style="--bar:51">51</span><span style="--bar:53">53</span><span style="--bar:55">55</span><span style="--bar:57">57</span><span style="--bar:59">59</span><span style="--bar:61">61</span><span style="--bar:63">63</span>
+            <i class="sq-loop is-off" id="loop" style="--s:12; --l:4" title="Loop"></i>
           </div>
         </div>
         <!-- 마커 줄 (FR-2215) -->
@@ -343,7 +380,8 @@
         <div class="sq-global sq-global--tempo">
           <div class="sq-global__head">♩ <b>Tempo</b><small class="sq-num">145 BPM</small></div>
           <div class="sq-global__body">
-            <svg class="sq-global__line" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,62.5 50,62.5 62.5,25 87.5,25 87.5,75 100,75" vector-effect="non-scaling-stroke"/></svg>
+            <!-- 예시 곡선은 1~32마디 기준 (JS renderGlobalLanes 가 실제 변경점으로 다시 그림) -->
+            <svg class="sq-global__line" style="width: calc(var(--sq-bar-w) * 32)" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,62.5 50,62.5 62.5,25 87.5,25 87.5,75 100,75" vector-effect="non-scaling-stroke"/></svg>
             <button type="button" class="sq-global__pt" style="--at:16; --y:62.5" aria-label="Bar 17 · 145 BPM"></button>
             <button type="button" class="sq-global__pt" style="--at:20; --y:25" aria-label="Bar 21 · 160 BPM linear"></button>
             <button type="button" class="sq-global__pt" style="--at:28; --y:75" aria-label="Bar 29 · 140 BPM step"></button>
@@ -374,8 +412,9 @@
               <button type="button" class="sq-clip sq-clip--midi" style="--s:0; --l:4"><span class="sq-clip__name">▤ Lead</span><canvas class="sq-clip__preview"></canvas></button>
               <button type="button" class="sq-clip sq-clip--midi" style="--s:8; --l:4"><span class="sq-clip__name">▤ Lead #2</span><canvas class="sq-clip__preview"></canvas></button>
               <button type="button" class="sq-clip sq-clip--midi" style="--s:16; --l:4"><span class="sq-clip__name">▤ Lead #3</span><canvas class="sq-clip__preview"></canvas></button>
-              <!-- 오토메이션 클립 (FR-224) — 오토메이션 모드에서만 보임. 곡선은 JS 가 svg path 로 -->
-              <button type="button" class="sq-auto" style="--s:8; --l:4"><b>⤴ Cutoff → Lead #2</b><svg viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><path d="M0 28 C40 28 60 4 100 2" vector-effect="non-scaling-stroke"/></svg></button>
+              <!-- 오토메이션 클립 (FR-224) — 오토메이션 모드에서만 보임. data-points = [[시간(마디, 클립 처음 기준), 값 0~1, 다음 점까지 곡선 -1~1(0 = 직선)], …]
+                   곡선 · 점 · ↕ 손잡이는 sequencer-automation.js 가 그림 -->
+              <div class="sq-auto" role="group" aria-label="Automation Cutoff → Lead #2" style="--s:8; --l:4" data-points='[[0,0.06,0.6],[4,0.95,0]]'><b>⤴ Cutoff → Lead #2</b></div>
             </div>
           </li>
           <!-- 악기 스택 (FR-2198 · 목업 10·12) — 한 트랙 안에서 같은 노트를 여러 악기가 연주 (레이어).
@@ -411,7 +450,7 @@
               <h3>CONNECT TO ANOTHER</h3>
               <div class="sq-route">
                 <label for="conn-1">Connect</label>
-                <select id="conn-1"><option selected>None</option><option>Connected</option></select>
+                <select id="conn-1"><option value="none" selected>None</option><option value="connected">Connected</option></select>
                 <label for="conn-1-track">Track</label>
                 <input id="conn-1-track" type="number" min="1" placeholder="—">
                 <label for="conn-1-plugin">Plugin</label>
@@ -475,7 +514,7 @@
               <h3>CONNECT TO ANOTHER</h3>
               <div class="sq-route">
                 <label for="conn-2">Connect</label>
-                <select id="conn-2"><option>None</option><option>Connected</option></select>
+                <select id="conn-2"><option value="none">None</option><option value="connected">Connected</option></select>
                 <label for="conn-2-track">Track</label>
                 <input id="conn-2-track" type="number" min="1" placeholder="—">
                 <label for="conn-2-plugin">Plugin</label>
@@ -516,7 +555,7 @@
             <div class="sq-track__lane">
               <button type="button" class="sq-clip sq-clip--midi" style="--s:4; --l:12"><span class="sq-clip__name">▤ Chords</span><canvas class="sq-clip__preview"></canvas></button>
               <button type="button" class="sq-clip sq-clip--midi" style="--s:20; --l:8"><span class="sq-clip__name">▤ Chords #2</span><canvas class="sq-clip__preview"></canvas></button>
-              <button type="button" class="sq-auto" style="--s:4; --l:12"><b>⤴ Reverb mix → Chords</b><svg viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><path d="M0 24 L60 24 C80 24 85 6 100 6" vector-effect="non-scaling-stroke"/></svg></button>
+              <div class="sq-auto" role="group" aria-label="Automation Reverb mix → Chords" style="--s:4; --l:12" data-points='[[0,0.2,0],[7.2,0.2,-0.55],[12,0.8,0]]'><b>⤴ Reverb mix → Chords</b></div>
             </div>
           </li>
           <li class="sq-track" data-track-id="5" data-color="5">
@@ -553,9 +592,9 @@
             <div class="sq-track__lane">
               <button type="button" class="sq-clip sq-clip--midi" style="--s:16; --l:4"><span class="sq-clip__name">▤ Bass</span><canvas class="sq-clip__preview"></canvas></button>
               <button type="button" class="sq-clip sq-clip--midi" style="--s:24; --l:6"><span class="sq-clip__name">▤ Bass #2</span><canvas class="sq-clip__preview"></canvas></button>
-              <button type="button" class="sq-auto" style="--s:24; --l:6"><b>⤵ Volume duck → Bass #2</b><svg viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><path d="M0 4 L10 4 L12 26 L25 26 L27 4 L35 4 L37 26 L50 26 L52 4 L60 4 L62 26 L75 26 L77 4 L85 4 L87 26 L100 26" vector-effect="non-scaling-stroke"/></svg></button>
+              <div class="sq-auto" role="group" aria-label="Automation Volume duck → Bass #2" style="--s:24; --l:6" data-points='[[0.0,0.9,0],[0.6,0.9,0],[0.72,0.15,0],[1.08,0.15,0],[1.2,0.9,0],[1.8,0.9,0],[1.92,0.15,0],[2.28,0.15,0],[2.4,0.9,0],[3.0,0.9,0],[3.12,0.15,0],[3.48,0.15,0],[3.6,0.9,0],[4.2,0.9,0],[4.32,0.15,0],[4.68,0.15,0],[4.8,0.9,0],[5.4,0.9,0],[5.52,0.15,0],[6,0.15,0]]'><b>⤵ Volume duck → Bass #2</b></div>
               <!-- 끌어 놓는 중 (목업 03): 패턴 끝을 넘어 빈 마디까지는 되지만 다음 패턴 시작(--at)에서 멈춤 -->
-              <button type="button" class="sq-auto is-ghost" hidden style="--s:16; --l:7.9"><b>⤴ Filter rise 8bar (dragging)</b><svg viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><path d="M0 28 C50 28 70 6 100 2" vector-effect="non-scaling-stroke"/></svg></button>
+              <div class="sq-auto is-ghost" hidden role="group" aria-label="Automation Filter rise 8bar (dragging)" style="--s:16; --l:7.9" data-points='[[0,0.06,0.5],[7.9,0.95,0]]'><b>⤴ Filter rise 8bar (dragging)</b></div>
               <span class="sq-auto-limit" style="--at:24" hidden><b>max — Bass #2 start</b></span>
             </div>
           </li>
@@ -635,7 +674,7 @@
               <h3>CONNECT TO ANOTHER</h3>
               <div class="sq-route is-live">
                 <label for="conn-10">Connect</label>
-                <select id="conn-10"><option>None</option><option selected>Connected</option></select>
+                <select id="conn-10"><option value="none">None</option><option value="connected" selected>Connected</option></select>
                 <label for="conn-10-track">Track</label>
                 <input id="conn-10-track" type="number" min="1" value="1">
                 <label for="conn-10-plugin">Plugin</label>
@@ -659,6 +698,8 @@
           <button type="button" class="sq-add" id="add-track"><b>＋ Add Track</b><span><i>MIDI</i><i>Audio</i><i>Return</i></span></button>
           <div></div>
         </div>
+        <!-- 남는 높이를 채우는 빈 줄 (수정 사항 2026-10-06: 편곡 영역이 화면을 꽉 채움) -->
+        <div class="sq-fill" aria-hidden="true"><div class="sq-fill__head"></div><div class="sq-fill__lane"></div></div>
         <!-- 리턴 트랙 (FR-2212 · 목업 15) — 트랙들의 Sends A/B 를 받음. ＋ Add Track 아래, MASTER 위 -->
         <div class="sq-track sq-track--return" data-track-id="ra">
           <div class="sq-track__head">
@@ -689,7 +730,7 @@
           <div class="sq-track__lane"><span class="sq-track__note">Main output — always the last track</span></div>
         </div>
 
-        <span class="sq-playhead" style="--at:12.5" aria-hidden="true"></span>
+        <span class="sq-playhead" id="playhead" style="--at:12.5" aria-hidden="true"></span>
       </div>
     </div>
 
@@ -698,26 +739,49 @@
       <!-- 피아노롤 (MIDI 패턴 클릭) -->
       <div class="sq-panel" id="panel-roll" data-panel="roll" hidden>
         <div class="sq-bottom__head">
-          <h2>🎹 Piano roll — Lead #2</h2><span>1. Lead · Wavetable</span>
-          <button type="button" aria-pressed="true">✎</button><button type="button">Chop</button><button type="button">Glue</button><button type="button">Legato</button><button type="button">Humanize</button><button type="button">Quantize 75%</button>
+          <h2 id="roll-title">🎹 Piano roll — Lead #2</h2><span id="roll-track">1. Lead · Wavetable</span>
+          <button type="button" aria-pressed="true" title="Draw notes">✎</button><button type="button" data-roll-op="chop" title="Cut notes into grid steps">Chop</button><button type="button" data-roll-op="glue" title="Join touching notes of the same pitch">Glue</button><button type="button" data-roll-op="legato" title="Stretch each note to the next">Legato</button><button type="button" data-roll-op="humanize" title="Slightly vary timing and velocity">Humanize</button><button type="button" data-roll-op="quantize" title="Pull note starts 75% toward the grid">Quantize 75%</button>
           <span>Swing ◔ 20%</span><span>👻 Ghost: 2. Strum ▾</span>
+          <!-- 모든 노트(건반 줄) 높이 — 건반 줄 경계를 끌어도 됨. 가로 확대·축소는 Ctrl+휠 -->
+          <span class="sq-heightctl" role="group" aria-label="Note height"><button type="button" data-roll-height="-1" title="All notes shorter (or drag a key edge)">↕−</button><button type="button" data-roll-height="1" title="All notes taller (or drag a key edge)">↕+</button></span>
           <button type="button" class="sq-bottom__close" aria-label="Close (Esc)">✕</button>
         </div>
-        <div class="sq-roll">
+        <!-- 피아노롤 본문 (2026-10-06 — 편곡과 같은 확대·격자 규칙, sequencer-roll.js)
+             노트는 data-pitch(MIDI, 60 = C4) · data-start · data-length(마디, 패턴 처음 기준) · data-vel 로 두고 JS 가 위치를 계산
+             data-pattern-bars = 패턴 길이, data-roll-bars = 피아노롤 전체 길이, data-low · data-high = 보이는 건반 범위 -->
+        <div class="sq-roll" id="roll" data-pattern-bars="4" data-roll-bars="8" data-low="24" data-high="108">
           <dl class="sq-roll__props">
             <div><dt>Length</dt><dd>4 bar</dd></div><div><dt>Scale</dt><dd>C# minor</dd></div><div><dt>Swing</dt><dd>20%</dd></div>
-            <div><dt>Selected note</dt><dd>B4 · vel 96</dd></div><div><dt>Chance</dt><dd>100%</dd></div>
+            <div><dt>Selected note</dt><dd id="roll-selected">B4 · vel 96</dd></div><div><dt>Chance</dt><dd>100%</dd></div>
           </dl>
-          <div class="sq-keys" aria-hidden="true"></div>
-          <div class="sq-grid" id="roll-grid">
-            <span class="sq-note is-ghost" style="--x:0; --y:90px; --w:230px"></span><span class="sq-note is-ghost" style="--x:240px; --y:102px; --w:230px"></span>
-            <span class="sq-note" style="--x:0; --y:30px; --w:110px">C#5</span><span class="sq-note is-muted" style="--x:120px; --y:54px; --w:60px">G#4</span>
-            <span class="sq-note is-selected" style="--x:190px; --y:42px; --w:120px">B4</span><span class="sq-note" style="--x:330px; --y:66px; --w:90px">E4</span>
-            <span class="sq-note" style="--x:430px; --y:30px; --w:160px">C#5</span><span class="sq-note" style="--x:600px; --y:78px; --w:60px">D#4</span>
+          <div class="sq-roll__main">
+            <canvas class="sq-roll__canvas" id="roll-canvas" aria-hidden="true"></canvas>
+            <div class="sq-roll__scroll" id="roll-scroll">
+              <div class="sq-roll__inner" id="roll-inner">
+                <div class="sq-roll__ruler"><span class="sq-roll__corner"></span><div class="sq-roll__bars sq-num" id="roll-bars"></div></div>
+                <div class="sq-roll__body">
+                  <ol class="sq-roll__keys" id="roll-keys" aria-label="Keys"></ol>
+                  <div class="sq-roll__notes" id="roll-notes">
+              <span class="sq-note is-ghost" data-pitch="57" data-start="0" data-length="1"></span>
+              <span class="sq-note is-ghost" data-pitch="52" data-start="1" data-length="1"></span>
+              <span class="sq-note is-ghost" data-pitch="54" data-start="2" data-length="1"></span>
+              <span class="sq-note is-ghost" data-pitch="49" data-start="3" data-length="1"></span>
+              <span class="sq-note" data-pitch="73" data-start="0" data-length="0.5" data-vel="100"></span>
+              <span class="sq-note is-muted" data-pitch="68" data-start="0.5" data-length="0.25" data-vel="70"></span>
+              <span class="sq-note is-selected" data-pitch="71" data-start="0.75" data-length="0.5" data-vel="96"></span>
+              <span class="sq-note" data-pitch="64" data-start="1.25" data-length="0.375" data-vel="84"></span>
+              <span class="sq-note" data-pitch="73" data-start="1.75" data-length="0.75" data-vel="110"></span>
+              <span class="sq-note" data-pitch="63" data-start="2.5" data-length="0.25" data-vel="76"></span>
+              <span class="sq-note" data-pitch="68" data-start="2.75" data-length="0.5" data-vel="90"></span>
+              <span class="sq-note" data-pitch="71" data-start="3.25" data-length="0.375" data-vel="88"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="sq-lane">
             <div class="sq-lane__tabs" role="tablist"><button type="button" role="tab" aria-selected="true">Velocity</button><button type="button" role="tab" aria-selected="false">Release</button><button type="button" role="tab" aria-selected="false">Chance</button><button type="button" role="tab" aria-selected="false">CC64 Sustain</button><button type="button" role="tab" aria-selected="false">Pitch Bend</button></div>
-            <span class="sq-vel" style="--x:40px; --h:60%"></span><span class="sq-vel" style="--x:160px; --h:40%"></span><span class="sq-vel" style="--x:230px; --h:75%"></span><span class="sq-vel" style="--x:370px; --h:50%"></span><span class="sq-vel" style="--x:470px; --h:65%"></span>
+            <div class="sq-lane__inner" id="roll-vel"></div>
           </div>
         </div>
       </div>
@@ -790,9 +854,9 @@
         <div class="sq-bottom__head"><h2>🎚 Mixer</h2><span>9 tracks · MASTER</span><button type="button" aria-pressed="true">Volume</button><button type="button">Sends</button><button type="button">I/O</button><button type="button" class="sq-bottom__close" aria-label="Close (Tab)">Tab · ✕</button></div>
         <div class="sq-mix">
           <div class="sq-mix__list" id="mixer-strips">
-            <div class="sq-strip" data-color="1"><b class="sq-strip__name">1. Lead</b><small>🎹 Wavetable</small><span class="sq-strip__fx">FX 2</span><div class="sq-vm"><span class="sq-fader"><i style="--y:18%"></i></span><span class="sq-meter"><i style="--m:55%"></i><i style="--m:49%"></i></span></div><span class="sq-db sq-num">-3.0 dB</span><span class="sq-pan">L<i style="--p:-20deg"></i>R</span><span class="sq-msr"><button type="button" class="is-mute" aria-pressed="false">M</button><button type="button" class="is-solo" aria-pressed="false">S</button><button type="button" class="is-arm" aria-pressed="false">●</button></span></div>
-            <div class="sq-strip" data-color="2"><b class="sq-strip__name">2. Strum</b><small>🎹 Wavetable</small><span class="sq-strip__fx">FX 2</span><div class="sq-vm"><span class="sq-fader"><i style="--y:31%"></i></span><span class="sq-meter"><i style="--m:68%"></i><i style="--m:62%"></i></span></div><span class="sq-db sq-num">-4.7 dB</span><span class="sq-pan">L<i style="--p:15deg"></i>R</span><span class="sq-msr"><button type="button" class="is-mute" aria-pressed="false">M</button><button type="button" class="is-solo" aria-pressed="false">S</button><button type="button" class="is-arm" aria-pressed="false">●</button></span></div>
-            <div class="sq-strip" data-color="audio"><b class="sq-strip__name">8. Vocal</b><small>🎵 vox_take2.wav</small><span class="sq-strip__fx">FX 2</span><div class="sq-vm"><span class="sq-fader"><i style="--y:40%"></i></span><span class="sq-meter"><i style="--m:45%"></i><i style="--m:40%"></i></span></div><span class="sq-db sq-num">-14.9 dB</span><span class="sq-pan">L<i style="--p:10deg"></i>R</span><span class="sq-msr"><button type="button" class="is-mute" aria-pressed="false">M</button><button type="button" class="is-solo" aria-pressed="false">S</button><button type="button" class="is-arm" aria-pressed="true">●</button></span></div>
+            <div class="sq-strip" data-color="1" data-track-id="1"><b class="sq-strip__name">1. Lead</b><small>🎹 Wavetable</small><span class="sq-strip__fx">FX 2</span><div class="sq-vm"><span class="sq-fader"><i style="--y:18%"></i></span><span class="sq-meter"><i style="--m:55%"></i><i style="--m:49%"></i></span></div><span class="sq-db sq-num">-3.0 dB</span><span class="sq-pan">L<i style="--p:-20deg"></i>R</span><span class="sq-msr"><button type="button" class="is-mute" aria-pressed="false">M</button><button type="button" class="is-solo" aria-pressed="false">S</button><button type="button" class="is-arm" aria-pressed="false">●</button></span></div>
+            <div class="sq-strip" data-color="2" data-track-id="2"><b class="sq-strip__name">2. Strum</b><small>🎹 Wavetable</small><span class="sq-strip__fx">FX 2</span><div class="sq-vm"><span class="sq-fader"><i style="--y:31%"></i></span><span class="sq-meter"><i style="--m:68%"></i><i style="--m:62%"></i></span></div><span class="sq-db sq-num">-4.7 dB</span><span class="sq-pan">L<i style="--p:15deg"></i>R</span><span class="sq-msr"><button type="button" class="is-mute" aria-pressed="false">M</button><button type="button" class="is-solo" aria-pressed="false">S</button><button type="button" class="is-arm" aria-pressed="false">●</button></span></div>
+            <div class="sq-strip" data-color="audio" data-track-id="8"><b class="sq-strip__name">8. Vocal</b><small>🎵 vox_take2.wav</small><span class="sq-strip__fx">FX 2</span><div class="sq-vm"><span class="sq-fader"><i style="--y:40%"></i></span><span class="sq-meter"><i style="--m:45%"></i><i style="--m:40%"></i></span></div><span class="sq-db sq-num">-14.9 dB</span><span class="sq-pan">L<i style="--p:10deg"></i>R</span><span class="sq-msr"><button type="button" class="is-mute" aria-pressed="false">M</button><button type="button" class="is-solo" aria-pressed="false">S</button><button type="button" class="is-arm" aria-pressed="true">●</button></span></div>
           </div>
           <div class="sq-strip sq-strip--master"><b class="sq-strip__name">MASTER</b><small>Limiter · -14 LUFS</small><span class="sq-strip__fx">FX 2</span><div class="sq-vm"><span class="sq-fader"><i style="--y:22%"></i></span><span class="sq-meter"><i style="--m:72%"></i><i style="--m:69%"></i></span></div><span class="sq-db sq-num">0.0 dB</span><span class="sq-pan">L<i></i>R</span><span class="sq-msr"><button type="button" class="is-mute" aria-pressed="false">M</button></span></div>
         </div>
@@ -805,6 +869,19 @@
       <span class="sq-num">♪ 145 BPM</span>
     </button>
   </main>
+
+  <!-- 종류가 다른 트랙에 놓았을 때 (2026-10-06) — 샘플 → MIDI 트랙, 패턴 → 오디오 트랙. 글자는 sequencer-arrange.js 가 채움 -->
+  <dialog class="sq-dialog sq-dialog--small" id="track-kind-ask" aria-labelledby="track-kind-ask-title">
+    <form method="dialog">
+      <header class="sq-dialog__head"><h2 id="track-kind-ask-title" data-ask="title">Create a new audio track?</h2><button type="submit" value="cancel" aria-label="Close">✕</button></header>
+      <div class="sq-dialog__body"><p data-ask="body"></p></div>
+      <footer class="sq-dialog__foot">
+        <span></span>
+        <button type="submit" value="cancel" class="sq-dialog__btn">Cancel</button>
+        <button type="submit" value="create" class="sq-dialog__btn is-go" data-ask="ok">Create audio track</button>
+      </footer>
+    </form>
+  </dialog>
 
   <!-- 패턴을 오토메이션 아래에 놓았을 때 (목업 09, FR-224) — 기본 Trim -->
   <dialog class="sq-dialog" id="auto-overlap" aria-labelledby="auto-overlap-title">

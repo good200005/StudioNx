@@ -172,6 +172,8 @@ const PDFS = [
   { out: 'ai-notes/27_privacy_policy.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 27 — 개인정보 처리방침 페이지와 가입 동의', files: ['ai-notes/27_privacy_policy.md'], base: 'ai-notes' },
   { out: 'ai-notes/28_home_mobile_hero.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 28 — 홈 첫 화면 모바일 겹침 수정', files: ['ai-notes/28_home_mobile_hero.md'], base: 'ai-notes' },
   { out: 'ai-notes/29_sequencer_screen.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 29 — 시퀀서 화면 (studioNx.html)', files: ['ai-notes/29_sequencer_screen.md'], base: 'ai-notes' },
+  { out: 'ai-notes/30_sequencer_arrange_drag.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 30 — 시퀀서 편곡 · 피아노롤 · 오토메이션', files: ['ai-notes/30_sequencer_arrange_drag.md'], base: 'ai-notes' },
+  { out: 'ai-notes/31_sequencer_buttons.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 31 — 시퀀서 화면 버튼 전체', files: ['ai-notes/31_sequencer_buttons.md'], base: 'ai-notes' },
 ];
 
 const mode = process.argv[2];
