@@ -2,6 +2,15 @@
 // 화면 구조·클래스 설명: docs/ai-notes/29_sequencer_screen.md
 // 상태 클래스는 <body class="sq"> 에 붙임: .is-playing · .is-recording · .is-automation
 // 소리(Web Audio)·타이밍(PPQ 960)·저장(API)은 다른 모듈에서 — 여기서는 화면 연결만
+// 편곡 드래그(좌우 이동 · 클립 옮기기 · 목록에서 끌어 놓기)는 AI 구현 sequencer-arrange.js (사용자 요청 2026-10-06)
+// 피아노롤(확대·격자·노트 찍기, MIDI 클립 더블 클릭으로 열기)은 AI 구현 sequencer-roll.js (사용자 요청 2026-10-06)
+// 오토메이션 모드 · 점 찍기 · ↕ 곡선은 AI 구현 sequencer-automation.js (사용자 요청 2026-10-06) — setAutomationMode 템플릿 대신
+// 나머지 화면 버튼(메뉴 · 언어 · 왼쪽 버튼 줄 · 아래 칸 · 트랙 펼침 …)은 AI 구현 sequencer-ui.js (사용자 요청 2026-10-06) — 아래 템플릿 함수 중 화면 부분을 대신
+
+import { initArrange } from './sequencer-arrange.js';
+import { initRoll } from './sequencer-roll.js';
+import { initAutomation } from './sequencer-automation.js';
+import { initUI } from './sequencer-ui.js';
 
 /** 1박 = 960 tick (DB.md 와 같음) */
 export const PPQ = 960;
@@ -277,3 +286,15 @@ export function updateTransport(state) {
 }
 
 init();
+
+// 편곡 드래그 — 저장은 init() 구현 때 onChange 로 연결 (예: change.type === 'move' → PATCH /clips/{id})
+initArrange({ onChange: (change) => console.debug('[arrange]', change.type, change.trackId, change.start, change.length) });
+
+// 피아노롤 — 노트 저장은 init() 구현 때 onChange 로 연결 (예: PUT /patterns/{id}/notes)
+initRoll({ onChange: (change) => console.debug('[roll]', change.type, change.pitch, change.start, change.length) });
+
+// 오토메이션 — 점 저장은 init() 구현 때 onChange 로 연결 (예: PUT /automation-lanes/{id}/points)
+initAutomation({ onChange: (change) => console.debug('[automation]', change.type, change.on ?? JSON.stringify(change.points)) });
+
+// 화면 버튼 — 저장은 init() 구현 때 onChange 로 연결
+initUI({ onChange: (change) => console.debug('[ui]', change.type) });

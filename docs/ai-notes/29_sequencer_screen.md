@@ -57,6 +57,8 @@
 
 ![라이트 테마 (C Light)](images/29_sequencer_screen/07_light.png)
 
+> 2026-10-06 이후: 편곡 영역이 화면을 꽉 채우고(64마디, 남는 높이는 빈 줄) 드래그가 동작합니다 → [30_sequencer_arrange_drag.md](30_sequencer_arrange_drag.md). 위 캡처는 그 전 모습입니다.
+
 > 화면의 트랙·클립·파일·숫자는 **모양 확인용 예시**입니다. `sequencer.js`를 구현하면 `GET /projects/{id}/full` 결과로 다시 그립니다.
 
 ## 2. 화면 구조
