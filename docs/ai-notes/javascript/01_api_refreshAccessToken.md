@@ -47,6 +47,10 @@ Access Token 은 메모리에만 있어서 **페이지를 옮기면 사라지고
 쿠키가 없거나 만료되면 `/auth/refresh` 가 401 → 이 함수가 `false` → 로그인 안 된 상태로 처리.
 
 ## 3. 코드
+**import** (파일 맨 위)
+`api.js` 는 다른 파일을 import 하지 않는다 (공통 모듈의 맨 아래 단계). 이 함수가 쓰는 `refreshing · setAccessToken · clearAccessToken · API_BASE` 는 같은 파일 안에 있고, `fetch` 는 브라우저 기본 기능이다.
+
+**함수**
 ```js
 export async function refreshAccessToken() {
   if (refreshing) return refreshing;
@@ -76,6 +80,10 @@ export async function refreshAccessToken() {
 ```
 
 ### 문법 풀이
+| import 문법 | 뜻 |
+|---|---|
+| `export` (함수 앞) | 다른 파일이 `import { 함수 }` 로 가져다 쓸 수 있게 내보냄. 없으면 이 파일 안에서만 쓸 수 있음 |
+
 **`if (!data?.access_token)`** — "토큰을 못 받았으면"
 
 | 부분 | 뜻 |

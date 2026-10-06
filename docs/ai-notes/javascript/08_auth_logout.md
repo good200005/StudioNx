@@ -36,6 +36,13 @@
 | Access Token (메모리) | 이 함수 — `clearAccessToken()` |
 
 ## 3. 코드
+**import** (파일 맨 위)
+```js
+import { api, clearAccessToken, getAccessToken, refreshAccessToken } from './api.js';
+```
+`auth.js` 맨 위의 import 줄이다. 이 함수는 이 중 **`api` · `clearAccessToken`** 을 쓴다. `LOGIN_PAGE` 는 같은 파일 안에 있다.
+
+**함수**
 ```js
 export async function logout() {
   try {
@@ -49,6 +56,10 @@ export async function logout() {
 ```
 
 ### 문법 풀이
+| import 문법 | 뜻 |
+|---|---|
+| `import { a, b } from './api.js'` | `api.js` 가 `export` 한 것 중 `a` · `b` 를 이름 그대로 가져옴. `'./'` 는 같은 폴더. 브라우저는 `<script type="module">` 일 때만 `import` 를 읽는다 |
+
 | 식 | 뜻 |
 |---|---|
 | `api.post('/auth/logout', undefined, { auth: false })` | 본문 없이(`undefined`) POST. `auth: false` 라서 토큰을 붙이지 않고, 토큰이 없어도 재발급을 먼저 시도하지 않음 ([02](02_api_apiFetch.md)) |

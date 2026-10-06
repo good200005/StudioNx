@@ -26,6 +26,12 @@ get_current_user(P1-03)가 decode_access_token 을 쓰고,
 설정값: core/config.py  jwt_secret, jwt_access_minutes(30), jwt_refresh_days(3)
 """
 
+import jwt
+
+from app.core.config import get_settings
+from app.core.errors import AppError, ErrorCode
+
+JWT_ALGORITHM = "HS256"
 
 # 비밀번호 조건 (PRD 01 FR-102) — 화면(join.js PASSWORD_RULES)과 같은 규칙
 PASSWORD_MIN, PASSWORD_MAX = 8, 20
@@ -93,10 +99,34 @@ def decode_refresh_token(token: str) -> int:
 def decode_access_token(token: str) -> int:
     """Access Token 을 검사하고 user_id 를 돌려준다.
 
-    TODO(P1-03):
-    - jwt.decode(token, jwt_secret, algorithms=["HS256"])
-    - 서명 오류·만료(ExpiredSignatureError)·"type" != "access" 이면
+    (구현: AI — 2026-10-06, 함수 하나씩 검토)
+    - 서명 오류 · 만료 · 형식 오류 · "type" != "access" 이면
       raise AppError(ErrorCode.UNAUTHORIZED, 401, "Please sign in again.")
-    - payload["sub"] 를 int 로 바꿔 반환
     """
-    raise NotImplementedError
+    return _decode_token(token, "access")
+
+
+def _decode_token(token: str, expected_type: str) -> int:
+    """decode_access_token · decode_refresh_token(P1-05) 공통 — 검사 후 user_id.
+
+    (구현: AI — 2026-10-06, 함수 하나씩 검토)
+    - algorithms 를 HS256 하나로 고정 — 토큰이 스스로 정한 방식("none" 등)을 믿지 않음
+    - exp · sub · type 이 없으면 실패 (require)
+    - 어떤 이유로 실패해도 같은 401 · 같은 문구 (왜 틀렸는지 알려 주지 않음)
+    """
+    invalid = AppError(ErrorCode.UNAUTHORIZED, 401, "Please sign in again.")
+    try:
+        payload = jwt.decode(
+            token,
+            get_settings().jwt_secret,
+            algorithms=[JWT_ALGORITHM],
+            options={"require": ["exp", "sub", "type"]},
+        )
+    except jwt.PyJWTError:
+        raise invalid from None
+    if payload["type"] != expected_type:
+        raise invalid
+    try:
+        return int(payload["sub"])
+    except (TypeError, ValueError):
+        raise invalid from None

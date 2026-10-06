@@ -65,6 +65,13 @@
 2. 로그인 폼은 JS 로 기본 제출을 막고 `apiFetch` 로 보낸다. 폼에 `method="post"` 가 있어 JS 가 실패해도 비밀번호가 주소에 붙지 않는다.
 
 ## 3. 코드
+**import** (파일 맨 위)
+```js
+import { api, clearAccessToken, getAccessToken, refreshAccessToken } from './api.js';
+```
+`auth.js` 맨 위의 import 줄이다. **이 함수는 import 한 것을 쓰지 않는다** — `safeNextPath` · `LOGIN_PAGE` 는 같은 파일 안에 있다.
+
+**함수**
 ```js
 export function loginUrl(next) {
   const path = safeNextPath(next);
@@ -73,6 +80,10 @@ export function loginUrl(next) {
 ```
 
 ### 문법 풀이
+| import 문법 | 뜻 |
+|---|---|
+| `import { a, b } from './api.js'` | `api.js` 가 `export` 한 것 중 `a` · `b` 를 이름 그대로 가져옴. `'./'` 는 같은 폴더. 브라우저는 `<script type="module">` 일 때만 `import` 를 읽는다 |
+
 | 식 | 뜻 |
 |---|---|
 | `encodeURIComponent(path)` | 주소에서 특별한 뜻이 있는 글자를 `%XX` 로 바꿈. `/` → `%2F`, `?` → `%3F`, `=` → `%3D`, `&` → `%26` |

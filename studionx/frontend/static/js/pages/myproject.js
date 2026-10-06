@@ -22,6 +22,7 @@ export const PAGE_SIZE = 10;
  *                opened: false } ],      // opened = 내 작업 세션(project_sessions)이 1개 이상 (FR-130)
  *     total: 12, page: 1, size: 10 }
  * - 검색어·정렬·페이지는 주소(?query=&sort=&page=)에도 남겨 새로고침·뒤로 가기에서 유지 (history.replaceState)
+ * - 실패하면 (2026-10-06 결정) 500 이상 → location.replace('errors/500.html') (목록이라 404·403 없음)
  * @returns {Promise<object>}
  */
 export async function loadProjects({ query = '', sort = 'updated', page = 1 } = {}) {

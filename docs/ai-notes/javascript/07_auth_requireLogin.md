@@ -39,6 +39,13 @@ if (!ok) return;          // 로그인 화면으로 이동 중 — 아래 코드
 로그인한 상태라면 ② 에서 `true` 가 나오고 페이지가 그대로 이어진다.
 
 ## 3. 코드
+**import** (파일 맨 위)
+```js
+import { api, clearAccessToken, getAccessToken, refreshAccessToken } from './api.js';
+```
+`auth.js` 맨 위의 import 줄이다. **이 함수는 import 한 것을 직접 쓰지 않는다** — `isLoggedIn` · `loginUrl` 은 같은 파일 안에 있고, 그 함수들이 `api.js` 를 쓴다.
+
+**함수**
 ```js
 export async function requireLogin() {
   if (await isLoggedIn()) return true;
@@ -48,6 +55,10 @@ export async function requireLogin() {
 ```
 
 ### 문법 풀이
+| import 문법 | 뜻 |
+|---|---|
+| `import { a, b } from './api.js'` | `api.js` 가 `export` 한 것 중 `a` · `b` 를 이름 그대로 가져옴. `'./'` 는 같은 폴더. 브라우저는 `<script type="module">` 일 때만 `import` 를 읽는다 |
+
 | 식 | 뜻 |
 |---|---|
 | `await isLoggedIn()` | 로그인 상태 확인이 끝날 때까지 기다린 뒤 `true` · `false` 를 받음 ([06](06_auth_isLoggedIn.md)) |

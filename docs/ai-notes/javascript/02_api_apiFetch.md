@@ -35,6 +35,10 @@
 | `credentials: 'same-origin'` | 같은 사이트 요청에 쿠키를 싣는다 — 리프레시 쿠키는 `/api/v1/auth` 아래에만 실림 ([01](01_api_refreshAccessToken.md)) |
 
 ## 3. 코드
+**import** (파일 맨 위)
+`api.js` 는 다른 파일을 import 하지 않는다 (공통 모듈의 맨 아래 단계). 이 함수가 쓰는 `accessToken · refreshAccessToken · ApiError · toApiError · API_BASE` 는 같은 파일 안에 있고, `fetch` 는 브라우저 기본 기능이다.
+
+**함수**
 ```js
 export async function apiFetch(path, options = {}) {
   const { method = 'GET', body, auth = true } = options;
@@ -83,6 +87,10 @@ async function toApiError(res) {
 ```
 
 ### 문법 풀이
+| import 문법 | 뜻 |
+|---|---|
+| `export` (함수 앞) | 다른 파일이 `import { 함수 }` 로 가져다 쓸 수 있게 내보냄. 없으면 이 파일 안에서만 쓸 수 있음 |
+
 | 식 | 뜻 |
 |---|---|
 | `const { method = 'GET', body, auth = true } = options` | **구조 분해 + 기본값**: `options.method` 가 없으면 `'GET'`, `options.auth` 가 없으면 `true` |

@@ -37,6 +37,13 @@
 | 둘 다 없거나 리프레시 쿠키가 만료되었다 | 로그인 안 된 상태 |
 
 ## 3. 코드
+**import** (파일 맨 위)
+```js
+import { api, clearAccessToken, getAccessToken, refreshAccessToken } from './api.js';
+```
+`auth.js` 맨 위의 import 줄이다. 이 함수는 이 중 **`getAccessToken` · `refreshAccessToken`** 을 쓴다 ([01](01_api_refreshAccessToken.md)).
+
+**함수**
 ```js
 export async function isLoggedIn() {
   if (getAccessToken()) return true;
@@ -45,6 +52,10 @@ export async function isLoggedIn() {
 ```
 
 ### 문법 풀이
+| import 문법 | 뜻 |
+|---|---|
+| `import { a, b } from './api.js'` | `api.js` 가 `export` 한 것 중 `a` · `b` 를 이름 그대로 가져옴. `'./'` 는 같은 폴더. 브라우저는 `<script type="module">` 일 때만 `import` 를 읽는다 |
+
 | 식 | 뜻 |
 |---|---|
 | `async function` | 결과를 Promise 로 돌려주는 함수. 부르는 쪽은 `await isLoggedIn()` 으로 `true` · `false` 를 받는다 |

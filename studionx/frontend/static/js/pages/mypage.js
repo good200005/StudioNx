@@ -28,6 +28,7 @@ export const STORAGE_WARN_RATIO = 0.8;
  *         sessions: [ { started_at, last_seen_at, active_seconds } ] }    // 최근 7일, 내 세션만 (project_sessions)
  *     ]
  *   }
+ * - 실패하면 (2026-10-06 결정) 404 → location.replace('errors/404.html'), 403 → errors/403.html, 500 이상 → errors/500.html
  * @returns {Promise<object>}
  */
 export async function loadDashboard() {

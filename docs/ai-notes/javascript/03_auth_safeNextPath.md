@@ -28,6 +28,13 @@
 그래서 **같은 사이트 경로만** 허용한다.
 
 ## 3. 코드
+**import** (파일 맨 위)
+```js
+import { api, clearAccessToken, getAccessToken, refreshAccessToken } from './api.js';
+```
+`auth.js` 맨 위의 import 줄이다. **이 함수는 import 한 것을 쓰지 않는다** — `URL` · `location` 은 브라우저 기본 기능이다.
+
+**함수**
 ```js
 export function safeNextPath(next, origin = location.origin) {
   if (typeof next !== 'string' || !next.startsWith('/')) return null;
@@ -41,6 +48,11 @@ export function safeNextPath(next, origin = location.origin) {
 ```
 
 ### 문법 풀이
+| import 문법 | 뜻 |
+|---|---|
+| `import { a, b } from './api.js'` | `api.js` 가 `export` 한 것 중 `a` · `b` 를 이름 그대로 가져옴. `'./'` 는 같은 폴더. 브라우저는 `<script type="module">` 일 때만 `import` 를 읽는다 |
+| `export` (함수 앞) | 다른 파일이 `import { 함수 }` 로 가져다 쓸 수 있게 내보냄. 없으면 이 파일 안에서만 쓸 수 있음 |
+
 | 식 | 뜻 |
 |---|---|
 | `origin = location.origin` | 기본값 매개변수 — 보통은 지금 사이트(`http://localhost:8000`). 시험 때만 다른 값을 넣음 |
