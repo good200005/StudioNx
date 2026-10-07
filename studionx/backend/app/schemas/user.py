@@ -60,6 +60,6 @@ class PasswordChangeRequest(BaseModel):
 
 
 class WithdrawRequest(BaseModel):
-    """DELETE /users/me (FR-108) — 본문에 비밀번호 재확인. userinfo.js initWithdraw (promptDialog)"""
+    """DELETE /users/me (FR-108) — 본문에 비밀번호 재확인. userinfo.js initWithdraw"""
 
     password: str = Field(min_length=1, max_length=100)
