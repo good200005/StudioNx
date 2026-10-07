@@ -3,7 +3,7 @@
 // 토큰 저장·API 호출은 core/api.js(P1-02)에서. 여기서는 화면 쪽 동작만.
 
 import { api, setAccessToken } from './api.js';
-import { isLoggedIn, parseLoginHash } from './auth.js';
+import { isLoggedIn, parseLoginHash, logout } from './auth.js';
 
 /**
  * 로그인 상태를 <html data-auth> 에 표시 → auth.css 가 헤더 버튼을 바꿈
@@ -176,5 +176,21 @@ export function initLoginForm(options = {}) {
     } finally {
       submit.disabled = false;
     }
+  });
+}
+
+/**
+ * 로그아웃 버튼 (#logout-button) — 마이페이지 · 내 프로젝트 · 회원 정보의 왼쪽 메뉴 Log out (세 화면 공통)
+ * - 누르면 버튼을 잠그고(두 번 누름 방지) core/auth.js logout() — 서버 쿠키 삭제 → 메모리 토큰 삭제 → home.html
+ * - 같은 버튼에 두 번 연결하지 않음 (data-logout="on")
+ * (구현: AI — 2026-10-08, P1-10 27, 함수 하나씩 검토 — 세 화면이 같아 페이지 JS 대신 여기에 하나만 둠)
+ * @param {HTMLElement|null} [button] 기본은 #logout-button
+ */
+export function initLogoutButton(button = document.getElementById('logout-button')) {
+  if (!button || button.dataset.logout === 'on') return;
+  button.dataset.logout = 'on';
+  button.addEventListener('click', () => {
+    button.disabled = true;
+    logout(); // 끝나면 다른 페이지로 옮겨 가므로 다시 켤 필요 없음
   });
 }

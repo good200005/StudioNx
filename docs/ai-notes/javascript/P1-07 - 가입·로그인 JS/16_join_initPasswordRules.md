@@ -29,7 +29,7 @@ join.html 이 열릴 때 `join.js` 가 한 번 부른다.
 
 | 규칙 | 어디에 | 같은 규칙인 곳 |
 |---|---|---|
-| `PASSWORD_RULES` (5개) · `PASSWORD_ALLOWED` | `join.js` 위쪽 (템플릿에 이미 있음) | 서버 [백엔드 14 `check_password_rules`](<../../backend(fastAPI_Python)/P1-04 - 회원가입 API/14_security_check_password_rules.md>) — 시험으로 같은 기호 모음임을 확인함 |
+| `PASSWORD_RULES` (5개) · `PASSWORD_ALLOWED` | `join.js` 위쪽 (템플릿에 이미 있음) → **2026-10-08 `core/password.js` 로 옮김** (회원 정보 화면 JS 25 와 함께 씀, `join.js` 는 import) | 서버 [백엔드 14 `check_password_rules`](<../../backend(fastAPI_Python)/P1-04 - 회원가입 API/14_security_check_password_rules.md>) — 시험으로 같은 기호 모음임을 확인함 |
 
 화면의 ✓ 는 **안내**다. 가입 버튼을 누르면 17 `initJoinForm` 이 같은 규칙으로 한 번 더 막고, 서버도 다시 검사한다.
 

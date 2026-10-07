@@ -128,7 +128,8 @@ export function formatRelativeTime(isoTime) {
   // TODO
 }
 
-/** 로그아웃 버튼 (#logout-button) → core/auth.js logout() — myPage.html 과 같음 */
+/** 로그아웃 버튼 (#logout-button) → core/auth.js logout() — myPage.html 과 같음
+ * (2026-10-08) core/auth-ui.js initLogoutButton 으로 구현됨 (P1-10 27) — P1-14 때 이 함수를 지우고 import 하면 됨 */
 export function initLogoutButton() {
   // TODO
 }
