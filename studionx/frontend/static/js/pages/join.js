@@ -3,6 +3,7 @@ import { initLoginForm, initPasswordToggles, initOAuthPlaceholders, setFieldStat
 import { initModalFallback } from '../core/modal.js';
 import { includePartials } from '../core/include.js';
 import { api } from '../core/api.js';
+import { initFormAlerts } from '../core/dialog.js';
 
 /** 중복 확인 칸마다 다른 것 — 주소 · 문구 · 서버에 묻기 전 형식 검사 */
 const CHECKS = {
@@ -292,6 +293,7 @@ export function initJoinForm() {
 await includePartials();
 
 initModalFallback();
+initFormAlerts();   // 19 — 로그인 모달의 기본 말풍선 대신 알림창 (가입 폼은 novalidate 라 그대로)
 // 로그인 모달(이미 가입한 사람용): 성공하면 메인으로 — 헤더가 My Page·My Projects로 보임
 initLoginForm({ onSuccess: (next) => { location.href = next || 'home.html'; } }); // 13 — 가입 화면에서 로그인하면 홈(또는 next)으로
 initPasswordToggles();

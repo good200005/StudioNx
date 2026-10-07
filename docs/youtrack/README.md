@@ -57,6 +57,7 @@
 | `python tools/youtrack/yt.py fields StudioNx` | 프로젝트 필드 목록 |
 | `python tools/youtrack/yt.py states StudioNx` | State에 쓸 수 있는 값 (완료 값 표시) |
 | `python tools/youtrack/yt.py set-state StudioNx P1-01 <State> [--comment "…"]` | 계획 번호로 이슈를 찾아 State 변경 + 코멘트 (작업 완료 시 사용) |
+| `python tools/youtrack/yt.py create StudioNx "FIX-01 요약" [--description "…"] [--parent StudioNx-42] [--state "In Progress"]` | 새 이슈 만들기. 계획(§2.1)에 없는 수정 작업은 요약을 `FIX-NN` 으로 시작 → `set-state` 로 찾을 수 있음 (2026-10-07, FIX-01 = StudioNx-72) |
 | `python tools/youtrack/yt.py move <원본> <대상> [--dry-run]` | 프로젝트 간 이동 (대상에 없는 필드가 있으면 중단) |
 | `python tools/youtrack/migrate_tasks_to_studionx.py setup / move` | (1회성, 완료) StudioNx_tasks → StudioNx 이동 + 필드 변환 |
 
