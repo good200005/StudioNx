@@ -10,6 +10,8 @@
   python tools/youtrack/yt.py states SNX             State 필드에 쓸 수 있는 값 목록
   python tools/youtrack/yt.py set-state SNX P1-01 Fixed [--comment "PR #10 병합"]
                                                     계획 번호로 이슈를 찾아 State 변경 (+ 코멘트)
+  python tools/youtrack/yt.py create SNX "FIX-01 요약" [--description "…"] [--parent StudioNx-42] [--state "In Progress"]
+                                                    새 이슈 만들기 (계획에 없는 수정 작업은 요약을 FIX-NN 으로 시작)
 """
 
 import json
@@ -64,7 +66,7 @@ def api(method, path, params=None, body=None):
             time.sleep(2 * (attempt + 1))
 
 
-PLAN_ID = re.compile(r"^\[?(E[123C]|S[123]-\d{2}|C-\d{2}|P1-\d{2})\b")
+PLAN_ID = re.compile(r"^\[?(E[123C]|S[123]-\d{2}|C-\d{2}|P1-\d{2}|FIX-\d{2})\b")  # FIX-NN: 계획에 없는 수정 작업
 PARENT_IN_DESC = re.compile(r"상위 작업:\s*(E[123C]|S[123]-\d{2}|C-\d{2})")
 EPIC_SUMMARY = {"1단계": "E1", "2단계": "E2", "3단계": "E3", "병행": "EC"}
 
@@ -198,6 +200,23 @@ def cmd_set_state(key, pid, state, comment):
     print(f"{issue} ({pid}) State = {current} — {now['summary'][:60]}")
 
 
+def cmd_create(key, summary, description, parent, state):
+    issue = api("POST", "issues", {"fields": "idReadable"}, body={
+        "project": {"id": project_id(key)},
+        "summary": summary,
+        "description": description or "",
+    })["idReadable"]
+    if parent:
+        api("POST", "commands", body={"query": f"subtask of {parent}", "issues": [{"idReadable": issue}]})
+    if state:
+        api("POST", "commands", body={"query": f"State {state}", "issues": [{"idReadable": issue}]})
+    print(f"{issue} 만듦 — {summary[:60]}" + (f" (상위 {parent})" if parent else "") + (f" State={state}" if state else ""))
+
+
+def _opt(args, name):
+    return args[args.index(name) + 1] if name in args else None
+
+
 if __name__ == "__main__":
     args = sys.argv[1:]
     if not args or args[0] == "check":
@@ -212,6 +231,8 @@ if __name__ == "__main__":
         cmd_move(args[1], args[2], "--dry-run" in args)
     elif args[0] == "states":
         cmd_states(args[1])
+    elif args[0] == "create":
+        cmd_create(args[1], args[2], _opt(args, "--description"), _opt(args, "--parent"), _opt(args, "--state"))
     elif args[0] == "set-state":
         comment = args[args.index("--comment") + 1] if "--comment" in args else None
         cmd_set_state(args[1], args[2], args[3], comment)

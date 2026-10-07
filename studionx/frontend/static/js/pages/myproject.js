@@ -8,6 +8,7 @@ import { requireLogin, logout } from '../core/auth.js';
 import { initModalFallback } from '../core/modal.js';
 import { canOpenStudio, showDesktopOnly, initDesktopOnlyLinks, openStudio } from '../core/studio.js';
 import { includePartials } from '../core/include.js';
+import { initFormAlerts } from '../core/dialog.js';
 
 /** 한 페이지에 보여 줄 프로젝트 수 (FR-123) */
 export const PAGE_SIZE = 10;
@@ -107,6 +108,9 @@ export function initEditProjectForm() {
 
 /**
  * 삭제 확인 (#delete-project-confirm, FR-125)
+ * - (2026-10-07 결정) 확인은 core/dialog.js confirmDialog({ title: 'Delete project?', text: …, confirmText: 'Delete project', danger: true })
+ *   로 띄움 (목업 docs/page_mockups/sweetalert/05 · 12). P1-14 구현 때 #delete-project-modal 과 행 메뉴의
+ *   command="show-modal" commandfor="delete-project-modal" 을 지우고, Delete 클릭 → confirmDialog → true 면 아래 삭제
  * - api.delete(`/projects/${id}`) (서버는 소프트 삭제 deleted_at, OWNER 가 아니면 403)
  * - 성공: 모달 닫고 목록 다시 받기 (지금 페이지가 비면 한 페이지 앞으로)
  * - 실패: #delete-project-error. 누른 뒤 버튼 disabled (두 번 누름 방지)
@@ -134,6 +138,7 @@ await includePartials();
 
 initAuthState();
 initModalFallback();
+initFormAlerts();   // 19 — 새 프로젝트 · 정보 수정 폼의 기본 말풍선 대신 알림창
 // TODO: await requireLogin() — 로그인 안 했으면 home.html#login?next=myProject.html 로 보냄 (core/auth.js)
 // TODO: 주소의 ?query=&sort=&page= 를 읽어 loadProjects → renderProjects → renderPager
 initSearch();

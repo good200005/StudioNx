@@ -6,6 +6,7 @@ import { initAuthState, initLoginForm, initPasswordToggles, initOAuthPlaceholder
 import { initModalFallback } from '../core/modal.js';
 import { includePartials } from '../core/include.js';
 import { parseLoginHash } from '../core/auth.js';
+import { initFormAlerts } from '../core/dialog.js';
 
 /**
  * 첫 접속 로딩 (P1-20, static/css/pages/intro.css) — 첫 접속에만 보이기
@@ -99,4 +100,5 @@ initSideNavActiveState();
 initMobileMenuClose();
 initContactForm();
 initModalFallback();
+initFormAlerts();   // 19 — 로그인 모달 · 문의 폼의 기본 말풍선 대신 알림창
 loadDevNotes();
