@@ -30,7 +30,7 @@ def read_me(user: CurrentUser) -> MeResponse:   # user = 이 함수가 돌려준
 
 | 순서 | 일어나는 일 |
 |---|---|
-| ① 브라우저 | `GET /api/v1/me/dashboard` + `Authorization: Bearer eyJ…` ([JS 02](../../javascript/02_api_apiFetch.md)) |
+| ① 브라우저 | `GET /api/v1/me/dashboard` + `Authorization: Bearer eyJ…` ([JS 02](<../../javascript/P1-02 - 프론트 공통 JS/02_api_apiFetch.md>)) |
 | ② `bearer_scheme` | 헤더에서 `eyJ…` 만 꺼냄 |
 | ③ `get_db` | DB 세션을 엶 |
 | ④ **이 함수** | 토큰 검사(05) → 7 → DB 에서 7번 회원 → 상태 확인 |
@@ -123,7 +123,7 @@ CurrentUser = Annotated[User, Depends(get_current_user)]
 |---|---|
 | 토큰만 믿지 않고 DB 를 한 번 더 확인 | Access Token 은 30분 동안 유효하다. 그 사이 탈퇴(`DELETED`)하거나 정지(`SUSPENDED`)된 회원의 토큰을 막는다 (FR-108) |
 | 없는 회원 · 정지 · 탈퇴를 같은 401 · 같은 문구로 | 05 와 같은 이유. 이유를 알려 주면 "이 번호의 회원은 탈퇴했다" 같은 정보가 샌다 |
-| 403 이 아니라 401 | 프론트 `api.js` 는 401 `UNAUTHORIZED` 일 때만 재발급 → 실패하면 로그인 화면으로 보낸다 ([JS 02](../../javascript/02_api_apiFetch.md)). 정지 · 탈퇴 회원은 재발급도 거절되어(P1-05) 결국 로그인 화면으로 간다 |
+| 403 이 아니라 401 | 프론트 `api.js` 는 401 `UNAUTHORIZED` 일 때만 재발급 → 실패하면 로그인 화면으로 보낸다 ([JS 02](<../../javascript/P1-02 - 프론트 공통 JS/02_api_apiFetch.md>)). 정지 · 탈퇴 회원은 재발급도 거절되어(P1-05) 결국 로그인 화면으로 간다 |
 | 문구 두 가지 | 헤더 없음은 처음부터 로그인 안 한 것 → "Please sign in." 토큰이 있는데 안 됨 → "Please sign in again." |
 | `auto_error=False` 로 직접 401 | 같은 `Bearer` 를 07 `get_current_user_optional()` 도 쓴다. 07 은 헤더가 없을 때 오류가 아니라 `None`(손님)으로 처리해야 하므로, 헤더 읽기는 오류를 내지 않게 두고 각 함수가 판단한다 |
 | `status != "ACTIVE"` 를 글자로 비교 | users 모델의 `status` 칸은 이 작업의 다음 순서(모델 컬럼)에서 만든다. 그때 `StrEnum` 으로 만들면 `UserStatus.ACTIVE == "ACTIVE"` 가 참이라 이 코드는 그대로 동작한다 |

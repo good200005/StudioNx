@@ -5,6 +5,7 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from fastapi.testclient import TestClient
 
+from app.core.security import create_access_token, decode_access_token, decode_refresh_token
 from app.db.session import get_db
 from app.main import app
 from app.models import User
@@ -196,3 +197,143 @@ def test_signup_bad_email_is_422(client):
     res = client.post("/api/v1/auth/signup", json=body(email="kim@naver"))
     assert res.status_code == 422
     assert "email" in res.json()["error"]["details"]
+
+
+# ── POST /api/v1/auth/login (P1-05) ──
+
+
+def signed_up(client):
+    res = client.post("/api/v1/auth/signup", json=body())  # route.user@example.com / Abcdef1!
+    return res.json()["user_id"]
+
+
+def login(client, **fields):
+    values = {"email": "route.user@example.com", "password": "Abcdef1!", "remember": False}
+    values.update(fields)
+    return client.post("/api/v1/auth/login", json=values)
+
+
+def test_login_200_body(client):
+    user_id = signed_up(client)
+    res = login(client)
+    assert res.status_code == 200
+    data = res.json()
+    assert set(data) == {"access_token", "token_type", "expires_in"}  # 리프레시 토큰은 본문에 없음
+    assert (data["token_type"], data["expires_in"]) == ("bearer", 1800)
+    assert decode_access_token(data["access_token"]) == user_id
+
+
+@pytest.mark.parametrize(("remember", "max_age"), [(True, "max-age=259200"), (False, None)])
+def test_login_sets_refresh_cookie(client, remember, max_age):
+    user_id = signed_up(client)
+    res = login(client, remember=remember)
+    header = res.headers["set-cookie"].lower()
+    assert header.startswith("snx_refresh=")
+    assert "httponly" in header and "path=/api/v1/auth" in header
+    if max_age:
+        assert max_age in header
+    else:
+        assert "max-age" not in header
+    token = res.cookies["snx_refresh"]
+    assert decode_refresh_token(token) == user_id
+
+
+def test_login_records_last_login(client, db):
+    user_id = signed_up(client)
+    login(client)
+    user = db.get(User, user_id)
+    db.refresh(user)
+    assert user.last_login_at is not None
+
+
+@pytest.mark.parametrize(
+    "fields",
+    [{"password": "Abcdef1?"}, {"email": "nobody@example.com"}],
+    ids=["비밀번호 틀림", "없는 이메일"],
+)
+def test_login_401_same_answer_and_no_cookie(client, fields):
+    signed_up(client)
+    res = login(client, **fields)
+    assert res.status_code == 401
+    assert res.json()["error"] == {
+        "code": "INVALID_CREDENTIALS",
+        "message": "Email or password is incorrect.",
+        "details": None,
+    }
+    assert "set-cookie" not in res.headers
+
+
+def test_login_422_missing_password(client):
+    res = client.post("/api/v1/auth/login", json={"email": "route.user@example.com"})
+    assert res.status_code == 422
+
+
+# ── POST /api/v1/auth/refresh (P1-05) ──
+
+
+def refresh(client):
+    return client.post("/api/v1/auth/refresh")
+
+
+@pytest.mark.parametrize("remember", [True, False])
+def test_refresh_after_login(client, remember):
+    user_id = signed_up(client)
+    login(client, remember=remember)  # 시험 도구가 쿠키를 기억했다가 다음 요청에 실어 보냄
+    res = refresh(client)
+    assert res.status_code == 200
+    data = res.json()
+    assert (data["token_type"], data["expires_in"]) == ("bearer", 1800)
+    assert decode_access_token(data["access_token"]) == user_id
+
+
+def test_refresh_without_cookie(client):
+    res = refresh(client)
+    assert res.status_code == 401
+    assert res.json()["error"]["message"] == "Please sign in."  # 로그인 안 한 방문자 — 정상 흐름
+
+
+@pytest.mark.parametrize("kind", ["엉터리", "Access 토큰"])
+def test_refresh_bad_cookie(client, kind):
+    user_id = signed_up(client)
+    value = "not-a-token" if kind == "엉터리" else create_access_token(user_id)
+    client.cookies.set("snx_refresh", value)
+    res = refresh(client)
+    assert res.status_code == 401
+    assert res.json()["error"]["code"] == "UNAUTHORIZED"
+    assert res.json()["error"]["message"] == "Please sign in again."
+
+
+def test_refresh_after_withdrawal(client, db):
+    user_id = signed_up(client)
+    login(client, remember=True)
+    user = db.get(User, user_id)
+    user.status = UserStatus.DELETED  # 로그인한 뒤 탈퇴 — 쿠키는 브라우저에 남아 있음
+    db.flush()
+    res = refresh(client)
+    assert res.status_code == 401  # 30 get_active_user 가 막음
+
+
+# ── POST /api/v1/auth/logout (P1-05) ──
+
+
+def test_logout_clears_cookie_then_refresh_fails(client):
+    signed_up(client)
+    login(client, remember=True)
+    assert refresh(client).status_code == 200  # 로그인된 상태
+    res = client.post("/api/v1/auth/logout")
+    assert res.status_code == 204 and res.content == b""
+    header = res.headers["set-cookie"].lower()
+    assert header.startswith('snx_refresh=""') and "max-age=0" in header
+    assert "path=/api/v1/auth" in header
+    assert refresh(client).status_code == 401  # 쿠키가 지워져 재발급 안 됨
+
+
+def test_logout_without_login_is_fine(client):
+    # Access Token 이 만료됐거나 처음부터 로그인 안 한 상태에서도 204 (쿠키만 지움)
+    res = client.post("/api/v1/auth/logout")
+    assert res.status_code == 204
+
+
+def test_logout_ignores_authorization_header(client):
+    res = client.post("/api/v1/auth/logout", headers={"Authorization": "Bearer not-a-token"})
+    assert res.status_code == 204  # 로그인 확인을 하지 않으므로 엉터리 토큰이어도 됨

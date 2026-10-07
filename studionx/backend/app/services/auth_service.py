@@ -28,13 +28,17 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.errors import AppError, ErrorCode
-from app.core.security import check_password_rules, hash_password
+from app.core.security import check_password_rules, hash_password, verify_password
 from app.models import User
 from app.models.user import UserStatus
 from app.schemas.auth import PRIVACY_VERSION, AvailabilityResponse, SignupRequest
 
 # 탈퇴 후 같은 이메일·닉네임으로 다시 가입할 수 있기까지 기다리는 기간 (FR-108, 2026-10-03 결정)
 REJOIN_WAIT_DAYS = 3
+
+# 없는 이메일로 로그인할 때 비교에 쓰는 가짜 해시 (bcrypt 비용 12 — 진짜 해시와 같은 시간이 걸림).
+# 어떤 비밀번호와도 맞지 않는다. 비밀값이 아니므로 코드에 두어도 됨.
+DUMMY_PASSWORD_HASH = "$2b$12$1YCmgxF3pcmPkm7MWpsgVuOD.w6LlO7o43SuOZLbLZkz.glHDfmva"
 
 
 def normalize_email(email: str) -> str:
@@ -243,8 +247,28 @@ def authenticate(db: Session, email: str, password: str) -> User:
        - 'SUSPENDED' → raise AppError(ErrorCode.ACCOUNT_DISABLED, 403, "This account is disabled.")
     4. user.last_login_at = 지금 (UTC) → db.commit()
     5. return user
+
+    (구현: AI — 2026-10-07) 상태(정지 403)는 비밀번호가 맞은 뒤에만 알려 줌 —
+    틀린 비밀번호로 "이 계정은 정지됨" 을 알아낼 수 없게.
     """
-    raise NotImplementedError
+    user = db.scalar(select(User).where(User.email == normalize_email(email)))
+    if user is None:
+        verify_password(password, DUMMY_PASSWORD_HASH)  # 없는 이메일도 같은 시간(약 0.2초)이 걸리게
+        raise invalid_credentials()
+    if not verify_password(password, user.password_hash):
+        raise invalid_credentials()
+    if user.status == UserStatus.DELETED:
+        raise invalid_credentials()
+    if user.status == UserStatus.SUSPENDED:
+        raise AppError(ErrorCode.ACCOUNT_DISABLED, 403, "This account is disabled.")
+    user.last_login_at = datetime.now(UTC).replace(tzinfo=None)
+    db.commit()
+    return user
+
+
+def invalid_credentials() -> AppError:
+    """로그인 실패 — 이메일 · 비밀번호 중 무엇이 틀렸는지, 탈퇴 계정인지 알려 주지 않음 (FR-103)."""
+    return AppError(ErrorCode.INVALID_CREDENTIALS, 401, "Email or password is incorrect.")
 
 
 def get_active_user(db: Session, user_id: int) -> User:
@@ -257,4 +281,7 @@ def get_active_user(db: Session, user_id: int) -> User:
       (탈퇴 직후 남아 있던 리프레시 쿠키로 다시 들어오는 것을 막음)
     - get_current_user(api/deps.py)와 검사가 같으므로 한쪽에서 이 함수를 불러 써도 됨
     """
-    raise NotImplementedError
+    user = db.get(User, user_id)
+    if user is None or user.status != UserStatus.ACTIVE:
+        raise AppError(ErrorCode.UNAUTHORIZED, 401, "Please sign in again.")
+    return user

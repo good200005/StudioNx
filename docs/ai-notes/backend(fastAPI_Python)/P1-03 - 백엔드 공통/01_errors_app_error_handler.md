@@ -29,7 +29,7 @@ raise AppError(ErrorCode.EMAIL_TAKEN, 409, "This email is already in use.")
 | 상황 (구현 작업) | 던지는 오류 | 화면에서 일어나는 일 |
 |---|---|---|
 | 가입할 때 이미 쓰는 이메일 (P1-04) | `EMAIL_TAKEN` · 409 | 가입 화면의 이메일 칸 아래에 "This email is already in use." |
-| 로그인 없이 마이페이지 API 호출 (P1-03 `get_current_user`) | `UNAUTHORIZED` · 401 | 프론트 `apiFetch` 가 토큰을 재발급한 뒤 다시 보냄 ([JS 02](../../javascript/02_api_apiFetch.md)) |
+| 로그인 없이 마이페이지 API 호출 (P1-03 `get_current_user`) | `UNAUTHORIZED` · 401 | 프론트 `apiFetch` 가 토큰을 재발급한 뒤 다시 보냄 ([JS 02](<../../javascript/P1-02 - 프론트 공통 JS/02_api_apiFetch.md>)) |
 | 이메일 · 비밀번호가 틀림 (P1-05) | `INVALID_CREDENTIALS` · 401 | 로그인 모달에 오류 문구 |
 | 다른 사람의 프로젝트를 열려고 함 (P1-13) | `FORBIDDEN` · 403 | 접근 거부 문구 |
 
@@ -40,7 +40,7 @@ raise AppError(ErrorCode.EMAIL_TAKEN, 409, "This email is already in use.")
 | ② 요청 처리 중 | 라우터 · 서비스 어디에서든 `raise AppError(...)` |
 | ③ FastAPI 가 오류를 잡음 | 오류의 종류(`AppError`)로 등록된 처리기를 찾는다 |
 | ④ 처리기 실행 | `app_error_handler(request, exc)` → JSON 응답 |
-| ⑤ 브라우저 | `api.js` 가 `error.code` 를 읽어 `ApiError` 로 만든다 ([JS 02](../../javascript/02_api_apiFetch.md)) |
+| ⑤ 브라우저 | `api.js` 가 `error.code` 를 읽어 `ApiError` 로 만든다 ([JS 02](<../../javascript/P1-02 - 프론트 공통 JS/02_api_apiFetch.md>)) |
 
 ## 3. 코드
 **import** (파일 맨 위)

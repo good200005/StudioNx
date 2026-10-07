@@ -29,6 +29,9 @@ from fastapi import APIRouter, Cookie, Query, Response, status
 from pydantic import EmailStr
 
 from app.api.deps import Db
+from app.core.config import get_settings
+from app.core.errors import AppError, ErrorCode
+from app.core.security import create_access_token, create_refresh_token, decode_refresh_token
 from app.schemas.auth import (
     AvailabilityResponse,
     LoginRequest,
@@ -106,14 +109,34 @@ def set_refresh_cookie(response: Response, token: str, remember: bool) -> None:
     - remember=False → max_age 없음 = 세션 쿠키 (브라우저를 닫으면 사라짐)
     - remember=True  → 3일 유지 (브라우저를 닫아도 자동 로그인)
     """
-    raise NotImplementedError
+    settings = get_settings()
+    if remember:
+        max_age = settings.jwt_refresh_days * 24 * 60 * 60
+    else:
+        max_age = None
+    response.set_cookie(
+        key=REFRESH_COOKIE,
+        value=token,
+        path=REFRESH_COOKIE_PATH,
+        httponly=True,
+        samesite="lax",
+        secure=settings.app_env == "prod",
+        max_age=max_age,
+    )
 
 
 def clear_refresh_cookie(response: Response) -> None:
     """TODO(P1-05): response.delete_cookie(REFRESH_COOKIE, path=REFRESH_COOKIE_PATH)
     - path 가 set_cookie 와 같아야 지워짐
+    - (구현: AI — 2026-10-07) httponly · samesite · secure 도 심을 때와 같게
     """
-    raise NotImplementedError
+    response.delete_cookie(
+        REFRESH_COOKIE,
+        path=REFRESH_COOKIE_PATH,
+        httponly=True,
+        samesite="lax",
+        secure=get_settings().app_env == "prod",
+    )
 
 
 @router.post(
@@ -131,7 +154,12 @@ def login(data: LoginRequest, response: Response, db: Db) -> TokenResponse:
                            expires_in=jwt_access_minutes * 60)
     - 화면: access_token 을 api.js setAccessToken 으로 메모리에만 보관
     """
-    raise NotImplementedError
+    user = auth_service.authenticate(db, data.email, data.password)
+    set_refresh_cookie(response, create_refresh_token(user.user_id), data.remember)
+    return TokenResponse(
+        access_token=create_access_token(user.user_id),
+        expires_in=get_settings().jwt_access_minutes * 60,
+    )
 
 
 @router.post(
@@ -155,8 +183,16 @@ def refresh(
        - (선택) 리프레시 토큰도 새로 발급해 쿠키를 갈아 끼우기(rotation) — 이때 remember 여부를
          알 수 없으므로 토큰 payload 에 "remember": true/false 를 함께 넣어 두면 됨
     - Cookie(alias=REFRESH_COOKIE): 쿠키 이름 snx_refresh 를 refresh_token 으로 받음
+    - (구현: AI — 2026-10-07) 리프레시 토큰 교체(rotation)는 하지 않음 — 로그인 후 3일이면 끝
     """
-    raise NotImplementedError
+    if refresh_token is None:
+        raise AppError(ErrorCode.UNAUTHORIZED, 401, "Please sign in.")
+    user_id = decode_refresh_token(refresh_token)
+    user = auth_service.get_active_user(db, user_id)
+    return TokenResponse(
+        access_token=create_access_token(user.user_id),
+        expires_in=get_settings().jwt_access_minutes * 60,
+    )
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
@@ -168,5 +204,6 @@ def logout(response: Response) -> None:
     - Access Token 은 서버에 저장하지 않으므로 화면(auth.js)이 clearAccessToken 으로 지움
     - PRD 01 §7 표에는 인증 ✔ 로 되어 있지만, Access Token 이 이미 만료된 상태에서도
       쿠키는 지워져야 하므로 로그인 확인 없이 받는 쪽을 권장 (쿠키만 지우므로 위험 없음)
+    - (구현: AI — 2026-10-07) 권장대로 로그인 확인 없이 받음
     """
-    raise NotImplementedError
+    clear_refresh_cookie(response)

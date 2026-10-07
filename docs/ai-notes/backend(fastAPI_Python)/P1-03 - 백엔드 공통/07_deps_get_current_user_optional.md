@@ -88,7 +88,7 @@ OptionalUser = Annotated[User | None, Depends(get_current_user_optional)]
 | `AppError` 만 잡음 | DB 오류까지 `None` 으로 바꾸면 서버 고장이 숨는다. 고장은 04 가 500 으로 알리고 Sentry 에 기록한다 |
 | 정지 · 탈퇴 회원도 `None` | 그 회원 이름으로 연결하지 않고 손님 문의로 받는다 |
 
-**P1-12 에서 알아 둘 것:** Access Token 은 메모리에만 있어서 home.html 을 새로 열면 비어 있다 ([JS 01](../../javascript/01_api_refreshAccessToken.md)). 로그인한 회원의 문의를 회원과 연결하려면, `home.js` 가 보내기 전에 `isLoggedIn()` ([JS 06](../../javascript/06_auth_isLoggedIn.md))으로 토큰을 먼저 받아 두어야 한다.
+**P1-12 에서 알아 둘 것:** Access Token 은 메모리에만 있어서 home.html 을 새로 열면 비어 있다 ([JS 01](<../../javascript/P1-02 - 프론트 공통 JS/01_api_refreshAccessToken.md>)). 로그인한 회원의 문의를 회원과 연결하려면, `home.js` 가 보내기 전에 `isLoggedIn()` ([JS 06](<../../javascript/P1-02 - 프론트 공통 JS/06_auth_isLoggedIn.md>))으로 토큰을 먼저 받아 두어야 한다.
 
 ## 6. 시험 (`tests/test_deps.py` 에 6개 추가 · 모두 13개)
 06 과 같은 가짜 세션(`FakeDb`)을 쓰고, 시험용 앱에 `GET /maybe` (`user: OptionalUser` → `{"user_id": 7 또는 null}`)를 만들었다.
