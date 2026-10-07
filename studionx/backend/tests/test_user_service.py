@@ -13,11 +13,12 @@ from sqlalchemy import select
 from starlette.datastructures import Headers
 
 from app.core.errors import AppError, ErrorCode
-from app.models import User
+from app.core.security import hash_password, verify_password
+from app.models import Project, User
 from app.models.user import UserRole, UserStatus
 from app.schemas.auth import AvailabilityResponse
 from app.schemas.user import MeResponse, MeUpdateRequest
-from app.services import user_service
+from app.services import auth_service, user_service
 from app.services.user_service import (
     PROFILE_IMAGE_URL,
     profile_image_url,
@@ -459,3 +460,162 @@ def test_profile_image_file_missing_on_disk(db, storage):
         db, "file.lost@example.com", "file_lost", profile_image_path=f"profiles/{NAME}.webp"
     )
     assert_not_found(db, photo_name(user))
+
+
+# ── 44 check_current_password (P1-09) ─────────────────────────
+
+
+def test_check_current_password_ok():
+    user = User(password_hash=hash_password("Abcdef1!"))
+    assert user_service.check_current_password(user, "Abcdef1!") is None
+
+
+@pytest.mark.parametrize(
+    "password",
+    ["Abcdef1?", "abcdef1!", " Abcdef1!", "", "A" * 100],
+    ids=["한 글자 다름", "대소문자", "앞 공백", "빈 글자", "100자(72바이트 넘음)"],
+)
+def test_check_current_password_wrong(password):
+    user = User(password_hash=hash_password("Abcdef1!"))
+    with pytest.raises(AppError) as err:
+        user_service.check_current_password(user, password)
+    assert err.value.code == ErrorCode.WRONG_PASSWORD
+    assert err.value.status_code == 400
+    assert err.value.message == "Password is incorrect."
+
+
+def test_check_current_password_wiped_hash():
+    """보관 기간 정리 뒤의 '!' 해시는 어떤 비밀번호로도 통과하지 않음."""
+    with pytest.raises(AppError):
+        user_service.check_current_password(User(password_hash="!"), "!")
+
+
+# ── 45 change_password ────────────────────────────────────────
+
+
+def hash_in_db(db, user_id):
+    return db.scalar(select(User.password_hash).where(User.user_id == user_id))
+
+
+def test_change_password(db):
+    user = add_user(
+        db, "pw.change@example.com", "pw_change", password_hash=hash_password("Abcdef1!")
+    )
+    old_hash = user.password_hash
+
+    assert user_service.change_password(db, user, "Abcdef1!", "Newpass9#") is None
+    saved = hash_in_db(db, user.user_id)
+    assert saved != old_hash
+    assert verify_password("Newpass9#", saved)
+    assert not verify_password("Abcdef1!", saved)
+
+
+def test_change_password_wrong_current(db):
+    user = add_user(db, "pw.wrong@example.com", "pw_wrong", password_hash=hash_password("Abcdef1!"))
+    old_hash = user.password_hash
+    with pytest.raises(AppError) as err:
+        user_service.change_password(db, user, "Abcdef1?", "Newpass9#")
+    assert err.value.code == ErrorCode.WRONG_PASSWORD
+    assert hash_in_db(db, user.user_id) == old_hash
+
+
+@pytest.mark.parametrize(
+    ("new", "failed"),
+    [
+        ("abcdefgh", ["upper", "number", "special"]),
+        ("Ab1!", ["length"]),
+        ("Abcdef1! 한글", ["allowed"]),
+    ],
+    ids=["약함", "짧음", "한글 · 공백"],
+)
+def test_change_password_rules(db, new, failed):
+    user = add_user(db, "pw.rules@example.com", "pw_rules", password_hash=hash_password("Abcdef1!"))
+    with pytest.raises(AppError) as err:
+        user_service.change_password(db, user, "Abcdef1!", new)
+    assert err.value.status_code == 422
+    assert err.value.code == ErrorCode.VALIDATION_ERROR
+    assert err.value.message == "Check the password requirements."
+    assert err.value.details == {"new_password": failed}
+
+
+def test_change_password_same_as_current(db):
+    user = add_user(db, "pw.same@example.com", "pw_same", password_hash=hash_password("Abcdef1!"))
+    old_hash = user.password_hash
+    with pytest.raises(AppError) as err:
+        user_service.change_password(db, user, "Abcdef1!", "Abcdef1!")
+    assert err.value.status_code == 422
+    assert err.value.message == "Use a different password."
+    assert err.value.details == {"new_password": "same_as_current"}
+    assert hash_in_db(db, user.user_id) == old_hash
+
+
+def test_change_password_other_user_same_password_ok(db):
+    """다른 회원과 같은 비밀번호여도 됨 (비밀번호는 겹침 검사를 하지 않음)."""
+    add_user(db, "pw.other@example.com", "pw_other", password_hash=hash_password("Newpass9#"))
+    user = add_user(db, "pw.mine@example.com", "pw_mine", password_hash=hash_password("Abcdef1!"))
+    user_service.change_password(db, user, "Abcdef1!", "Newpass9#")
+    assert verify_password("Newpass9#", hash_in_db(db, user.user_id))
+
+
+# ── 46 withdraw ───────────────────────────────────────────────
+
+
+def test_withdraw(db, storage):
+    user = add_user(db, "bye@example.com", "bye_user", password_hash=hash_password("Abcdef1!"))
+    photo = save(db, user, upload(JPG)).profile_image_path
+    project = Project(owner_id=user.user_id, title="Still here")
+    db.add(project)
+    db.flush()
+    before = datetime.now(UTC).replace(tzinfo=None, microsecond=0)
+
+    assert user_service.withdraw(db, user, "Abcdef1!") is None
+    row = db.execute(
+        select(User.status, User.deleted_at, User.email, User.nickname, User.profile_image_path)
+        .where(User.user_id == user.user_id)
+    ).one()
+    assert row.status == UserStatus.DELETED
+    assert before <= row.deleted_at <= datetime.now(UTC).replace(tzinfo=None) + timedelta(seconds=1)
+    assert (row.email, row.nickname) == ("bye@example.com", "bye_user")  # 바꾸지 않음
+    assert row.profile_image_path is None
+    assert not (storage / photo).exists()
+    assert db.get(Project, project.project_id).owner_id == user.user_id  # 프로젝트는 남김
+
+
+def test_withdraw_wrong_password(db, storage):
+    user = add_user(db, "stay@example.com", "stay_user", password_hash=hash_password("Abcdef1!"))
+    photo = save(db, user, upload(JPG)).profile_image_path
+
+    with pytest.raises(AppError) as err:
+        user_service.withdraw(db, user, "Abcdef1?")
+    assert err.value.code == ErrorCode.WRONG_PASSWORD
+    assert db.scalar(select(User.status).where(User.user_id == user.user_id)) == UserStatus.ACTIVE
+    assert (storage / photo).exists()
+
+
+def test_withdraw_blocks_login_and_rejoin(db, storage):
+    """탈퇴 뒤: 로그인 · 재발급이 막히고, 같은 이메일 · 닉네임은 3일 동안 다시 못 씀."""
+    user = add_user(db, "gone.now@example.com", "gone_now", password_hash=hash_password("Abcdef1!"))
+    user_service.withdraw(db, user, "Abcdef1!")
+
+    with pytest.raises(AppError) as login:
+        auth_service.authenticate(db, "gone.now@example.com", "Abcdef1!")
+    assert login.value.status_code == 401
+    with pytest.raises(AppError) as refresh:
+        auth_service.get_active_user(db, user.user_id)
+    assert refresh.value.status_code == 401
+    assert auth_service.check_email(db, "gone.now@example.com").reason == "REJOIN_TOO_SOON"
+    assert auth_service.check_nickname(db, "gone_now").reason == "REJOIN_TOO_SOON"
+
+
+def test_withdraw_commit_fails(db, storage, monkeypatch):
+    """저장이 실패하면 사진 파일도 남음 (39 의 순서)."""
+    user = add_user(db, "bye.fail@example.com", "bye_fail", password_hash=hash_password("Abcdef1!"))
+    photo = save(db, user, upload(JPG)).profile_image_path
+
+    def broken_commit():
+        raise RuntimeError("db down")
+
+    monkeypatch.setattr(db, "commit", broken_commit)
+    with pytest.raises(RuntimeError):
+        user_service.withdraw(db, user, "Abcdef1!")
+    assert (storage / photo).exists()

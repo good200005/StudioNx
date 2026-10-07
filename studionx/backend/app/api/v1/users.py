@@ -28,6 +28,7 @@ from fastapi import APIRouter, Response, UploadFile, status
 from fastapi.responses import FileResponse
 
 from app.api.deps import CurrentUser, Db
+from app.api.v1.auth import clear_refresh_cookie
 from app.schemas.common import ErrorResponse
 from app.schemas.user import (
     MeResponse,
@@ -132,12 +133,14 @@ def read_profile_image(name: str, db: Db) -> FileResponse:
     responses={400: {"model": ErrorResponse}, 422: {"model": ErrorResponse}},
 )
 def change_password(data: PasswordChangeRequest, user: CurrentUser, db: Db) -> None:
-    """비밀번호 변경 (FR-107).
+    """비밀번호 변경 (FR-107) — 45 로 바꾸고 204 (본문 없음).
 
-    TODO(P1-09): user_service.change_password(db, user, data.current_password, data.new_password)
+    - 지금 비밀번호 틀림 400 WRONG_PASSWORD, 새 비밀번호 규칙 · 지금과 같음 422 (45)
+    - 빈 칸 · 100자 넘음은 PasswordChangeRequest 가 422
     - 화면: 400 WRONG_PASSWORD → 'Current password is incorrect.' (#pw-current-field)
+    (구현: AI — 2026-10-07, 함수 하나씩 검토)
     """
-    raise NotImplementedError
+    user_service.change_password(db, user, data.current_password, data.new_password)
 
 
 @router.delete(
@@ -146,11 +149,13 @@ def change_password(data: PasswordChangeRequest, user: CurrentUser, db: Db) -> N
     responses={400: {"model": ErrorResponse}},
 )
 def withdraw(data: WithdrawRequest, response: Response, user: CurrentUser, db: Db) -> None:
-    """회원 탈퇴 (FR-108) — 본문 {"password": "..."}.
+    """회원 탈퇴 (FR-108) — 본문 {"password": "..."} → 46 으로 탈퇴 → 204.
 
-    TODO(P1-09):
-    - user_service.withdraw(db, user, data.password)
-    - 리프레시 쿠키도 지움: auth.clear_refresh_cookie(response)  (api/v1/auth.py, P1-05)
-    - 화면: 성공하면 clearAccessToken() → home.html
+    - 비밀번호 틀림 400 WRONG_PASSWORD (46 → 44) — 이때는 쿠키도 그대로
+    - 성공하면 리프레시 쿠키도 지움 (P1-05 31 clear_refresh_cookie) — 이 브라우저의 자동 로그인 끝
+    - 화면: 성공하면 clearAccessToken() → home.html.
+      api.delete('/users/me', { body: { password } }) — 두 번째 인자가 옵션이라 본문은 body 로
+    (구현: AI — 2026-10-07, 함수 하나씩 검토)
     """
-    raise NotImplementedError
+    user_service.withdraw(db, user, data.password)
+    clear_refresh_cookie(response)
