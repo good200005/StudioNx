@@ -5,6 +5,7 @@
 import { initAuthState, initLoginForm, initPasswordToggles, initOAuthPlaceholders } from '../core/auth-ui.js';
 import { initModalFallback } from '../core/modal.js';
 import { includePartials } from '../core/include.js';
+import { parseLoginHash } from '../core/auth.js';
 
 /**
  * 첫 접속 로딩 (P1-20, static/css/pages/intro.css) — 첫 접속에만 보이기
@@ -62,9 +63,26 @@ export function loadDevNotes() {
  *   (로그인이 필요한 페이지가 home.html#login?next=myPage.html 로 보냄)
  * - next 값은 저장해 두었다가 로그인 성공 후 이동에 사용 (parseLoginHash 가 safeNextPath 로 검사함)
  * - 모달을 닫으면 주소의 #login 제거 (history.replaceState)
+ * (구현: AI — 2026-10-07, 함수 하나씩 검토)
+ * - next 는 따로 저장하지 않음 — 모달이 열려 있는 동안 주소에 #login?next= 가 남아 있고,
+ *   로그인 성공 때 initLoginForm 이 parseLoginHash() 로 직접 읽음
+ * - 페이지 안에서 주소가 #login 으로 바뀌어도(링크 클릭 등) 모달을 엶 (hashchange)
  */
 export function initLoginModalFromHash() {
-  // TODO
+  const modal = document.getElementById('login-modal');
+  if (!modal) return;
+
+  const openIfLoginHash = () => {
+    if (parseLoginHash().open && !modal.open) modal.showModal();
+  };
+
+  modal.addEventListener('close', () => {
+    if (location.hash.startsWith('#login')) {
+      history.replaceState(null, '', location.pathname + location.search);
+    }
+  });
+  window.addEventListener('hashchange', openIfLoginHash);
+  openIfLoginHash();
 }
 
 // 공통 헤더·푸터·로그인 모달을 먼저 끼움 (static/partials/) — 아래 init 들은 그 요소를 찾으므로 순서 중요
