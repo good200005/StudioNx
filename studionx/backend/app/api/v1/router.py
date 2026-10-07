@@ -28,6 +28,7 @@ def health_db() -> dict:
 
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(users.router, prefix="/users", tags=["users"])
+api_router.include_router(users.images_router, prefix="/profile-images", tags=["users"])  # P1-08
 api_router.include_router(inquiries.router, prefix="/inquiries", tags=["inquiries"])
 api_router.include_router(projects.router, prefix="/projects", tags=["projects"])
 api_router.include_router(me.router, prefix="/me", tags=["me"])

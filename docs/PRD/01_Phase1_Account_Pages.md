@@ -126,7 +126,7 @@
 | PATCH | `/users/me` | 닉네임 등 수정 | ✔ |
 | POST | `/users/me/profile-image` | 프로필 이미지 업로드 (multipart) | ✔ |
 | DELETE | `/users/me/profile-image` | 프로필 이미지 지우기 (닉네임 첫 글자로 돌아감) | ✔ |
-| GET | `/users/{user_id}/profile-image` | 프로필 이미지 파일 (`<img src>`용) | - |
+| GET | `/profile-images/{name}` | 프로필 이미지 파일 (`<img src>`용). `name` = 올릴 때 만든 무작위 32자 + 확장자 — 회원 번호를 주소에 넣지 않음 (2026-10-07, 탈퇴 추적 방지 ③) | - |
 | PUT | `/users/me/password` | 비밀번호 변경 | ✔ |
 | DELETE | `/users/me` | 회원 탈퇴 (body: 비밀번호) | ✔ |
 | POST | `/inquiries` | 문의 등록 (email, title, content, privacy_agreed) | 선택 |
