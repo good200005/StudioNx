@@ -5,7 +5,7 @@
 | 파일 | `studionx/frontend/static/js/core/auth.js` |
 | 작업 | P1-02 프론트 공통 JS · PRD 01 FR-104 |
 | 작성 | Claude (AI) · 2026-10-06 · 사용자 검토 |
-| 이전 | [07 `requireLogin()`](07_auth_requireLogin.md) — P1-02 의 마지막 함수 |
+| 이전 · 다음 | [07 `requireLogin()`](07_auth_requireLogin.md) — P1-02 의 마지막 함수 · [09 `setFieldState()`](<../P1-07 - 가입·로그인 JS/09_auth-ui_setFieldState.md>) (P1-07) |
 
 ## 1. 하는 일
 로그아웃한다. 서버에 리프레시 쿠키를 지워 달라고 요청하고, 메모리의 Access Token 을 지운 뒤 홈으로 이동한다.

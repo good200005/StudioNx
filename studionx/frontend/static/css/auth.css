@@ -79,6 +79,9 @@
   :root[data-theme="system"] .oauth--google:is(:hover, :focus-visible) { border-color: var(--c-rule); }
 }
 
+/* 소셜 버튼 아래 "Coming soon" 안내 (auth-ui.js initOAuthPlaceholders 가 만듦, P1-07) */
+.oauth-note { margin-top: var(--sp-2); text-align: center; }
+
 /* ---------- 아래 안내 줄 (New here? Join Us) ---------- */
 .auth-foot { margin-top: var(--sp-6); text-align: center; color: var(--c-ink-soft); font-size: var(--fs-sm); }
 
