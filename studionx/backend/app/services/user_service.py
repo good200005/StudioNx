@@ -18,6 +18,7 @@
 """회원 정보 서비스 — 템플릿: 구현은 직접. P1-08 조회·수정·사진, P1-09 비밀번호·탈퇴."""
 
 import re
+from datetime import UTC, datetime
 from pathlib import Path, PurePosixPath
 from uuid import uuid4
 
@@ -28,6 +29,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.core.errors import AppError, ErrorCode
+from app.core.security import check_password_rules, hash_password, verify_password
 from app.models import User
 from app.models.user import UserStatus
 from app.schemas.user import MeResponse, MeUpdateRequest
@@ -222,45 +224,65 @@ def profile_image_file(db: Session, name: str) -> Path:
 def check_current_password(user: User, password: str) -> None:
     """로그인한 사용자의 비밀번호 재확인 (비밀번호 변경·탈퇴 공통).
 
-    TODO(P1-09):
-    - verify_password(password, user.password_hash) 가 False 이면
-      raise AppError(ErrorCode.WRONG_PASSWORD, 400, "Password is incorrect.")
-    - 401 을 쓰지 않는 이유: 화면(api.js)은 401 을 받으면 토큰 재발급을 시도하기 때문
+    - 틀리면 400 WRONG_PASSWORD "Password is incorrect."
+    - 401 을 쓰지 않는 이유: 화면(api.js)은 401 을 받으면 토큰 재발급 → 그래도 401 이면
+      로그인 화면으로 보냄. 비밀번호를 잘못 친 것뿐인데 로그아웃되면 안 됨
+    - 72바이트 넘는 입력 · 망가진 해시("!")는 verify_password 가 False (P1-04 14)
+    (구현: AI — 2026-10-07, 함수 하나씩 검토)
     """
-    raise NotImplementedError
+    if not verify_password(password, user.password_hash):
+        raise AppError(ErrorCode.WRONG_PASSWORD, 400, "Password is incorrect.")
 
 
 def change_password(db: Session, user: User, current_password: str, new_password: str) -> None:
     """비밀번호 변경 (FR-107).
 
-    TODO(P1-09):
-    1. check_current_password(user, current_password)
-    2. failed = check_password_rules(new_password) → 있으면 422 (P1-04 signup 과 같은 모양,
-       details={"new_password": failed})
-    3. (선택) 새 비밀번호가 지금 비밀번호와 같으면 422 "Use a different password."
-    4. user.password_hash = hash_password(new_password) → commit
-    5. (선택) 다른 기기 로그아웃 — 리프레시 토큰을 DB에 두지 않으므로 지금은 불가 (ai-notes 17 §2.4)
+    1. 지금 비밀번호 확인 (44) — 틀리면 400 WRONG_PASSWORD
+    2. 새 비밀번호 규칙 (P1-04 14) — 틀리면 422, details={"new_password": [실패한 조건]}
+    3. 새 비밀번호가 지금 비밀번호와 같으면 422 "Use a different password."
+       (2026-10-07 결정: 막음. 다른 회원과 겹치는지는 검사하지 않음, 예전 비밀번호 이력도 범위 밖)
+    4. 새 해시로 저장 (commit)
+    - 다른 기기 로그아웃은 하지 않음 — 리프레시 토큰을 DB 에 두지 않아 지금은 불가
+      (ai-notes 17 §2.4)
+    (구현: AI — 2026-10-07, 함수 하나씩 검토)
     """
-    raise NotImplementedError
+    check_current_password(user, current_password)
+    failed = check_password_rules(new_password)
+    if failed:
+        raise AppError(
+            ErrorCode.VALIDATION_ERROR,
+            422,
+            "Check the password requirements.",
+            details={"new_password": failed},
+        )
+    if verify_password(new_password, user.password_hash):
+        raise AppError(
+            ErrorCode.VALIDATION_ERROR,
+            422,
+            "Use a different password.",
+            details={"new_password": "same_as_current"},
+        )
+    user.password_hash = hash_password(new_password)
+    db.commit()
 
 
 def withdraw(db: Session, user: User, password: str) -> None:
     """회원 탈퇴 — 소프트 삭제 (FR-108).
 
-    TODO(P1-09):
-    1. check_current_password(user, password)
-    2. user.status = 'DELETED', user.deleted_at = 지금(UTC)
-    3. 이후 로그인 차단: authenticate(P1-05)·get_current_user(P1-03)·get_active_user 가
-       status != 'ACTIVE' 를 막으므로 여기서 따로 할 일 없음
-    4. 이메일·닉네임은 **바꾸지 않음** (2026-10-03 결정)
-       - 탈퇴 3일 안에는 같은 값으로 다시 가입하지 못하게 막는 데 그대로 씀
-       - 3일이 지난 뒤 누가 그 값으로 가입하면 auth_service.release_withdrawn 이 그때 비움 (P1-04)
-    5. 내가 OWNER 인 프로젝트는 **그대로 남김** (2026-10-03 결정) — projects 는 건드리지 않음
-       - 목록 화면은 탈퇴한 OWNER 를 'Deleted user' 처럼 표시 (Phase 6 협업에서 멤버가 볼 때)
-       - 추적 방지 (2026-10-07): 다른 사람에게 보이는 곳(멤버 목록 · 채팅 · 댓글)은 status 가
-         DELETED 면 닉네임 대신 'Deleted user' 만 보내고, 그 사람의 user_id 도 응답에 넣지 않음
-         (비켜 둔 닉네임 deleted_user_0000000085 에는 회원 번호가 들어 있음)
-    6. 프로필 사진 파일 지우기 (delete_profile_image 재사용, commit 은 마지막에 한 번)
-    7. db.commit()
+    1. 비밀번호 재확인 (44) — 틀리면 400, 아무것도 바뀌지 않음
+    2. status = DELETED, deleted_at = 지금(UTC) — 행은 남김
+    3. 프로필 사진 지우기 (39) — 그 안의 commit 이 2번까지 **한 번에** 저장, 파일은 저장 뒤 삭제
+    - 이후 로그인 차단: authenticate(29) · get_current_user(06) · get_active_user(30) 가
+      status != ACTIVE 를 막으므로 여기서 따로 할 일 없음
+    - 이메일 · 닉네임은 바꾸지 않음 (2026-10-03 결정) — 3일 안 재가입을 막는 데 그대로 씀,
+      3일이 지나면 누가 그 값을 쓸 때 release_withdrawn(P1-04) 또는 보관 기간 정리(49)가 비움
+    - 내가 OWNER 인 프로젝트는 그대로 남김 (2026-10-03 결정) — projects 는 건드리지 않음
+      추적 방지 (2026-10-07): 다른 사람에게 보이는 곳(멤버 목록 · 채팅 · 댓글, Phase 6)은
+      DELETED 회원을 'Deleted user' 로만 보내고 user_id 도 넣지 않음
+    - 리프레시 쿠키 삭제는 라우터(48)가 함 (응답에 붙는 일이라서)
+    (구현: AI — 2026-10-07, 함수 하나씩 검토)
     """
-    raise NotImplementedError
+    check_current_password(user, password)
+    user.status = UserStatus.DELETED
+    user.deleted_at = datetime.now(UTC).replace(tzinfo=None)
+    delete_profile_image(db, user)

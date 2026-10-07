@@ -8,7 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
-from app.core.security import create_access_token
+from app.core.security import create_access_token, hash_password
 from app.db.session import get_db
 from app.main import app
 from app.models import User
@@ -264,3 +264,130 @@ def test_read_profile_image_old_user_id_url_gone(client, db):
     """템플릿의 회원 번호 주소는 열리지 않음."""
     user = add_user(db, "route.old@example.com", "route_old_url")
     assert client.get(f"/api/v1/users/{user.user_id}/profile-image").status_code in (404, 405)
+
+
+# ── 47 PUT /users/me/password (P1-09) ──
+
+
+def put_password(client, user, current, new):
+    body = {"current_password": current, "new_password": new}
+    return client.put("/api/v1/users/me/password", headers=auth(user), json=body)
+
+
+def pw_user(db, email, nickname):
+    return add_user(db, email, nickname, password_hash=hash_password("Abcdef1!"))
+
+
+def test_change_password_204(client, db):
+    user = pw_user(db, "route.pw@example.com", "route_pw")
+    res = put_password(client, user, "Abcdef1!", "Newpass9#")
+
+    assert res.status_code == 204
+    assert res.content == b""
+    login = client.post(
+        "/api/v1/auth/login", json={"email": "route.pw@example.com", "password": "Newpass9#"}
+    )
+    assert login.status_code == 200  # 새 비밀번호로 로그인
+    old = client.post(
+        "/api/v1/auth/login", json={"email": "route.pw@example.com", "password": "Abcdef1!"}
+    )
+    assert old.status_code == 401  # 옛 비밀번호는 안 됨
+
+
+def test_change_password_wrong_current_400(client, db):
+    """400 (401 아님) — 화면이 로그아웃되지 않게."""
+    user = pw_user(db, "route.pwbad@example.com", "route_pwbad")
+    res = put_password(client, user, "Abcdef1?", "Newpass9#")
+    assert res.status_code == 400
+    assert res.json()["error"]["code"] == "WRONG_PASSWORD"
+    assert res.json()["error"]["message"] == "Password is incorrect."
+
+
+@pytest.mark.parametrize(
+    ("new", "message", "details"),
+    [
+        ("abcdefgh", "Check the password requirements.", ["upper", "number", "special"]),
+        ("Abcdef1!", "Use a different password.", "same_as_current"),
+    ],
+    ids=["규칙", "지금과 같음"],
+)
+def test_change_password_422(client, db, new, message, details):
+    user = pw_user(db, "route.pw422@example.com", "route_pw422")
+    res = put_password(client, user, "Abcdef1!", new)
+    assert res.status_code == 422
+    assert res.json()["error"]["message"] == message
+    assert res.json()["error"]["details"] == {"new_password": details}
+
+
+def test_change_password_schema_422(client, db):
+    user = pw_user(db, "route.pwempty@example.com", "route_pwempty")
+    res = put_password(client, user, "", "Newpass9#")
+    assert res.status_code == 422
+    assert "current_password" in res.json()["error"]["details"]
+
+
+def test_change_password_without_token(client):
+    body = {"current_password": "Abcdef1!", "new_password": "Newpass9#"}
+    assert client.put("/api/v1/users/me/password", json=body).status_code == 401
+
+
+# ── 48 DELETE /users/me (P1-09) ──
+
+
+def login(client, email, password="Abcdef1!"):
+    body = {"email": email, "password": password, "remember": True}
+    res = client.post("/api/v1/auth/login", json=body)
+    assert res.status_code == 200
+    return {"Authorization": f"Bearer {res.json()['access_token']}"}
+
+
+def delete_me(client, headers, body):
+    return client.request("DELETE", "/api/v1/users/me", headers=headers, json=body)
+
+
+def test_withdraw_204(client, db, storage):
+    user = pw_user(db, "route.bye@example.com", "route_bye")
+    headers = login(client, "route.bye@example.com")  # 리프레시 쿠키도 받음
+    name = post_photo(client, user).json()["profile_image_url"].rsplit("/", 1)[1]
+    assert client.post("/api/v1/auth/refresh").status_code == 200  # 탈퇴 전에는 재발급 됨
+
+    res = delete_me(client, headers, {"password": "Abcdef1!"})
+    assert res.status_code == 204
+    assert res.content == b""
+    cookie = res.headers["set-cookie"]
+    assert cookie.startswith("snx_refresh=")
+    assert "Max-Age=0" in cookie and "Path=/api/v1/auth" in cookie
+
+    assert client.get("/api/v1/users/me", headers=headers).status_code == 401  # 남은 Access Token
+    assert client.post("/api/v1/auth/refresh").status_code == 401  # 쿠키 지워짐
+    body = {"email": "route.bye@example.com", "password": "Abcdef1!"}
+    again = client.post("/api/v1/auth/login", json=body)
+    assert again.status_code == 401
+    assert client.get(f"/api/v1/profile-images/{name}").status_code == 404
+    assert db.scalar(select(User.status).where(User.user_id == user.user_id)) == UserStatus.DELETED
+
+
+def test_withdraw_wrong_password_400(client, db):
+    pw_user(db, "route.stay@example.com", "route_stay")
+    headers = login(client, "route.stay@example.com")
+
+    res = delete_me(client, headers, {"password": "Abcdef1?"})
+    assert res.status_code == 400
+    assert res.json()["error"]["code"] == "WRONG_PASSWORD"
+    assert "set-cookie" not in res.headers  # 쿠키는 그대로
+    assert client.get("/api/v1/users/me", headers=headers).status_code == 200
+    assert client.post("/api/v1/auth/refresh").status_code == 200
+
+
+@pytest.mark.parametrize(
+    "body", [None, {}, {"password": ""}], ids=["본문 없음", "칸 없음", "빈 글자"]
+)
+def test_withdraw_422(client, db, body):
+    user = pw_user(db, "route.empty.bye@example.com", "route_emptybye")
+    res = delete_me(client, auth(user), body)
+    assert res.status_code == 422
+    assert db.scalar(select(User.status).where(User.user_id == user.user_id)) == UserStatus.ACTIVE
+
+
+def test_withdraw_without_token(client):
+    assert delete_me(client, {}, {"password": "Abcdef1!"}).status_code == 401

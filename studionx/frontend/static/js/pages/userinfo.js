@@ -70,7 +70,8 @@ export function initPasswordForm() {
  *     danger: true, requiredMessage: 'Enter your password.', check: (pw) => api.delete … 실패면 'Password is incorrect.' 돌려줌 })
  *   P1-10 구현 때 #withdraw-modal 과 Delete account 버튼의 command="show-modal" 을 지우고 아래 내용은 check 안으로
  * - 비밀번호가 비었거나 #withdraw-agree 체크가 없으면 전송하지 않음
- * - api.delete('/users/me', { password }) (서버: 비밀번호 확인 → 소프트 삭제 → 이후 로그인 차단)
+ * - api.delete('/users/me', { body: { password } }) — api.delete 는 두 번째 인자가 옵션이라 본문은 body 로 (2026-10-07 고침)
+ *   (서버: 비밀번호 확인 → 소프트 삭제 → 이후 로그인 차단)
  * - 성공: clearAccessToken() 후 location.href = 'home.html'  (core/api.js, core/auth.js)
  * - 비밀번호가 틀리면 #withdraw-error 'Password is incorrect.' / 누른 뒤 버튼 disabled
  */

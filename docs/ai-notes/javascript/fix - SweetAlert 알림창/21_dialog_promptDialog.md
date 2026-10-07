@@ -36,7 +36,7 @@ const password = await promptDialog({
   inputType: 'password', placeholder: 'Password', confirmText: 'Delete account', danger: true,
   requiredMessage: 'Enter your password.',
   check: async (pw) => {            // 확인을 누를 때 — 문구를 돌려주면 창 안에 보이고 닫히지 않음
-    try { await api.delete('/users/me', { password: pw }); return null; }
+    try { await api.delete('/users/me', { body: { password: pw } }); return null; }   // 본문은 body 로 (api.delete 의 두 번째 인자는 옵션)
     catch (err) { return err.status === 401 ? 'Password is incorrect.' : err.message; }
   },
 });

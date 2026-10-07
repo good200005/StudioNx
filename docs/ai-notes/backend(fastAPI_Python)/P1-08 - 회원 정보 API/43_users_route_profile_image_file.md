@@ -5,7 +5,7 @@
 | 파일 | `studionx/backend/app/api/v1/users.py` — `images_router` · `read_profile_image()` / `app/api/v1/router.py` (한 줄) |
 | 작업 | P1-08 회원 정보 — 프로필 사진 파일 보내기 · PRD 01 FR-106 |
 | 작성 | Claude (AI) · 2026-10-07 · 사용자 검토 |
-| 이전 · 다음 | [42 `POST · DELETE /users/me/profile-image`](42_users_route_profile_image.md) · (P1-08 마지막) |
+| 이전 · 다음 | [42 `POST · DELETE /users/me/profile-image`](42_users_route_profile_image.md) · [44 `check_current_password()`](<../P1-09 - 비밀번호 변경·탈퇴/44_user_service_check_current_password.md>) (P1-09) |
 
 ## 1. 하는 일
 `<img src="/api/v1/profile-images/3f9c….jpg">` 가 부르는 주소. 사진 **파일 자체**를 보낸다. 로그인은 필요 없다.
