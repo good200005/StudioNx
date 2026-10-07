@@ -18,11 +18,18 @@
 """인증 API 요청·응답 스키마 (PRD 01 §7). 회원가입·중복 확인 = P1-04, 로그인 = P1-05."""
 
 from datetime import datetime
+from typing import Annotated
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field, StringConstraints
 
 # 닉네임 길이 (PRD 01 FR-101) — 화면(join.html, userInfo.html)과 같은 규칙
 NICKNAME_MIN, NICKNAME_MAX = 2, 20
+
+# 닉네임 입력 타입 — 앞뒤 공백을 먼저 지우고 길이를 잼 (가입 · 중복 확인이 함께 씀, 2026-10-07)
+Nickname = Annotated[
+    str,
+    StringConstraints(strip_whitespace=True, min_length=NICKNAME_MIN, max_length=NICKNAME_MAX),
+]
 
 # 지금 시행 중인 개인정보 처리방침 버전
 # (privacy.html Version 줄, join.js PRIVACY_VERSION 과 같아야 함)
@@ -39,17 +46,14 @@ class SignupRequest(BaseModel):
     - 비밀번호 확인 칸은 화면에서만 비교하므로 서버로 보내지 않음
     """
 
-    email: str = Field(max_length=255)
-    nickname: str = Field(min_length=NICKNAME_MIN, max_length=NICKNAME_MAX)
+    email: EmailStr = Field(max_length=255)  # 형식 검사 · 앞뒤 공백 제거 (email-validator)
+    nickname: Nickname
     password: str = Field(min_length=1, max_length=100)  # 정확한 8~20자 검사는 check_password_rules
     privacy_agreed: bool  # 만 16세 이상 + 처리방침 동의 체크 (2026-10-05, 처리방침 D3·D4)
     privacy_version: str = Field(max_length=20)  # 화면이 본 처리방침 버전
 
-    # TODO(P1-04): 이메일 형식 검사
-    #   - 방법 1: pydantic EmailStr (requirements.txt 에 email-validator 추가 필요)
-    #   - 방법 2: @field_validator("email") 에서 간단한 정규식 (예: r"[^@\s]+@[^@\s]+\.[^@\s]+")
-    # TODO(P1-04): 앞뒤 공백 제거 · 이메일 소문자 통일 (@field_validator 또는 서비스에서)
-    #   - 같은 주소를 대소문자만 바꿔 두 번 가입하는 것을 막기 위함
+    # (구현: AI — 2026-10-07) 이메일 형식 = EmailStr, 닉네임 = Nickname (공백 제거 후 2~20자).
+    #   이메일 소문자 통일은 서비스(normalize_email)에서 — 중복 확인 · 로그인과 같은 기준
 
 
 class SignupResponse(BaseModel):

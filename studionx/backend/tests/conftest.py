@@ -15,18 +15,31 @@ os.environ["SENTRY_DSN"] = ""  # app 은 아래 fixture 안에서 불러온다 (
 
 @pytest.fixture
 def db():
-    """실제 MySQL 세션. 연결할 수 없으면 시험을 건너뛰고, 넣은 행은 끝나면 되돌린다(rollback)."""
-    from app.db.session import SessionLocal
+    """실제 MySQL 세션. 연결할 수 없으면 시험을 건너뛰고, 넣은 행은 끝나면 모두 되돌린다.
 
-    session = SessionLocal()
+    바깥 트랜잭션 안에서 세션을 열고(join_transaction_mode="create_savepoint"),
+    코드 안의 db.commit() 은 저장점(SAVEPOINT)만 확정한다 → 시험이 끝나면 바깥을 rollback.
+    그래서 commit 을 하는 signup() 같은 함수도 실제 DB 에 행을 남기지 않는다.
+    """
+    from sqlalchemy.orm import Session
+
+    from app.db.session import engine
+
     try:
-        session.connection()
+        connection = engine.connect()
     except OperationalError:
-        session.close()
         pytest.skip("DB 에 연결할 수 없음")
+    outer = connection.begin()
+    session = Session(
+        bind=connection,
+        join_transaction_mode="create_savepoint",
+        autoflush=False,
+        expire_on_commit=False,
+    )
     yield session
-    session.rollback()
     session.close()
+    outer.rollback()
+    connection.close()
 
 
 @pytest.fixture

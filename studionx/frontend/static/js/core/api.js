@@ -64,7 +64,7 @@ export async function refreshAccessToken() {
         headers: { Accept: 'application/json' },
       });
       const data = res.ok ? await res.json().catch(() => null) : null;
-      if (!data?.access_token) {
+      if (!(data && data.access_token)) {
         clearAccessToken();
         return false;
       }
@@ -151,8 +151,12 @@ export async function apiFetch(path, options = {}) {
 /** 실패 응답 → ApiError (서버 형식 { error: { code, message, details } }, 아니면 INTERNAL_ERROR) */
 async function toApiError(res) {
   const data = await res.json().catch(() => null);
-  const e = data?.error;
-  if (e?.code) return new ApiError(res.status, e.code, e.message ?? '', e.details ?? null);
+  const e = data && data.error;
+  if (e && e.code) {
+    const message = e.message == null ? '' : e.message;
+    const details = e.details == null ? null : e.details;
+    return new ApiError(res.status, e.code, message, details);
+  }
   return new ApiError(res.status, 'INTERNAL_ERROR', 'Something went wrong. Please try again.');
 }
 
