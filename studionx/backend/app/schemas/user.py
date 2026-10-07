@@ -21,7 +21,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from app.schemas.auth import NICKNAME_MAX, NICKNAME_MIN
+from app.schemas.auth import Nickname
 
 
 class MeResponse(BaseModel):
@@ -43,9 +43,10 @@ class MeUpdateRequest(BaseModel):
     """PATCH /users/me — 지금은 닉네임만 바꿀 수 있음. 이메일은 변경 불가 (FR-106).
 
     보내지 않은 칸은 바꾸지 않음 (model_dump(exclude_unset=True) 로 확인)
+    (구현: AI — 2026-10-07) 닉네임은 가입과 같은 Nickname 타입 — 앞뒤 공백을 지운 뒤 2~20자
     """
 
-    nickname: str | None = Field(default=None, min_length=NICKNAME_MIN, max_length=NICKNAME_MAX)
+    nickname: Nickname | None = None
 
 
 class PasswordChangeRequest(BaseModel):
