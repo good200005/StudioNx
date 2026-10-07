@@ -5,7 +5,7 @@
 | 파일 | `studionx/frontend/static/js/core/dialog.js` |
 | 작업 | 수정 — 브라우저 기본 창 → SweetAlert (사용자 요청 `sweetalert수정.pdf` "Prompt 창도 SweetAlert 형식", 2026-10-07) |
 | 작성 | Claude (AI) · 2026-10-07 · 사용자 검토 |
-| 이전 · 다음 | [20 `confirmDialog()`](20_dialog_confirmDialog.md) · (SweetAlert 수정 마지막) |
+| 이전 · 다음 | [20 `confirmDialog()`](20_dialog_confirmDialog.md) · [22 `loadMe()`](<../P1-10 - 회원 정보 화면 JS/22_userinfo_loadMe.md>) (P1-10) |
 
 ## 1. 하는 일
 입력칸 하나가 있는 창을 띄우고, 확인을 누르면 **입력한 값**, 취소하면 `null` 을 돌려준다. `window.prompt()` 대신 쓴다. 회원 탈퇴의 비밀번호 확인이 대표적인 쓰임이다 (목업 08 · 14 — 사용자가 고른 "비밀번호만, 체크박스 없음").

@@ -103,6 +103,8 @@ export function formatDuration(seconds) {
 /**
  * 로그아웃 버튼 (#logout-button) → core/auth.js logout() (서버 쿠키 삭제 후 home.html 로)
  * - 누른 뒤 버튼 disabled (두 번 누름 방지)
+ * - (2026-10-08) 세 화면 공통이라 core/auth-ui.js 에 initLogoutButton 으로 구현됨 (P1-10 27)
+ *   P1-17 때 이 함수를 지우고 그것을 import 하면 됨 (userinfo.js 처럼)
  */
 export function initLogoutButton() {
   // TODO

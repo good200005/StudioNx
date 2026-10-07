@@ -4,6 +4,7 @@ import { initModalFallback } from '../core/modal.js';
 import { includePartials } from '../core/include.js';
 import { api } from '../core/api.js';
 import { initFormAlerts } from '../core/dialog.js';
+import { PASSWORD_RULES, PASSWORD_ALLOWED } from '../core/password.js'; // 2026-10-08 여기서 core 로 옮김 (P1-10 25)
 
 /** 중복 확인 칸마다 다른 것 — 주소 · 문구 · 서버에 묻기 전 형식 검사 */
 const CHECKS = {
@@ -87,17 +88,7 @@ export function initDuplicateChecks() {
 /** 동의한 처리방침 버전 = privacy.html 의 Version (2026-10-05). 처리방침을 바꾸면 서버 PRIVACY_VERSION 과 함께 올림 */
 export const PRIVACY_VERSION = '2026-10-05';
 
-/** 비밀번호 조건 (PRD 01 FR-102) — 서버(P1-04)도 같은 규칙으로 다시 검사 */
-export const PASSWORD_RULES = {
-  length: (pw) => pw.length >= 8 && pw.length <= 20,
-  upper: (pw) => /[A-Z]/.test(pw),
-  lower: (pw) => /[a-z]/.test(pw),
-  number: (pw) => /[0-9]/.test(pw),
-  special: (pw) => /[!-/:-@[-`{-~]/.test(pw), // 키보드 기호 (ASCII 33~126 중 영문·숫자 제외: !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~)
-};
-
-/** 쓸 수 있는 문자: 영문·숫자·키보드 기호만 (한글·공백·이모지 등 불가) */
-export const PASSWORD_ALLOWED = /^[!-~]*$/;
+// 비밀번호 조건 PASSWORD_RULES · PASSWORD_ALLOWED 는 core/password.js (회원 정보 화면과 함께 씀)
 
 /**
  * 비밀번호 조건 표시·확인 (PRD 01 FR-102)

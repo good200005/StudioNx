@@ -32,6 +32,9 @@
 #photo-input:focus-visible + label { outline: 2px solid var(--c-focus); outline-offset: 2px; }   /* 숨긴 파일 칸에 키보드 초점이 오면 버튼에 표시 */
 .ui-hint { margin-top: var(--sp-2); color: var(--c-ink-soft); font-size: var(--fs-xs); }
 .ui-photo__msg:empty { display: none; }
+.ui-photo__msg { margin-top: var(--sp-1); }
+#photo-field.is-ok .ui-photo__msg { color: var(--c-ok); }        /* 올림 · 지움 완료 */
+#photo-field.is-error .ui-photo__msg { color: var(--c-error); }  /* 종류 · 크기 · 서버 오류 */
 
 /* 바꿀 수 없는 칸(이메일): 점선 밑줄 + 옅은 글자 */
 .field__control[readonly] { color: var(--c-ink-soft); border-bottom-style: dashed; }
@@ -39,6 +42,9 @@
 /* ---------- 저장 줄: 왼쪽 안내 + 오른쪽 버튼 ---------- */
 .ui-save { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); margin-top: var(--sp-6); }
 .ui-meta { color: var(--c-ink-soft); font-size: var(--fs-xs); }
+.ui-save__end { display: flex; align-items: center; gap: var(--sp-3); }
+.ui-saved { color: var(--c-ok); font: 600 var(--fs-xs) / 1.4 var(--font-text); }   /* 저장 완료 (몇 초 뒤 사라짐) */
+.ui-saved:empty { display: none; }
 .ui-sec .form-error { margin-top: var(--sp-4); }
 
 /* ---------- 탈퇴 ---------- */
@@ -51,4 +57,5 @@
   .ui-photo { gap: var(--sp-4); }
   .ui-save { flex-direction: column-reverse; align-items: stretch; }
   .ui-save .btn { width: 100%; }
+  .ui-save__end { flex-direction: column; align-items: stretch; text-align: center; }
 }
