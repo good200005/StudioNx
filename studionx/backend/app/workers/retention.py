@@ -40,10 +40,11 @@ def purge_withdrawn_accounts(db: Session, now: datetime) -> int:
     TODO(P1-09):
     - 대상: status='DELETED' 이고 deleted_at <= now - REJOIN_WAIT_DAYS(3)일 이고
             email 이 아직 'deleted+' 로 시작하지 않는 행 (이미 비운 행은 건너뜀)
-    - 각 행에 auth_service.release_withdrawn(db, user) 와 같은 처리
-      (email = deleted+{id}@withdrawn.invalid, nickname = deleted_{id})
-    - password_hash 도 로그인에 쓸 수 없는 값으로 바꿔 두면 더 안전
-      (NOT NULL 이라 빈 값 대신 "!" 같은 표시)
+    - 각 행에 auth_service.release_withdrawn(db, user) 를 그대로 부름
+      (email = deleted+{id}@withdrawn.invalid, nickname = deleted_user_{id 10자리}, 2026-10-07)
+    - 추적 방지 (2026-10-07): 남은 개인 정보도 지움
+      password_hash = "!" (NOT NULL · bcrypt 형식이 아니라 verify_password 가 늘 False),
+      last_login_at = None, profile_image_path = None
     - 프로필 사진은 탈퇴 때 이미 지움 (user_service.withdraw) — 남아 있으면 여기서도 지움
     - 프로젝트(owner_id)·행 자체는 남김 (화면은 "Deleted user")
     - db.commit() 후 return 개수

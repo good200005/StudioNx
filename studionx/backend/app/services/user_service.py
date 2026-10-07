@@ -145,6 +145,9 @@ def withdraw(db: Session, user: User, password: str) -> None:
        - 3일이 지난 뒤 누가 그 값으로 가입하면 auth_service.release_withdrawn 이 그때 비움 (P1-04)
     5. 내가 OWNER 인 프로젝트는 **그대로 남김** (2026-10-03 결정) — projects 는 건드리지 않음
        - 목록 화면은 탈퇴한 OWNER 를 'Deleted user' 처럼 표시 (Phase 6 협업에서 멤버가 볼 때)
+       - 추적 방지 (2026-10-07): 다른 사람에게 보이는 곳(멤버 목록 · 채팅 · 댓글)은 status 가
+         DELETED 면 닉네임 대신 'Deleted user' 만 보내고, 그 사람의 user_id 도 응답에 넣지 않음
+         (비켜 둔 닉네임 deleted_user_0000000085 에는 회원 번호가 들어 있음)
     6. 프로필 사진 파일 지우기 (delete_profile_image 재사용, commit 은 마지막에 한 번)
     7. db.commit()
     """

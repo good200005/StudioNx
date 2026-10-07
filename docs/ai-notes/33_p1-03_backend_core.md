@@ -7,7 +7,7 @@
 | 브랜치 | `feature/phase1/p1-03-backend-core` |
 | 바꾼 파일 | `studionx/backend/app/core/errors.py` · `core/security.py` · `api/deps.py` · `models/user.py` · `models/inquiry.py` · `models/project.py` · `models/track.py` |
 | 진행 방식 | **함수 하나씩** 구현 → 사용자 검토 → 다음 (2026-10-06 규칙) |
-| 함수별 설명 | `docs/ai-notes/backend(fastAPI_Python)/01 ~ 13` (md · PDF), 합본 [`backend(fastAPI_Python)/P1-03_backend_core.pdf`](backend(fastAPI_Python)/P1-03_backend_core.pdf) |
+| 함수별 설명 | `docs/ai-notes/backend(fastAPI_Python)/P1-03 - 백엔드 공통/01 ~ 13` (md · PDF), 합본 [`backend(fastAPI_Python)/P1-03 - 백엔드 공통/P1-03_backend_core.pdf`](<backend(fastAPI_Python)/P1-03 - 백엔드 공통/P1-03_backend_core.pdf>) |
 | 이전 문서 | [32_p1-02_frontend_api_core.md](32_p1-02_frontend_api_core.md) |
 
 ## 1. 한 일
@@ -23,19 +23,19 @@
 ## 2. 항목 13개
 | # | 파일 | 항목 | 하는 일 | 설명 |
 |---|---|---|---|---|
-| 01 | `errors.py` | `app_error_handler()` | 코드가 일부러 던진 `AppError` → 오류 JSON | [01](backend(fastAPI_Python)/01_errors_app_error_handler.md) |
-| 02 | `errors.py` | `validation_error_handler()` | 입력 형식 오류 → 422 + 칸별 `details` | [02](backend(fastAPI_Python)/02_errors_validation_error_handler.md) |
-| 03 | `errors.py` | `http_error_handler()` | 404 · 405 · 413 등 기본 오류 → 같은 모양 | [03](backend(fastAPI_Python)/03_errors_http_error_handler.md) |
-| 04 | `errors.py` | `unexpected_error_handler()` | 예상 못 한 오류 → 500 일반 문장 (내용은 로그 · Sentry 에만) | [04](backend(fastAPI_Python)/04_errors_unexpected_error_handler.md) |
-| 05 | `security.py` | `decode_access_token()` | JWT 서명 · 만료 · 종류 확인 → `user_id` | [05](backend(fastAPI_Python)/05_security_decode_access_token.md) |
-| 06 | `deps.py` | `get_current_user()` | 토큰 → DB 의 회원 → `ACTIVE` 확인. 아니면 401 | [06](backend(fastAPI_Python)/06_deps_get_current_user.md) |
-| 07 | `deps.py` | `get_current_user_optional()` | 06 과 같지만 실패하면 `None` (손님) | [07](backend(fastAPI_Python)/07_deps_get_current_user_optional.md) |
-| 08 | `models/user.py` | `User` | 회원 15칸 · `UserRole` · `UserStatus` | [08](backend(fastAPI_Python)/08_models_user.md) |
-| 09 | `models/inquiry.py` | `Inquiry` | 문의 12칸 · `InquiryStatus` · FK(회원, 비어도 됨) | [09](backend(fastAPI_Python)/09_models_inquiry.md) |
-| 10 | `models/project.py` | `Project` | 프로젝트 17칸 · `Decimal` BPM · JSON 설정 | [10](backend(fastAPI_Python)/10_models_project.md) |
-| 11 | `models/project.py` | `ProjectMember` | 멤버 · 복합 기본 키 · `MemberRole` · `ON DELETE CASCADE` | [11](backend(fastAPI_Python)/11_models_project_member.md) |
-| 12 | `models/track.py` | `Track` | 트랙 Phase 1 칸만 · `TrackType` | [12](backend(fastAPI_Python)/12_models_track.md) |
-| 13 | `project.py` · `track.py` | 관계 | `project.members` · `project.tracks` (순서 · 함께 저장) | [13](backend(fastAPI_Python)/13_models_relationships.md) |
+| 01 | `errors.py` | `app_error_handler()` | 코드가 일부러 던진 `AppError` → 오류 JSON | [01](<backend(fastAPI_Python)/P1-03 - 백엔드 공통/01_errors_app_error_handler.md>) |
+| 02 | `errors.py` | `validation_error_handler()` | 입력 형식 오류 → 422 + 칸별 `details` | [02](<backend(fastAPI_Python)/P1-03 - 백엔드 공통/02_errors_validation_error_handler.md>) |
+| 03 | `errors.py` | `http_error_handler()` | 404 · 405 · 413 등 기본 오류 → 같은 모양 | [03](<backend(fastAPI_Python)/P1-03 - 백엔드 공통/03_errors_http_error_handler.md>) |
+| 04 | `errors.py` | `unexpected_error_handler()` | 예상 못 한 오류 → 500 일반 문장 (내용은 로그 · Sentry 에만) | [04](<backend(fastAPI_Python)/P1-03 - 백엔드 공통/04_errors_unexpected_error_handler.md>) |
+| 05 | `security.py` | `decode_access_token()` | JWT 서명 · 만료 · 종류 확인 → `user_id` | [05](<backend(fastAPI_Python)/P1-03 - 백엔드 공통/05_security_decode_access_token.md>) |
+| 06 | `deps.py` | `get_current_user()` | 토큰 → DB 의 회원 → `ACTIVE` 확인. 아니면 401 | [06](<backend(fastAPI_Python)/P1-03 - 백엔드 공통/06_deps_get_current_user.md>) |
+| 07 | `deps.py` | `get_current_user_optional()` | 06 과 같지만 실패하면 `None` (손님) | [07](<backend(fastAPI_Python)/P1-03 - 백엔드 공통/07_deps_get_current_user_optional.md>) |
+| 08 | `models/user.py` | `User` | 회원 15칸 · `UserRole` · `UserStatus` | [08](<backend(fastAPI_Python)/P1-03 - 백엔드 공통/08_models_user.md>) |
+| 09 | `models/inquiry.py` | `Inquiry` | 문의 12칸 · `InquiryStatus` · FK(회원, 비어도 됨) | [09](<backend(fastAPI_Python)/P1-03 - 백엔드 공통/09_models_inquiry.md>) |
+| 10 | `models/project.py` | `Project` | 프로젝트 17칸 · `Decimal` BPM · JSON 설정 | [10](<backend(fastAPI_Python)/P1-03 - 백엔드 공통/10_models_project.md>) |
+| 11 | `models/project.py` | `ProjectMember` | 멤버 · 복합 기본 키 · `MemberRole` · `ON DELETE CASCADE` | [11](<backend(fastAPI_Python)/P1-03 - 백엔드 공통/11_models_project_member.md>) |
+| 12 | `models/track.py` | `Track` | 트랙 Phase 1 칸만 · `TrackType` | [12](<backend(fastAPI_Python)/P1-03 - 백엔드 공통/12_models_track.md>) |
+| 13 | `project.py` · `track.py` | 관계 | `project.members` · `project.tracks` (순서 · 함께 저장) | [13](<backend(fastAPI_Python)/P1-03 - 백엔드 공통/13_models_relationships.md>) |
 
 ## 3. 함께 움직이는 모습
 **로그인한 회원이 대시보드를 열 때 (`GET /api/v1/me/dashboard`)**

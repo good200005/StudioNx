@@ -26,17 +26,19 @@ P1-05: login, refresh, logout (이 파일에 이어서 추가)
 from typing import Annotated
 
 from fastapi import APIRouter, Cookie, Query, Response, status
+from pydantic import EmailStr
 
 from app.api.deps import Db
 from app.schemas.auth import (
-    NICKNAME_MAX,
     AvailabilityResponse,
     LoginRequest,
+    Nickname,
     SignupRequest,
     SignupResponse,
     TokenResponse,
 )
 from app.schemas.common import ErrorResponse
+from app.services import auth_service
 
 router = APIRouter()
 
@@ -59,31 +61,32 @@ def signup(data: SignupRequest, db: Db) -> SignupResponse:
     - return SignupResponse(user_id=user.user_id, email=user.email, nickname=user.nickname)
     - 가입 후 자동 로그인은 하지 않음 → 화면이 home.html#login 으로 보내 로그인 모달을 엶 (join.js)
     """
-    raise NotImplementedError
+    user = auth_service.signup(db, data)
+    return SignupResponse(user_id=user.user_id, email=user.email, nickname=user.nickname)
 
 
 @router.get("/check-email", response_model=AvailabilityResponse)
-def check_email(db: Db, email: Annotated[str, Query(max_length=255)]) -> AvailabilityResponse:
+def check_email(db: Db, email: Annotated[EmailStr, Query(max_length=255)]) -> AvailabilityResponse:
     """이메일 중복 확인 (FR-101 실시간 확인).
 
     TODO(P1-04): return auth_service.check_email(db, email)
     - 탈퇴 후 3일 안이면 available=false, reason='REJOIN_TOO_SOON', available_at (FR-108)
-    - 형식이 틀린 이메일은 422 로 돌려줄지, available=false 로 돌려줄지 정하기
-      (화면은 형식을 먼저 검사하므로 422 권장)
+    - 형식이 틀린 이메일은 422 (2026-10-07 결정 — available=false 아님, 가입과 같은 EmailStr 규칙)
     """
-    raise NotImplementedError
+    return auth_service.check_email(db, email)
 
 
 @router.get("/check-nickname", response_model=AvailabilityResponse)
 def check_nickname(
     db: Db,
-    nickname: Annotated[str, Query(max_length=NICKNAME_MAX)],
+    nickname: Annotated[Nickname, Query()],
 ) -> AvailabilityResponse:
     """닉네임 중복 확인 (FR-101). 회원 정보 화면(userinfo.js)도 같은 API 사용.
 
     TODO(P1-04): return auth_service.check_nickname(db, nickname)
+    - (구현: AI — 2026-10-07) 가입과 같은 Nickname 타입 — 공백 제거 후 2~20자, 아니면 422
     """
-    raise NotImplementedError
+    return auth_service.check_nickname(db, nickname)
 
 
 # ── P1-05 로그인 · 재발급 · 로그아웃 ──────────────────────────────

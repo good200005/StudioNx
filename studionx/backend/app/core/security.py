@@ -26,6 +26,10 @@ get_current_user(P1-03)가 decode_access_token 을 쓰고,
 설정값: core/config.py  jwt_secret, jwt_access_minutes(30), jwt_refresh_days(3)
 """
 
+import re
+import string
+
+import bcrypt
 import jwt
 
 from app.core.config import get_settings
@@ -51,7 +55,20 @@ def check_password_rules(plain: str) -> list[str]:
       AppError(ErrorCode.VALIDATION_ERROR, 422, "Check the password requirements.",
                details={"password": 실패 목록})
     """
-    raise NotImplementedError
+    failed: list[str] = []
+    if not PASSWORD_MIN <= len(plain) <= PASSWORD_MAX:
+        failed.append("length")
+    if not re.search(r"[A-Z]", plain):
+        failed.append("upper")
+    if not re.search(r"[a-z]", plain):
+        failed.append("lower")
+    if not re.search(r"[0-9]", plain):
+        failed.append("number")
+    if not any(ch in string.punctuation for ch in plain):
+        failed.append("special")
+    if not re.fullmatch(r"[!-~]+", plain):
+        failed.append("allowed")
+    return failed
 
 
 def hash_password(plain: str) -> str:
@@ -59,12 +76,20 @@ def hash_password(plain: str) -> str:
 
     TODO(P1-04): bcrypt.hashpw(plain.encode(), bcrypt.gensalt()).decode()
     """
-    raise NotImplementedError
+    return bcrypt.hashpw(plain.encode("utf-8"), bcrypt.gensalt()).decode("ascii")
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    """TODO(P1-05): bcrypt.checkpw"""
-    raise NotImplementedError
+    """비밀번호가 저장된 해시와 맞는지 (로그인 P1-05 · 비밀번호 변경 P1-09).
+
+    (구현: AI — 2026-10-07, 함수 하나씩 검토)
+    - bcrypt 는 72바이트가 넘는 비밀번호나 망가진 해시에 ValueError 를 던짐 → 틀린 것으로 봄
+      (로그인 입력은 100자까지 받으므로, 그대로 두면 500 이 남)
+    """
+    try:
+        return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("ascii"))
+    except ValueError:
+        return False
 
 
 def create_access_token(user_id: int) -> str:
