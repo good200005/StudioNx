@@ -5,7 +5,7 @@
 | 파일 | `studionx/backend/app/schemas/auth.py` · `studionx/backend/app/api/v1/auth.py` |
 | 작업 | P1-04 회원가입 — 가입 입력 형식 검사 · PRD 01 FR-101 (P1-04 마지막) |
 | 작성 | Claude (AI) · 2026-10-07 · 사용자 검토 |
-| 이전 · 다음 | [24 `GET /auth/check-nickname`](24_auth_route_check_nickname.md) · (P1-04 끝) |
+| 이전 · 다음 | [24 `GET /auth/check-nickname`](24_auth_route_check_nickname.md) · [26 `create_access_token()`](<../P1-05 - 로그인 API/26_security_create_access_token.md>) (P1-05) |
 
 ## 1. 하는 일
 가입 요청(22)과 닉네임 확인(24)의 **입력 모양**을 정한다. 형식이 틀리면 라우터에 닿기 전에 FastAPI 가 422 로 돌려보낸다.

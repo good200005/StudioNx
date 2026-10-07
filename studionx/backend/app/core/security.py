@@ -28,6 +28,7 @@ get_current_user(P1-03)가 decode_access_token 을 쓰고,
 
 import re
 import string
+from datetime import UTC, datetime, timedelta
 
 import bcrypt
 import jwt
@@ -98,7 +99,20 @@ def create_access_token(user_id: int) -> str:
     TODO(P1-05): payload = {"sub": str(user_id), "type": "access", "exp": 지금 + 30분}
                  jwt.encode(payload, jwt_secret, algorithm="HS256")
     """
-    raise NotImplementedError
+    minutes = get_settings().jwt_access_minutes
+    return _create_token(user_id, "access", timedelta(minutes=minutes))
+
+
+def _create_token(user_id: int, token_type: str, lifetime: timedelta) -> str:
+    """JWT 만들기 — Access · Refresh 공용 (_decode_token 과 짝)."""
+    now = datetime.now(UTC)
+    payload = {
+        "sub": str(user_id),
+        "type": token_type,
+        "iat": now,
+        "exp": now + lifetime,
+    }
+    return jwt.encode(payload, get_settings().jwt_secret, algorithm=JWT_ALGORITHM)
 
 
 def create_refresh_token(user_id: int) -> str:
@@ -108,7 +122,8 @@ def create_refresh_token(user_id: int) -> str:
     - 자동 로그인을 체크하지 않아도 토큰 자체의 만료는 3일 그대로
       (체크 안 하면 쿠키가 세션 쿠키라 브라우저를 닫으면 사라짐 — api/v1/auth.py set_refresh_cookie)
     """
-    raise NotImplementedError
+    days = get_settings().jwt_refresh_days
+    return _create_token(user_id, "refresh", timedelta(days=days))
 
 
 def decode_refresh_token(token: str) -> int:
@@ -118,7 +133,7 @@ def decode_refresh_token(token: str) -> int:
     - 실패하면 raise AppError(ErrorCode.UNAUTHORIZED, 401, "Please sign in again.")
     - 두 함수의 공통 부분은 _decode(token, expected_type) 같은 내부 함수로 묶어도 됨
     """
-    raise NotImplementedError
+    return _decode_token(token, "refresh")
 
 
 def decode_access_token(token: str) -> int:

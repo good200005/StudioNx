@@ -7,7 +7,7 @@
 | 브랜치 | `feature/phase1/p1-02-frontend-api-core` |
 | 바꾼 파일 | `studionx/frontend/static/js/core/api.js` · `studionx/frontend/static/js/core/auth.js` |
 | 진행 방식 | **함수 하나씩** 구현 → 사용자 검토 → 다음 함수 (2026-10-06 규칙 변경) |
-| 함수별 설명 | `docs/ai-notes/javascript/01 ~ 08` (md · PDF), 합본 [`javascript/P1-02_frontend_api_core.pdf`](javascript/P1-02_frontend_api_core.pdf) |
+| 함수별 설명 | `docs/ai-notes/javascript/P1-02 - 프론트 공통 JS/01 ~ 08` (md · PDF), 합본 [`javascript/P1-02_frontend_api_core.pdf`](<javascript/P1-02 - 프론트 공통 JS/P1-02_frontend_api_core.pdf>) |
 | 이전 문서 | [31_sequencer_buttons.md](31_sequencer_buttons.md) |
 
 ## 1. 한 일
@@ -21,14 +21,14 @@
 ## 2. 함수 8개
 | # | 파일 | 함수 | 하는 일 | 설명 |
 |---|---|---|---|---|
-| 01 | `api.js` | `refreshAccessToken()` | 리프레시 쿠키로 Access Token 재발급 (동시에 여러 번 불려도 요청 1번) | [01](javascript/01_api_refreshAccessToken.md) |
-| 02 | `api.js` | `apiFetch(path, options)` | 모든 API 호출 — 토큰 · 401 재시도 · 오류 형식 | [02](javascript/02_api_apiFetch.md) |
-| 03 | `auth.js` | `safeNextPath(next)` | 돌아갈 주소가 우리 사이트 경로인지 검사 (열린 리다이렉트 방지) | [03](javascript/03_auth_safeNextPath.md) |
-| 04 | `auth.js` | `loginUrl(next)` | `home.html#login?next=…` 주소 만들기 | [04](javascript/04_auth_loginUrl.md) |
-| 05 | `auth.js` | `parseLoginHash(hash)` | `#login?next=…` 읽기 → 모달을 열지 · 돌아갈 곳 | [05](javascript/05_auth_parseLoginHash.md) |
-| 06 | `auth.js` | `isLoggedIn()` | 로그인 상태 확인 (토큰이 없으면 재발급 시도) | [06](javascript/06_auth_isLoggedIn.md) |
-| 07 | `auth.js` | `requireLogin()` | 로그인 전용 페이지에서 로그인 안 됐으면 로그인 화면으로 | [07](javascript/07_auth_requireLogin.md) |
-| 08 | `auth.js` | `logout()` | 서버 쿠키 삭제 · 메모리 토큰 삭제 · 홈으로 | [08](javascript/08_auth_logout.md) |
+| 01 | `api.js` | `refreshAccessToken()` | 리프레시 쿠키로 Access Token 재발급 (동시에 여러 번 불려도 요청 1번) | [01](<javascript/P1-02 - 프론트 공통 JS/01_api_refreshAccessToken.md>) |
+| 02 | `api.js` | `apiFetch(path, options)` | 모든 API 호출 — 토큰 · 401 재시도 · 오류 형식 | [02](<javascript/P1-02 - 프론트 공통 JS/02_api_apiFetch.md>) |
+| 03 | `auth.js` | `safeNextPath(next)` | 돌아갈 주소가 우리 사이트 경로인지 검사 (열린 리다이렉트 방지) | [03](<javascript/P1-02 - 프론트 공통 JS/03_auth_safeNextPath.md>) |
+| 04 | `auth.js` | `loginUrl(next)` | `home.html#login?next=…` 주소 만들기 | [04](<javascript/P1-02 - 프론트 공통 JS/04_auth_loginUrl.md>) |
+| 05 | `auth.js` | `parseLoginHash(hash)` | `#login?next=…` 읽기 → 모달을 열지 · 돌아갈 곳 | [05](<javascript/P1-02 - 프론트 공통 JS/05_auth_parseLoginHash.md>) |
+| 06 | `auth.js` | `isLoggedIn()` | 로그인 상태 확인 (토큰이 없으면 재발급 시도) | [06](<javascript/P1-02 - 프론트 공통 JS/06_auth_isLoggedIn.md>) |
+| 07 | `auth.js` | `requireLogin()` | 로그인 전용 페이지에서 로그인 안 됐으면 로그인 화면으로 | [07](<javascript/P1-02 - 프론트 공통 JS/07_auth_requireLogin.md>) |
+| 08 | `auth.js` | `logout()` | 서버 쿠키 삭제 · 메모리 토큰 삭제 · 홈으로 | [08](<javascript/P1-02 - 프론트 공통 JS/08_auth_logout.md>) |
 
 ## 3. 함수들이 함께 움직이는 모습
 **로그인 안 된 사람이 내 프로젝트(`/myProject.html#new`)를 열 때**
@@ -59,7 +59,7 @@
 
 - Access Token 을 `localStorage` 에 두지 않는 이유: 스크립트 공격(XSS)이 읽어 갈 수 있다.
 - 리프레시 쿠키를 `HttpOnly` 로 두는 이유: JS 에서 아예 읽을 수 없다.
-- 주소의 `next` 에는 경로만 들어간다. 토큰 · 비밀번호는 주소에 들어가지 않는다 ([04 보안](javascript/04_auth_loginUrl.md)).
+- 주소의 `next` 에는 경로만 들어간다. 토큰 · 비밀번호는 주소에 들어가지 않는다 ([04 보안](<javascript/P1-02 - 프론트 공통 JS/04_auth_loginUrl.md>)).
 
 ## 5. 템플릿과 달라진 점
 | 함수 | 템플릿 | 구현 | 이유 |

@@ -50,7 +50,7 @@ JSON 응답은 사람이 아니라 **페이지의 JS(`api.js`)가 받는다.** �
 | 단계 | 일어나는 일 |
 |---|---|
 | ① 서버 | `{"error": {"code": "NOT_FOUND", "message": "Not found."}}` |
-| ② `api.js` | `ApiError` 로 바꿈 — `err.code` = `"NOT_FOUND"`, `err.message` = `"Not found."` ([JS 02](../../javascript/02_api_apiFetch.md)) |
+| ② `api.js` | `ApiError` 로 바꿈 — `err.code` = `"NOT_FOUND"`, `err.message` = `"Not found."` ([JS 02](<../../javascript/P1-02 - 프론트 공통 JS/02_api_apiFetch.md>)) |
 | ③ 페이지 JS | `catch (err)` 로 받아 화면에 표시 (칸 아래 문구 · 알림 · 모달 안 문구). `code` 를 보고 문구를 직접 정할 수도 있다 |
 
 페이지 JS(P1-07 이후)가 아직 없어서 지금은 화면에서 볼 수 없다. 아래에서 확인한다.
@@ -92,7 +92,7 @@ API 오류에 HTML 을 주면 안 된다. 가입 버튼을 눌렀는데 이메�
 | 본 데이터 — 401 | 로그인이 풀림 | 오류 페이지가 아니라 `requireLogin()` 흐름 (로그인 모달) |
 | 버튼 · 폼 동작 (저장 · 가입 · 이름 변경 …) | 이메일 중복, 이름 변경 실패 | 화면 안 문구 — 페이지는 그대로 |
 
-`replace` 로 이동하는 이유는 [JS 07](../../javascript/07_auth_requireLogin.md) 과 같다 — 뒤로 가기로 오류가 난 페이지에 다시 들어가지 않게 한다.
+`replace` 로 이동하는 이유는 [JS 07](<../../javascript/P1-02 - 프론트 공통 JS/07_auth_requireLogin.md>) 과 같다 — 뒤로 가기로 오류가 난 페이지에 다시 들어가지 않게 한다.
 
 | 적용할 곳 (각 함수의 TODO 주석에 적어 둠) | 본 데이터 |
 |---|---|
@@ -175,7 +175,7 @@ async def http_error_handler(request: Request, exc: StarletteHTTPException) -> J
 ## 5. 왜 이렇게
 | 선택 | 이유 |
 |---|---|
-| 모양을 `{"error": {...}}` 로 맞춤 | `api.js` 는 `error.code` 만 읽는다. 기본 모양 `{"detail": …}` 이면 모든 404 가 `INTERNAL_ERROR` 로 보인다 ([JS 02](../../javascript/02_api_apiFetch.md) `toApiError`) |
+| 모양을 `{"error": {...}}` 로 맞춤 | `api.js` 는 `error.code` 만 읽는다. 기본 모양 `{"detail": …}` 이면 모든 404 가 `INTERNAL_ERROR` 로 보인다 ([JS 02](<../../javascript/P1-02 - 프론트 공통 JS/02_api_apiFetch.md>) `toApiError`) |
 | 문구는 표의 고정 문장 | `exc.detail` 은 라이브러리나 다른 코드가 만든 문장이라 내부 정보(서버 주소 등)가 섞일 수 있다. 응답에는 정해 둔 문장만 내보낸다 |
 | 상태 코드는 그대로 | 404 는 404 로 둔다. 상태를 바꾸면 브라우저 · 검색 엔진 · 모니터링이 잘못 판단한다 |
 | 헤더 유지 | 405 응답에는 받을 수 있는 방식을 알려 주는 `Allow` 헤더가 표준으로 필요하다 |

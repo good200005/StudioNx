@@ -1,5 +1,6 @@
-"""회원가입 서비스 (services/auth_service.py, P1-04)."""
+"""회원가입 · 로그인 서비스 (services/auth_service.py, P1-04 · P1-05)."""
 
+import time
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -7,14 +8,17 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from app.core.errors import AppError, ErrorCode
-from app.core.security import verify_password
+from app.core.security import hash_password, verify_password
 from app.models import Project, User
 from app.models.user import UserRole, UserStatus
 from app.schemas.auth import NICKNAME_MAX, PRIVACY_VERSION, AvailabilityResponse, SignupRequest
 from app.services import auth_service
 from app.services.auth_service import (
+    DUMMY_PASSWORD_HASH,
+    authenticate,
     check_email,
     check_nickname,
+    get_active_user,
     normalize_email,
     release_withdrawn,
     signup,
@@ -49,14 +53,15 @@ def test_inner_spaces_are_kept():
 
 
 def add_user(db, email, nickname, **fields):
-    user = User(
-        email=email,
-        password_hash="x",
-        nickname=nickname,
-        privacy_agreed_at=datetime.now(UTC).replace(tzinfo=None),
-        privacy_version="2026-10-05",
-        **fields,
-    )
+    values = {
+        "email": email,
+        "password_hash": "x",
+        "nickname": nickname,
+        "privacy_agreed_at": datetime.now(UTC).replace(tzinfo=None),
+        "privacy_version": "2026-10-05",
+    }
+    values.update(fields)  # password_hash 등을 바꿔 넣을 수 있게
+    user = User(**values)
     db.add(user)
     db.flush()
     return user
@@ -335,3 +340,84 @@ def test_signup_race_conflict_is_409(db, monkeypatch, field, code):
     monkeypatch.setattr(auth_service, "check_nickname", always_ok)
     err = raises_app_error(signup, db, signup_data())
     assert (err.code, err.status_code) == (code, 409)
+
+
+# ── authenticate (P1-05 · 실제 MySQL) ──
+
+
+def member(db, status=UserStatus.ACTIVE, email="login@example.com"):
+    return add_user(db, email, "login_nick", status=status, password_hash=hash_password("Abcdef1!"))
+
+
+def assert_login_fails(db, email, password, code=ErrorCode.INVALID_CREDENTIALS, status=401):
+    err = raises_app_error(authenticate, db, email, password)
+    assert (err.code, err.status_code) == (code, status)
+    return err
+
+
+def test_login_success_records_last_login(db):
+    user = member(db)
+    assert user.last_login_at is None
+    assert authenticate(db, "login@example.com", "Abcdef1!") is user
+    assert abs(user.last_login_at - datetime.now(UTC).replace(tzinfo=None)) < timedelta(seconds=5)
+
+
+def test_login_email_case_and_spaces(db):
+    user = member(db)
+    assert authenticate(db, "  LOGIN@Example.com ", "Abcdef1!") is user
+
+
+def test_login_wrong_password(db):
+    user = member(db)
+    err = assert_login_fails(db, "login@example.com", "Abcdef1?")
+    assert err.message == "Email or password is incorrect."
+    assert user.last_login_at is None  # 실패하면 기록하지 않음
+
+
+def test_login_unknown_email_same_answer_and_time(db):
+    start = time.perf_counter()
+    err = assert_login_fails(db, "nobody@example.com", "Abcdef1!")
+    elapsed = time.perf_counter() - start
+    assert err.message == "Email or password is incorrect."  # 틀린 비밀번호와 같은 문구
+    assert elapsed > 0.1  # 가짜 해시 비교(약 0.2초)를 했음 — 없는 이메일이라고 빨리 끝나지 않음
+
+
+def test_login_deleted_account_looks_like_wrong_password(db):
+    member(db, status=UserStatus.DELETED)
+    assert_login_fails(db, "login@example.com", "Abcdef1!")  # 맞는 비밀번호여도 401 같은 문구
+
+
+def test_login_suspended_only_after_correct_password(db):
+    member(db, status=UserStatus.SUSPENDED)
+    err = assert_login_fails(db, "login@example.com", "Abcdef1!", ErrorCode.ACCOUNT_DISABLED, 403)
+    assert err.message == "This account is disabled."
+    assert_login_fails(db, "login@example.com", "wrong-pass")  # 틀리면 정지 사실을 알려 주지 않음
+
+
+def test_dummy_hash_matches_nothing():
+    for guess in ["", "password", "Abcdef1!", "studionx", "dummy"]:
+        assert verify_password(guess, DUMMY_PASSWORD_HASH) is False
+
+
+# ── get_active_user (P1-05 · 실제 MySQL) ──
+
+
+def test_active_user_found(db):
+    user = member(db)
+    assert get_active_user(db, user.user_id) is user
+
+
+@pytest.mark.parametrize("status", [UserStatus.SUSPENDED, UserStatus.DELETED])
+def test_inactive_user_must_sign_in_again(db, status):
+    user = member(db, status=status)
+    err = raises_app_error(get_active_user, db, user.user_id)
+    assert (err.code, err.status_code, err.message) == (
+        ErrorCode.UNAUTHORIZED,
+        401,
+        "Please sign in again.",
+    )
+
+
+def test_missing_user_must_sign_in_again(db):
+    err = raises_app_error(get_active_user, db, 999_999_999)
+    assert (err.code, err.status_code) == (ErrorCode.UNAUTHORIZED, 401)

@@ -22,7 +22,7 @@
 
 | 순서 | 일어나는 일 |
 |---|---|
-| ① 브라우저 | `GET /api/v1/me/dashboard` + 헤더 `Authorization: Bearer eyJhbGciOi…` ([JS 02](../../javascript/02_api_apiFetch.md)) |
+| ① 브라우저 | `GET /api/v1/me/dashboard` + 헤더 `Authorization: Bearer eyJhbGciOi…` ([JS 02](<../../javascript/P1-02 - 프론트 공통 JS/02_api_apiFetch.md>)) |
 | ② `get_current_user()` (다음 06) | 헤더에서 토큰 글자를 꺼내 **이 함수**에 넘김 |
 | ③ 이 함수 | 검사 → `7` |
 | ④ `get_current_user()` | DB 에서 7번 회원을 찾아 라우터에 넘김 |
@@ -130,7 +130,7 @@ def _decode_token(token: str, expected_type: str) -> int:
 | `algorithms` 를 `HS256` 하나로 고정 | 토큰 머리의 `alg` 는 보낸 사람이 마음대로 쓸 수 있다. `"none"`(서명 없음)을 믿으면 누구나 `sub: 1` 토큰을 만들 수 있다. 서버가 정한 방식만 받는다 |
 | `type` 확인 | 리프레시 토큰(3일)을 Access Token 자리에 넣어 30분 제한을 피하지 못하게 한다 |
 | 실패 이유와 상관없이 같은 401 · 같은 문구 | 만료인지 위조인지 알려 주면 공격자에게 힌트가 된다. 프론트는 어차피 같은 처리(재발급)를 한다 |
-| `"Please sign in again."` 의 `UNAUTHORIZED` | 프론트 `api.js` 가 재발급을 시도하는 조건과 같은 코드 ([JS 02](../../javascript/02_api_apiFetch.md)) |
+| `"Please sign in again."` 의 `UNAUTHORIZED` | 프론트 `api.js` 가 재발급을 시도하는 조건과 같은 코드 ([JS 02](<../../javascript/P1-02 - 프론트 공통 JS/02_api_apiFetch.md>)) |
 | 검사 부분을 `_decode_token()` 으로 분리 | P1-05 `decode_refresh_token()` 은 `return _decode_token(token, "refresh")` 한 줄이 된다 |
 | 비밀값은 `.env` 의 `JWT_SECRET` | 코드 · Git 에 넣지 않는다. 32바이트 이상이어야 한다 (짧으면 PyJWT 가 경고). 지금 로컬 값은 64바이트 — 값은 출력하지 않고 길이만 확인 |
 

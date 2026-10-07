@@ -42,7 +42,7 @@
 
 | 순서 | 항목 | 결과 |
 |---|---|---|
-| ① | 브라우저 `api.js` ([JS 02](javascript/02_api_apiFetch.md)) | `Authorization: Bearer eyJ…` 를 붙여 보냄 |
+| ① | 브라우저 `api.js` ([JS 02](<javascript/P1-02 - 프론트 공통 JS/02_api_apiFetch.md>)) | `Authorization: Bearer eyJ…` 를 붙여 보냄 |
 | ② | 06 `get_current_user()` → 05 `decode_access_token()` | 토큰 확인 → `7` |
 | ③ | 06 → 08 `User` | `db.get(User, 7)` → `status` 가 `ACTIVE` |
 | ④ | 라우터 (P1-16) | `user` 로 7번 회원을 받아 응답 |
