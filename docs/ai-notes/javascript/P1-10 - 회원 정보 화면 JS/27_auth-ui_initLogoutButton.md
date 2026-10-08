@@ -5,7 +5,7 @@
 | 파일 | `studionx/frontend/static/js/core/auth-ui.js` (새 함수) · `pages/userinfo.js` (import) · `pages/mypage.js` · `pages/myproject.js` (주석) |
 | 작업 | P1-10 회원 정보 화면 JS — 왼쪽 메뉴 Log out · PRD 01 FR-105 |
 | 작성 | Claude (AI) · 2026-10-08 · 사용자 검토 |
-| 이전 · 다음 | [26 `initWithdraw()`](26_userinfo_initWithdraw.md) · (P1-10 마지막) |
+| 이전 · 다음 | [26 `initWithdraw()`](26_userinfo_initWithdraw.md) · [28 `initContactForm()`](<../P1-12 - 문의 폼 JS/28_home_initContactForm.md>) (P1-12) |
 
 ## 1. 하는 일
 왼쪽 메뉴의 **Log out** 을 누르면 버튼을 잠그고 로그아웃한 뒤 홈으로 간다.

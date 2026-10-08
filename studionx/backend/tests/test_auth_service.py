@@ -58,7 +58,7 @@ def add_user(db, email, nickname, **fields):
         "password_hash": "x",
         "nickname": nickname,
         "privacy_agreed_at": datetime.now(UTC).replace(tzinfo=None),
-        "privacy_version": "2026-10-05",
+        "privacy_version": PRIVACY_VERSION,
     }
     values.update(fields)  # password_hash 등을 바꿔 넣을 수 있게
     user = User(**values)

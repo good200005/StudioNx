@@ -29,15 +29,17 @@
 
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import or_, select
+from sqlalchemy import delete, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
-from app.models import User
+from app.core.sentry import init_sentry
+from app.db.session import SessionLocal
+from app.models import Inquiry, User
 from app.models.user import UserStatus
 from app.services.auth_service import REJOIN_WAIT_DAYS, release_withdrawn
 
-INQUIRY_KEEP_DAYS = 365  # 답변 후 보관 기간 (처리방침 §4)
+INQUIRY_KEEP_DAYS = 365  # 답변 후 · (답변 없으면) 받은 뒤 보관 기간 (처리방침 §4, 2026-10-08)
 
 
 # 다 비운 계정의 비밀번호 칸 값 — bcrypt 해시 모양이 아니라 verify_password 가 늘 False
@@ -92,26 +94,39 @@ def purge_withdrawn_accounts(db: Session, now: datetime) -> int:
 
 
 def purge_old_inquiries(db: Session, now: datetime) -> int:
-    """답변 후 1년이 지난 문의를 지운다. 지운 개수를 돌려준다.
+    """오래된 문의를 지운다. 지운 개수를 돌려준다.
 
-    TODO(P1-12):
-    - 대상: answered_at IS NOT NULL 이고 answered_at <= now - INQUIRY_KEEP_DAYS 일
+    - 답변한 문의: 답변 후 1년 (처리방침 §4)
+    - 답변하지 않은 문의: **받은 뒤 1년** (2026-10-08 사용자 결정 — 이메일이 끝없이 남지 않게)
+      → 둘을 합치면 "답변 시각이 있으면 그것, 없으면 받은 시각" 이 1년 지난 행
     - 행을 실제로 삭제 (DELETE) — 문의는 다른 표가 가리키지 않음
-    - (정하기) 답변하지 않은 문의는? 예: 받은 지 1년 지나면 같이 지움
-    - db.commit() 후 return 개수
+    - now: 시간대가 있으면 UTC 로 바꿔 비교 (49 와 같음)
+    (구현: AI — 2026-10-08, 함수 하나씩 검토)
     """
-    raise NotImplementedError
+    if now.tzinfo is not None:
+        now = now.astimezone(UTC).replace(tzinfo=None)
+    cutoff = now - timedelta(days=INQUIRY_KEEP_DAYS)
+    since = func.coalesce(Inquiry.answered_at, Inquiry.created_at)
+    count = db.execute(delete(Inquiry).where(since <= cutoff)).rowcount
+    db.commit()
+    return count
 
 
 def main() -> None:
-    """명령으로 한 번 실행: python -m app.workers.retention
+    """명령으로 한 번 실행: python -m app.workers.retention  (하루 한 번 — 예약 작업은 배포 때)
 
-    TODO:
-    - with SessionLocal() as db: now = datetime.now(UTC)
-      두 함수를 부르고 결과를 print (예: "withdrawn accounts: 2, inquiries: 5")
-    - 실패하면 Sentry 로 보고되도록 예외를 그대로 올림 (init_sentry(get_settings()) 먼저)
+    - Sentry 를 먼저 켬 → 정리 중 오류가 나면 예외를 그대로 올려 Sentry 로 보고되고,
+      명령은 실패(0 아닌 종료 코드)
+    - 한 세션에서 탈퇴 계정 정리(49) → 문의 정리(54), 기준 시각은 둘이 같게 한 번만 잼
+    - 결과를 한 줄 출력: "withdrawn accounts: 2, inquiries: 5" (예약 작업 기록에 남음)
+    (구현: AI — 2026-10-08, 함수 하나씩 검토)
     """
-    raise NotImplementedError
+    init_sentry(get_settings())
+    now = datetime.now(UTC)
+    with SessionLocal() as db:
+        accounts = purge_withdrawn_accounts(db, now)
+        inquiries = purge_old_inquiries(db, now)
+    print(f"withdrawn accounts: {accounts}, inquiries: {inquiries}")
 
 
 if __name__ == "__main__":
