@@ -9,10 +9,12 @@ export const STUDIO_MIN_WIDTH = 1280;
 /**
  * 지금 화면에서 시퀀서를 열 수 있는지
  * - matchMedia(`(min-width: ${STUDIO_MIN_WIDTH}px)`).matches
+ * (구현: AI — 2026-10-08, 함수 하나씩 검토) CSS 의 @media 와 같은 기준 — 브라우저 확대(Ctrl +)를 하면 CSS 픽셀 폭이 줄어
+ *   1280 미만이 될 수 있음 (화면 · 레이아웃이 실제로 그만큼 좁아진 것이므로 그대로 따름)
  * @returns {boolean}
  */
 export function canOpenStudio() {
-  // TODO
+  return window.matchMedia('(min-width: ' + STUDIO_MIN_WIDTH + 'px)').matches;
 }
 
 /**
@@ -21,10 +23,24 @@ export function canOpenStudio() {
  * - #desktop-only-created-name / #desktop-only-open-name ← 제목
  * - document.getElementById('desktop-only-modal').showModal()
  * @param {'created'|'open'} variant
+ * (구현: AI — 2026-10-08, 함수 하나씩 검토) 'created' 가 아니면 'open' 문구. 제목은 textContent 로 (태그가 되지 않게).
+ *   이미 열려 있으면 다시 열지 않음 (showModal 을 두 번 부르면 오류)
  * @param {string} title
  */
 export function showDesktopOnly(variant, title) {
-  // TODO
+  const modal = document.getElementById('desktop-only-modal');
+  if (!modal) return;
+  if (variant !== 'created') variant = 'open';
+
+  // 상황에 맞는 문단만 보이기
+  const leads = modal.querySelectorAll('[data-variant]');
+  for (let i = 0; i < leads.length; i++) {
+    leads[i].hidden = leads[i].dataset.variant !== variant;
+  }
+  const name = document.getElementById('desktop-only-' + variant + '-name');
+  if (name) name.textContent = title;
+
+  if (!modal.open) modal.showModal();
 }
 
 /**
@@ -41,12 +57,47 @@ export function showDesktopOnly(variant, title) {
  *   → 새 프로젝트는 POST /projects 응답을 기다려야 하므로, 클릭 때 먼저
  *     window.open('', name, features) 로 빈 창을 열어 두고 응답 뒤 win.location = url
  * - (Phase 2) 환경 설정 "시퀀서 열기: 별도 창 / 새 탭"(PRD 02 FR-2164) 이 '새 탭'이면 features 없이 '_blank'
+ * (구현: AI — 2026-10-08, 함수 하나씩 검토) options.win = 클릭 때 openBlankStudio() 로 미리 연 빈 창 —
+ *   있으면 그 창의 주소 · 이름만 바꿈 (사용자가 그사이 닫았으면 새로 엶)
  * @param {number|string} projectId
- * @param {{ isNew?: boolean }} [options]
+ * @param {{ isNew?: boolean, win?: Window|null }} [options]
  * @returns {Window|null}
  */
 export function openStudio(projectId, options = {}) {
-  // TODO
+  let url = 'studioNx.html?projectId=' + encodeURIComponent(projectId);
+  if (options.isNew) url += '&new=1';
+  const name = STUDIO_WINDOW_PREFIX + projectId;
+
+  // 미리 열어 둔 빈 창이 있으면 그 창에서 (새 프로젝트 — 응답을 기다린 뒤라 새로 열면 팝업으로 막힘)
+  let win = options.win;
+  if (win && !win.closed) {
+    win.name = name;            // 다음에 같은 프로젝트를 누르면 이 창이 앞으로 오게
+    win.location.href = url;
+  } else {
+    win = window.open(url, name, studioWindowFeatures());
+  }
+
+  if (!win) {
+    location.href = url;        // 팝업이 막힘 → 같은 탭에서 열기
+    return null;
+  }
+  win.focus();
+  return win;
+}
+
+/**
+ * 시퀀서용 빈 창을 먼저 열기 — 클릭 처리 안에서 **await 전에** 부를 것 (39 새 프로젝트)
+ * 응답이 오면 openStudio(id, { win }) 로 주소를 넣고, 실패하면 win.close()
+ * (구현: AI — 2026-10-08, 37 과 함께)
+ * @returns {Window|null}  팝업이 막혔으면 null
+ */
+export function openBlankStudio() {
+  return window.open('', '', studioWindowFeatures());
+}
+
+/** 창 옵션 — 'popup' 이 있어야 탭이 아니라 별도 창, 크기는 화면에 맞춤 */
+function studioWindowFeatures() {
+  return 'popup,width=' + screen.availWidth + ',height=' + screen.availHeight + ',left=0,top=0';
 }
 
 /** 시퀀서 창 이름 앞부분 — 프로젝트마다 창 하나 */
@@ -61,7 +112,33 @@ export const STUDIO_WINDOW_PREFIX = 'studio-';
  * - 휠 클릭·Ctrl+클릭(새 탭으로 열기)은 막지 않음 → event.button !== 0 || ctrlKey || metaKey 면 그대로 둠
  * - href 는 그대로 남겨 둠 → JS 가 꺼져 있어도 같은 탭에서 열림
  * @param {ParentNode} root  찾을 범위 (기본 document)
+ * (구현: AI — 2026-10-08, 함수 하나씩 검토) Shift(새 창) · Alt(내려받기) 클릭도 브라우저 기본 그대로.
+ *   제목은 줄의 data-title(myProject 31) → 없으면 <b> 의 첫 글자 마디 ('Not opened' 표는 빼고)
  */
 export function initDesktopOnlyLinks(root = document) {
-  // TODO
+  if (!root) return;
+  root.addEventListener('click', function (event) {
+    // 새 탭 · 새 창 · 내려받기 같은 브라우저 기본 동작은 막지 않음
+    if (event.defaultPrevented || event.button !== 0) return;
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    const link = event.target.closest('a[href^="studioNx.html"]');
+    if (!link) return;
+
+    event.preventDefault();
+    if (!canOpenStudio()) {
+      showDesktopOnly('open', studioLinkTitle(link));
+      return;
+    }
+    const params = new URLSearchParams(link.getAttribute('href').split('?')[1]);
+    openStudio(params.get('projectId'));
+  });
+}
+
+/** 링크가 속한 프로젝트의 제목 — 줄의 data-title, 없으면 <b> 안 첫 글자 마디 */
+function studioLinkTitle(link) {
+  const row = link.closest('[data-title]');
+  if (row) return row.dataset.title;
+  const holder = link.querySelector('b') ? link : link.closest('li, section, article, div');
+  const bold = holder ? holder.querySelector('b') : null;
+  return bold && bold.firstChild ? bold.firstChild.textContent.trim() : 'This project';
 }
