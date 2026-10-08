@@ -5,7 +5,7 @@
 | 파일 | `studionx/backend/app/workers/retention.py` / 처리방침: `privacy.html` · `home.html` · `join.js` · `schemas/auth.py` · `docs/Privacy_Policy_Draft.md` |
 | 작업 | P1-12 문의 API — 보관 기간 정리를 하루 한 번 실행하는 명령 · 처리방침 §4 |
 | 작성 | Claude (AI) · 2026-10-08 · 사용자 검토 |
-| 이전 · 다음 | [54 `purge_old_inquiries()`](54_retention_purge_old_inquiries.md) · (P1-12 마지막) |
+| 이전 · 다음 | [54 `purge_old_inquiries()`](54_retention_purge_old_inquiries.md) · [56 프로젝트 요청 스키마](<../P1-13 - 프로젝트 API/56_project_schema_request.md>) (P1-13) |
 
 ## 1. 하는 일
 명령 한 줄로 **보관 기간 정리 두 가지**를 차례로 돌리고 결과를 한 줄 출력한다.
