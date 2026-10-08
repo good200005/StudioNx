@@ -85,8 +85,9 @@ export function initDuplicateChecks() {
   }
 }
 
-/** 동의한 처리방침 버전 = privacy.html 의 Version (2026-10-05). 처리방침을 바꾸면 서버 PRIVACY_VERSION 과 함께 올림 */
-export const PRIVACY_VERSION = '2026-10-05';
+/** 동의한 처리방침 버전 = privacy.html 의 Version. 처리방침을 바꾸면 서버 PRIVACY_VERSION 과 함께 올림
+ *  (2026-10-05 → 2026-10-08: 답변하지 않은 문의도 받은 뒤 1년에 삭제) */
+export const PRIVACY_VERSION = '2026-10-08';
 
 // 비밀번호 조건 PASSWORD_RULES · PASSWORD_ALLOWED 는 core/password.js (회원 정보 화면과 함께 씀)
 

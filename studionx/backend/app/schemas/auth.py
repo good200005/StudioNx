@@ -33,7 +33,7 @@ Nickname = Annotated[
 
 # 지금 시행 중인 개인정보 처리방침 버전
 # (privacy.html Version 줄, join.js PRIVACY_VERSION 과 같아야 함)
-PRIVACY_VERSION = "2026-10-05"
+PRIVACY_VERSION = "2026-10-08"  # 2026-10-05 → 10-08: 답변하지 않은 문의도 받은 뒤 1년에 삭제
 
 
 class SignupRequest(BaseModel):

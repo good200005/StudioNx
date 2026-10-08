@@ -19,10 +19,28 @@
 from fastapi import APIRouter, Request, status
 
 from app.api.deps import Db, OptionalUser
+from app.core.config import get_settings
 from app.schemas.common import ErrorResponse
 from app.schemas.inquiry import InquiryCreateRequest, InquiryCreateResponse
+from app.services import inquiry_service
 
 router = APIRouter()
+
+
+def client_ip(request: Request) -> str | None:
+    """보낸 사람의 IP (반복 전송 제한 51 이 씀).
+
+    - 기본: 연결된 상대의 IP (request.client.host)
+    - 설정 TRUST_PROXY=true 일 때만 X-Forwarded-For 의 첫 IP — 프록시(Nginx 등) 뒤에서는
+      연결 상대가 늘 프록시라서. 프록시 없이 켜면 누구나 헤더를 꾸밀 수 있어 기본은 꺼짐
+      (2026-10-08 사용자 결정 A)
+    (구현: AI — 2026-10-08, 함수 하나씩 검토)
+    """
+    if get_settings().trust_proxy:
+        first = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+        if first:
+            return first
+    return request.client.host if request.client else None
 
 
 @router.post(
@@ -39,11 +57,10 @@ def create_inquiry(
 ) -> InquiryCreateResponse:
     """문의 등록 — 로그인은 선택 (로그인 상태면 user_id 연결).
 
-    TODO(P1-12):
-    - ip = request.client.host if request.client else None
-      (배포 시 프록시 뒤라면 X-Forwarded-For 를 읽어야 함 — 그때 정하기)
-    - inquiry = inquiry_service.create_inquiry(db, data, user, ip)
-    - return InquiryCreateResponse(inquiry_id=inquiry.inquiry_id, created_at=inquiry.created_at)
+    - 형식은 50 스키마(422), 동의 · 반복 전송 · 저장은 52 create_inquiry (422 · 429)
+    - 응답은 번호와 접수 시각만 (화면은 '보냈습니다' 안내만)
     - 화면: 201 → 폼 초기화 + 안내, 429 → 'Too many messages...' 표시
+    (구현: AI — 2026-10-08, 함수 하나씩 검토)
     """
-    raise NotImplementedError
+    inquiry = inquiry_service.create_inquiry(db, data, user, client_ip(request))
+    return InquiryCreateResponse(inquiry_id=inquiry.inquiry_id, created_at=inquiry.created_at)

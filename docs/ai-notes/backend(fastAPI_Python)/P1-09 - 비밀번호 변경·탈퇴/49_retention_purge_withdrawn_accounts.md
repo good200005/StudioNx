@@ -5,7 +5,7 @@
 | 파일 | `studionx/backend/app/workers/retention.py` |
 | 작업 | P1-09 비밀번호 변경 · 탈퇴 — 탈퇴 3일 뒤 개인 정보 정리 · PRD 01 FR-108 · 개인정보 처리방침 §4 |
 | 작성 | Claude (AI) · 2026-10-07 · 사용자 검토 |
-| 이전 · 다음 | [48 `DELETE /users/me`](48_users_route_withdraw.md) · (P1-09 마지막) |
+| 이전 · 다음 | [48 `DELETE /users/me`](48_users_route_withdraw.md) · [50 `InquiryCreateRequest`](<../P1-12 - 문의 API/50_inquiry_schema_request.md>) (P1-12) |
 
 ## 1. 하는 일
 하루 한 번 돌리는 **정리 작업**. 탈퇴한 지 3일이 지난 계정에서 개인 정보를 비운다. 처리방침(privacy.html §4)에 적은 "탈퇴하면 3일 보관 뒤 비움" 약속을 실제로 지키는 곳.

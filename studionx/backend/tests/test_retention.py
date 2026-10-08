@@ -8,7 +8,7 @@ from sqlalchemy import select
 
 from app.core.errors import AppError
 from app.core.security import hash_password
-from app.models import Project, User
+from app.models import Inquiry, Project, User
 from app.models.user import UserStatus
 from app.services import auth_service
 from app.workers import retention
@@ -134,3 +134,91 @@ def test_after_purge_login_fails_and_email_free(db, storage):
     assert err.value.status_code == 401
     assert auth_service.check_email(db, "free.again@example.com").available is True
     assert auth_service.check_nickname(db, "free_again2").available is True
+
+
+# ── 54 purge_old_inquiries (P1-12) ────────────────────────────
+
+
+def add_inquiry(db, title, received_days_ago, answered_days_ago=None):
+    inquiry = Inquiry(
+        email="old.ask@example.com", title=title, content="…",
+        privacy_agreed_at=NOW - timedelta(days=received_days_ago),
+        created_at=NOW - timedelta(days=received_days_ago),
+        answered_at=None if answered_days_ago is None else NOW - timedelta(days=answered_days_ago),
+    )
+    db.add(inquiry)
+    db.flush()
+    return inquiry.inquiry_id
+
+
+def titles_left(db):
+    return set(db.scalars(select(Inquiry.title).where(Inquiry.email == "old.ask@example.com")))
+
+
+def test_purge_old_inquiries(db):
+    add_inquiry(db, "answered 400d", 420, 400)       # 답변 1년 넘음 → 지움
+    add_inquiry(db, "answered 300d", 500, 300)       # 받은 지는 오래됐지만 답변 1년 안 → 남김
+    add_inquiry(db, "unanswered 400d", 400)          # 답변 없이 1년 넘음 → 지움 (사용자 결정)
+    add_inquiry(db, "unanswered 100d", 100)          # 남김
+    add_inquiry(db, "answered edge", 380, 365)       # 정확히 1년 → 지움
+
+    assert retention.purge_old_inquiries(db, NOW) == 3
+    assert titles_left(db) == {"answered 300d", "unanswered 100d"}
+
+
+def test_purge_old_inquiries_twice(db):
+    add_inquiry(db, "old", 400)
+    assert retention.purge_old_inquiries(db, NOW) == 1
+    assert retention.purge_old_inquiries(db, NOW) == 0
+
+
+def test_purge_old_inquiries_timezone(db):
+    """한국 시각 21:00 = UTC 12:00 — 정확히 1년 된 문의가 지워짐."""
+    add_inquiry(db, "kst edge", 365)
+    kst_now = datetime(2026, 10, 7, 21, 0, 0, tzinfo=timezone(timedelta(hours=9)))
+    assert retention.purge_old_inquiries(db, kst_now) == 1
+
+
+# ── 55 main (P1-12) ───────────────────────────────────────────
+
+
+class _Session:
+    """main 이 `with SessionLocal() as db` 로 쓰는 세션 자리에 시험용 db 를 넣음 (닫지 않음)."""
+
+    def __init__(self, db):
+        self.db = db
+
+    def __enter__(self):
+        return self.db
+
+    def __exit__(self, *exc):
+        return False
+
+
+def test_main_runs_both_and_prints(db, storage, monkeypatch, capsys):
+    calls = []
+    monkeypatch.setattr(retention, "init_sentry", lambda settings: calls.append("sentry"))
+    monkeypatch.setattr(retention, "SessionLocal", lambda: _Session(db))
+    withdrawn(db, "main.gone@example.com", "main_gone", 10)
+    add_inquiry(db, "main old", 400)
+
+    retention.main()
+    assert calls == ["sentry"]  # Sentry 를 먼저 켬
+    out = capsys.readouterr().out.strip()
+    assert out.startswith("withdrawn accounts: ") and ", inquiries: " in out
+    accounts, inquiries = (int(part.split(": ")[1]) for part in out.split(", "))
+    assert accounts >= 1 and inquiries >= 1
+    assert titles_left(db) == set()
+
+
+def test_main_error_propagates(db, monkeypatch):
+    """정리 중 오류는 삼키지 않음 → Sentry 보고 · 명령 실패."""
+    monkeypatch.setattr(retention, "init_sentry", lambda settings: None)
+    monkeypatch.setattr(retention, "SessionLocal", lambda: _Session(db))
+
+    def broken(db, now):
+        raise RuntimeError("db down")
+
+    monkeypatch.setattr(retention, "purge_withdrawn_accounts", broken)
+    with pytest.raises(RuntimeError):
+        retention.main()
