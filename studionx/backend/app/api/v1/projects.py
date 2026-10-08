@@ -30,6 +30,7 @@ from app.schemas.project import (
     ProjectSort,
     ProjectUpdateRequest,
 )
+from app.services import project_service
 
 router = APIRouter()
 
@@ -48,32 +49,31 @@ def list_projects(
 ) -> ProjectListResponse:
     """내 프로젝트 목록 — 검색·정렬·페이지 (FR-123).
 
-    TODO(P1-13): return project_service.list_projects(db, user, query.strip(), sort, page, size)
+    (구현: AI — 2026-10-08) 검색어는 앞뒤 공백을 지워서 넘김 (공백만이면 전체 목록)
     """
-    raise NotImplementedError
+    return project_service.list_projects(db, user, query.strip(), sort, page, size)
 
 
 @router.post("", response_model=ProjectItem, status_code=status.HTTP_201_CREATED)
 def create_project(data: ProjectCreateRequest, user: CurrentUser, db: Db) -> ProjectItem:
     """프로젝트 생성 + OWNER 멤버 + MASTER 트랙 (FR-122).
 
-    TODO(P1-13):
-    - project = project_service.create_project(db, user, data)
-    - 응답은 목록 한 줄과 같은 모양 (my_role='OWNER', member_count=1, opened=False)
-    - 화면: 201 → 넓은 화면이면 studioNx.html?projectId= 로 이동 (FR-126·129)
+    응답은 목록 한 줄과 같은 모양 (my_role='OWNER', member_count=1, opened=False)
+    화면: 201 → 넓은 화면이면 studioNx.html?projectId= 로 이동 (FR-126·129)
     """
-    raise NotImplementedError
+    project = project_service.create_project(db, user, data)
+    # 방금 만든 프로젝트라 멤버는 나 하나 · 연 적 없음 → DB 에 다시 묻지 않음
+    return project_service.to_item(db, project, project.members[0], member_count=1, opened=False)
 
 
 @router.get("/{project_id}", response_model=ProjectItem, responses=NOT_FOUND)
 def read_project(project_id: int, user: CurrentUser, db: Db) -> ProjectItem:
     """프로젝트 기본 정보 — 멤버만 (시퀀서가 열 때 제목 표시 등).
 
-    TODO(P1-13):
-    - project, member = project_service.get_membership(db, project_id, user)
-    - return project_service.to_item(db, project, member)
+    남의 프로젝트 · 없는 번호 · 삭제된 프로젝트는 모두 404 (57)
     """
-    raise NotImplementedError
+    project, member = project_service.get_membership(db, project_id, user)
+    return project_service.to_item(db, project, member)
 
 
 @router.patch(
@@ -89,9 +89,10 @@ def update_project(
 ) -> ProjectItem:
     """제목·설명 수정 (FR-124) — OWNER · EDITOR.
 
-    TODO(P1-13): get_membership → update_project → to_item
     """
-    raise NotImplementedError
+    project, member = project_service.get_membership(db, project_id, user)
+    project = project_service.update_project(db, project, member, data)
+    return project_service.to_item(db, project, member)
 
 
 @router.delete(
@@ -102,7 +103,7 @@ def update_project(
 def delete_project(project_id: int, user: CurrentUser, db: Db) -> None:
     """프로젝트 삭제 (FR-125) — OWNER 만, 소프트 삭제.
 
-    TODO(P1-13): get_membership → delete_project
-    - 화면: OWNER 가 아니면 버튼이 이미 막혀 있지만, 서버도 반드시 403 으로 막음
+    화면: OWNER 가 아니면 버튼이 이미 막혀 있지만, 서버도 반드시 403 으로 막음
     """
-    raise NotImplementedError
+    project, member = project_service.get_membership(db, project_id, user)
+    project_service.delete_project(db, project, member)
