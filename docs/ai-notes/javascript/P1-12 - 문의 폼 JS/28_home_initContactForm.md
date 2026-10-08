@@ -5,7 +5,7 @@
 | 파일 | `studionx/frontend/static/js/pages/home.js` |
 | 작업 | P1-12 문의 — 홈 Contact 폼 보내기 · 로그인 시 이메일 자동 채움 · PRD 01 FR-112 · FR-113 (P1-11 화면의 남은 JS) |
 | 작성 | Claude (AI) · 2026-10-08 · 사용자 검토 |
-| 이전 · 다음 | [27 `initLogoutButton()`](<../P1-10 - 회원 정보 화면 JS/27_auth-ui_initLogoutButton.md>) · (P1-12 마지막) |
+| 이전 · 다음 | [27 `initLogoutButton()`](<../P1-10 - 회원 정보 화면 JS/27_auth-ui_initLogoutButton.md>) · [29 `formatRelativeTime()`](<../P1-14 - 내 프로젝트 화면 JS/29_myproject_formatRelativeTime.md>) (P1-14) |
 
 ## 1. 하는 일
 홈 화면 **Contact** 폼의 **Send** 를 서버(백엔드 53)에 연결하고, 결과를 알림창으로 알려 준다.
