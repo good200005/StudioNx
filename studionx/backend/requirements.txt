@@ -16,6 +16,7 @@ email-validator>=2.2       # pydantic EmailStr — 이메일 형식 검사 (P1-0
 
 # 관리자 화면 /admin (P1-21, PRD 01 FR-115)
 sqladmin>=0.20
+itsdangerous>=2.1          # 관리자 화면(/admin) 로그인 세션 쿠키 서명 — Starlette SessionMiddleware 가 필요로 함
 
 # 오류 추적
 sentry-sdk[fastapi]>=2.14

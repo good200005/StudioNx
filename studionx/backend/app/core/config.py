@@ -29,11 +29,17 @@ class Settings(BaseSettings):
     # 인증
     jwt_secret: str = "change-me"
     jwt_access_minutes: int = 30
-    jwt_refresh_days: int = 3          # 자동 로그인 체크 시 리프레시 쿠키 유지 기간 (PRD 01 FR-109)
+    jwt_refresh_days: int = 3  # 자동 로그인 체크 시 리프레시 쿠키 유지 기간 (PRD 01 FR-109)
 
     # 프록시(Nginx 등) 뒤에서 돌 때만 true — X-Forwarded-For 의 첫 IP 를 보낸 사람으로 봄
     # 프록시 없이 true 면 누구나 헤더를 꾸며 IP 제한을 피할 수 있음 (2026-10-08 결정: 기본 꺼짐)
     trust_proxy: bool = False
+
+    # 관리자 화면(SQLAdmin) 주소. 개발은 /admin 그대로,
+    # 배포 때 추측하기 어려운 값으로 바꿈 (2026-10-13 결정)
+    # 예: ADMIN_PATH=/ops-7f3a9c1e
+    # 반드시 "/"로 시작하고, API 주소(/api/v1…)나 "/" 단독은 쓰지 않음
+    admin_path: str = "/admin"
 
     # 파일 저장 위치 (DB에는 이 경로 기준 상대 경로만 저장)
     storage_dir: Path = ROOT_DIR / "storage"
