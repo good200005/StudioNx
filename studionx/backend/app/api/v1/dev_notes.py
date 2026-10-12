@@ -22,7 +22,13 @@ from fastapi import APIRouter, Query
 
 from app.api.deps import Db
 from app.schemas.common import ErrorResponse
-from app.schemas.dev_note import DEV_NOTES_LIMIT_MAX, DevNoteDetail, DevNoteListResponse
+from app.schemas.dev_note import (
+    DEV_NOTES_LIMIT_MAX,
+    DevNoteDetail,
+    DevNoteItem,
+    DevNoteListResponse,
+)
+from app.services import dev_note_service
 
 router = APIRouter()
 
@@ -34,18 +40,24 @@ def list_dev_notes(
 ) -> DevNoteListResponse:
     """공개된 공지 목록 — 메인 페이지는 limit=4 (FR-114).
 
-    TODO(P1-21):
-    - notes = dev_note_service.list_published(db, limit)
-    - return DevNoteListResponse(items=[DevNoteItem.model_validate(n, from_attributes=True) ...])
+    (구현: AI — 2026-10-13, P1-21, 함수 하나씩 검토)
+    - 로그인 없이 읽기만 (CurrentUser 를 받지 않음)
+    - limit 은 1 ~ 50 (밖이면 422), 목록 응답에는 본문(content)을 넣지 않음 (DevNoteItem)
     """
-    raise NotImplementedError
+    notes = dev_note_service.list_published(db, limit)
+    return DevNoteListResponse(
+        items=[DevNoteItem.model_validate(n, from_attributes=True) for n in notes]
+    )
 
 
 @router.get("/{note_id}", response_model=DevNoteDetail, responses={404: {"model": ErrorResponse}})
 def read_dev_note(note_id: int, db: Db) -> DevNoteDetail:
     """공지 상세 (View More 모달).
 
-    TODO(P1-21): return DevNoteDetail.model_validate(
-                     dev_note_service.get_published(db, note_id), from_attributes=True)
+    (구현: AI — 2026-10-13, P1-21, 함수 하나씩 검토)
+    - 공개된 공지만, 초안·삭제·예약 중·없는 번호는 404 (서비스가 판단)
+    - 로그인 없이 읽기만
     """
-    raise NotImplementedError
+    return DevNoteDetail.model_validate(
+        dev_note_service.get_published(db, note_id), from_attributes=True
+    )
