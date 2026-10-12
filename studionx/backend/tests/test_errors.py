@@ -109,35 +109,40 @@ def test_validation_error_query_and_empty_body():
 
 # ── 03 FastAPI 기본 오류 (HTTPException → 같은 모양) ──
 def test_http_error_not_found():
-    res = client.get("/no-such-api")
+    res = client.get("/api/v1/no-such-api")  # API 주소여야 JSON (화면 주소는 P1-22 부터 HTML)
     assert res.status_code == 404
     assert res.json() == {"error": {"code": "NOT_FOUND", "message": "Not found.", "details": None}}
 
 
+@app.get("/api/v1/get-only")
+def get_only():
+    return {"ok": True}
+
+
 def test_http_error_method_not_allowed_keeps_allow_header():
-    res = client.post("/email-taken")  # GET 만 있는 주소에 POST
+    res = client.post("/api/v1/get-only")  # GET 만 있는 주소에 POST
     assert res.status_code == 405
     assert res.json()["error"]["code"] == "METHOD_NOT_ALLOWED"
     assert res.headers["allow"] == "GET"
 
 
-@app.get("/teapot")
+@app.get("/api/v1/teapot")
 def teapot():
     raise StarletteHTTPException(418, detail="internal detail text")
 
 
-@app.get("/gateway")
+@app.get("/api/v1/gateway")
 def gateway():
     raise StarletteHTTPException(502, detail="upstream host 10.0.0.5 down")
 
 
 def test_http_error_unknown_status_and_hidden_detail():
-    res = client.get("/teapot")
+    res = client.get("/api/v1/teapot")
     assert res.status_code == 418
     assert res.json()["error"]["code"] == "BAD_REQUEST"
     assert "internal detail text" not in res.text
 
-    res = client.get("/gateway")
+    res = client.get("/api/v1/gateway")
     assert res.status_code == 502
     assert res.json()["error"]["code"] == "INTERNAL_ERROR"
     assert "10.0.0.5" not in res.text
@@ -158,7 +163,7 @@ def test_real_app_missing_api_and_page():
 
 
 # ── 04 예상 못 한 오류 (Exception → 500) ──
-@app.get("/bug")
+@app.get("/api/v1/bug")
 def bug():
     raise RuntimeError("SELECT * FROM users WHERE password_hash='$2b$12$secret'")
 
@@ -166,7 +171,7 @@ def bug():
 def test_unexpected_error_hides_detail():
     # raise_server_exceptions=False: 시험 도구가 오류를 다시 던지지 않고 실제 응답을 돌려줌
     safe = TestClient(app, raise_server_exceptions=False)
-    res = safe.get("/bug")
+    res = safe.get("/api/v1/bug")
     assert res.status_code == 500
     assert res.json() == {
         "error": {
@@ -181,4 +186,4 @@ def test_unexpected_error_hides_detail():
 def test_unexpected_error_still_raised_for_logs():
     # 응답을 보낸 뒤에도 오류가 다시 던져짐 → 서버 로그 · Sentry 가 원래 오류를 기록
     with pytest.raises(RuntimeError):
-        client.get("/bug")
+        client.get("/api/v1/bug")

@@ -27,9 +27,10 @@ from enum import StrEnum
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.core.config import ROOT_DIR, get_settings
 from app.schemas.common import ErrorBody, ErrorResponse
 
 
@@ -97,6 +98,36 @@ def error_json(
     return JSONResponse(status_code=status_code, content=body.model_dump())
 
 
+def is_api_request(request: Request) -> bool:
+    """API 요청인지 (True → JSON 으로 응답, False → 화면(페이지) 요청이라 오류 페이지 HTML 로 응답).
+
+    (구현: AI — 2026-10-13, P1-22, 함수 하나씩 검토)
+    - 주소가 API 앞부분(settings.api_prefix, 보통 "/api/v1")이거나 그 아래("/api/v1/…")이면 API
+    - "/api/v1x" 처럼 글자만 비슷한 주소는 API 가 아님 (경계 확인)
+    - 주소 끝의 "/" 나 쿼리(?a=1)는 상관없음
+    """
+    prefix = get_settings().api_prefix
+    path = request.url.path
+    return path == prefix or path.startswith(prefix + "/")
+
+
+def error_page(status_code: int) -> FileResponse:
+    """화면(페이지) 요청의 오류 → 오류 페이지 HTML 을 같은 상태 코드로 돌려준다.
+
+    (구현: AI — 2026-10-13, P1-22, 함수 하나씩 검토)
+    - 400·403·404·429·500·503·504 는 같은 번호의 페이지 (ERROR_PAGES)
+    - 페이지가 없는 번호(405 등)는 4xx → 400 페이지, 5xx → 500 페이지를 쓰되
+      상태 코드는 원래 번호 그대로 (브라우저·검색 로봇이 진짜 오류를 알 수 있게)
+    """
+    if status_code in ERROR_PAGES:
+        page = ERROR_PAGES[status_code]
+    elif status_code >= 500:
+        page = ERROR_PAGES[500]
+    else:
+        page = ERROR_PAGES[400]
+    return FileResponse(ROOT_DIR / "frontend" / page, status_code=status_code)
+
+
 async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
     """AppError(서비스·라우터가 일부러 던진 오류) → 정해 둔 상태 코드와 문구 그대로.
 
@@ -134,13 +165,15 @@ HTTP_ERRORS: dict[int, tuple[ErrorCode, str]] = {
 }
 
 
-async def http_error_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
+async def http_error_handler(request: Request, exc: StarletteHTTPException) -> Response:
     """FastAPI·Starlette 기본 오류(없는 API 주소 404, 방식이 다름 405 …) → 같은 오류 모양.
 
     (구현: AI — 2026-10-06, 함수 하나씩 검토)
     - 표(HTTP_ERRORS)에 없는 상태: 500 이상은 INTERNAL_ERROR, 그 밖은 BAD_REQUEST
     - 문구는 표의 고정 문장 — exc.detail(라이브러리가 만든 문장)은 그대로 내보내지 않음
     - exc.headers 는 유지 (405 의 Allow 등 — 표준이 요구하는 헤더)
+    - (2026-10-13, P1-22) 화면(페이지) 요청이면 JSON 대신 오류 페이지 HTML (error_page),
+      API 요청이면 JSON
     """
     if exc.status_code in HTTP_ERRORS:
         code, message = HTTP_ERRORS[exc.status_code]
@@ -148,21 +181,27 @@ async def http_error_handler(request: Request, exc: StarletteHTTPException) -> J
         code, message = ErrorCode.INTERNAL_ERROR, "Something went wrong. Please try again."
     else:
         code, message = ErrorCode.BAD_REQUEST, "Bad request."
-    response = error_json(exc.status_code, code, message)
+    if is_api_request(request):
+        response = error_json(exc.status_code, code, message)
+    else:
+        response = error_page(exc.status_code)
     if exc.headers:
         response.headers.update(exc.headers)
     return response
 
 
-async def unexpected_error_handler(request: Request, exc: Exception) -> JSONResponse:
+async def unexpected_error_handler(request: Request, exc: Exception) -> Response:
     """예상 못 한 오류(버그 · DB 끊김 등) → 500, 일반 문장만.
 
     (구현: AI — 2026-10-06, 함수 하나씩 검토)
     - 오류 내용(exc)은 응답에 넣지 않음 — SQL · 파일 경로 · 비밀값이 섞일 수 있음
     - 기록은 따로 하지 않음: Starlette 가 이 응답을 보낸 뒤 오류를 다시 던지므로
       uvicorn 로그와 Sentry 가 원래 오류를 그대로 기록함
+    - (2026-10-13, P1-22) 화면(페이지) 요청이면 errors/500.html, API 요청이면 JSON
     """
-    return error_json(500, ErrorCode.INTERNAL_ERROR, "Something went wrong. Please try again.")
+    if is_api_request(request):
+        return error_json(500, ErrorCode.INTERNAL_ERROR, "Something went wrong. Please try again.")
+    return error_page(500)
 
 
 def register_exception_handlers(app: FastAPI) -> None:
