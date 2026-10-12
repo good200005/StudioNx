@@ -21,6 +21,7 @@ from fastapi import APIRouter
 from app.api.deps import CurrentUser, Db
 from app.schemas.common import ErrorResponse
 from app.schemas.dashboard import DashboardResponse
+from app.services import dashboard_service
 
 router = APIRouter()
 
@@ -33,6 +34,8 @@ router = APIRouter()
 def read_dashboard(user: CurrentUser, db: Db) -> DashboardResponse:
     """대시보드 요약 — 프로필, 용량, AI 사용량, 이어 하기, 최근 프로젝트 5개 (FR-121).
 
-    TODO(P1-16): return dashboard_service.get_dashboard(db, user)
+    - 로그인한 회원 본인의 것만 돌려줌 (남의 번호를 받는 칸이 없음)
+    - 계산은 모두 services/dashboard_service.get_dashboard 가 함
+    (구현: AI — 2026-10-12, 함수 하나씩 검토)
     """
-    raise NotImplementedError
+    return dashboard_service.get_dashboard(db, user)
