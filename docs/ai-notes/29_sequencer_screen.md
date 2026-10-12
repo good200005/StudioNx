@@ -4,60 +4,60 @@
 |---|---|
 | 작성 | Claude (AI) |
 | 작성일 | 2026-10-06 |
-| 작업 | 확정된 목업 01~18을 실제 페이지로 옮김 (HTML·CSS). JS는 템플릿만. 이전 문서: [28_home_mobile_hero.md](28_home_mobile_hero.md) |
+| 작업 | 확정된 목업 01~18을 실제 페이지로 옮겼습니다 (HTML과 CSS). JS는 템플릿만 만들었습니다. 이전 문서: [28_home_mobile_hero.md](28_home_mobile_hero.md) |
 | 브랜치 | `feature/phase1/p1-15-studionx-stub` |
-| 기준 | [Sequencer_Layout_Mockup.md](../Sequencer_Layout_Mockup.md) · PRD 02 §4.17 FR-2191~2202 · §4.18 · §4.19 FR-2241~2249 · 색 C Signal(다크) / C Light(라이트) |
+| 기준 | [Sequencer_Layout_Mockup.md](../Sequencer_Layout_Mockup.md), PRD 02 §4.17 FR-2191~2202, §4.18, §4.19 FR-2241~2249, 색은 C Signal(다크)과 C Light(라이트) |
 | 만든 파일 | `studionx/frontend/studioNx.html` · `static/css/pages/studio.css` · `static/js/pages/sequencer.js`(템플릿) · `static/i18n/sequencer.json`(언어 사전) |
 
 ---
 
 ## 1. 실행 결과 (1440×900)
 ### 1.1 기본 화면
-![기본 — 상단바 두 줄 · 왼쪽 버튼 줄 · 파일 패널 · 편곡 · MASTER · Nyxi](images/29_sequencer_screen/01_default.png)
+![기본 화면: 상단바 두 줄, 왼쪽 버튼 줄, 파일 패널, 편곡, MASTER, Nyxi](images/29_sequencer_screen/01_default.png)
 
 ### 1.2 트랙 펼침 (V)
-![2. Strum 펼침 — Instrument · Effects · Connect to Another · Mixer](images/29_sequencer_screen/02_track_open.png)
+![2. Strum을 펼친 모습: Instrument, Effects, Connect to Another, Mixer](images/29_sequencer_screen/02_track_open.png)
 
-### 1.3 아래 칸 — 피아노롤 · 믹서
-![MIDI 클립 클릭 → 피아노롤](images/29_sequencer_screen/03_piano_roll.png)
+### 1.3 아래 칸: 피아노롤과 믹서
+![MIDI 클립을 누르면 피아노롤이 열립니다](images/29_sequencer_screen/03_piano_roll.png)
 
-![Tab → 믹서 (MASTER 오른쪽 끝 고정)](images/29_sequencer_screen/04_mixer.png)
+![Tab을 누르면 믹서가 열립니다 (MASTER는 오른쪽 끝에 고정)](images/29_sequencer_screen/04_mixer.png)
 
-### 1.4 아래 칸 — 샘플 설정 · Nyxi Agent
-![오디오 클립 클릭 → 샘플 설정 (시작·끝·Warp 마커, 페이드, 설정)](images/29_sequencer_screen/08_sample.png)
+### 1.4 아래 칸: 샘플 설정과 Nyxi Agent
+![오디오 클립을 누르면 샘플 설정이 열립니다 (시작과 끝, Warp 마커, 페이드, 설정)](images/29_sequencer_screen/08_sample.png)
 
-![Nyxi 더블 클릭 → Agent (제안 카드 3개 + 대화)](images/29_sequencer_screen/09_agent.png)
+![Nyxi를 더블 클릭하면 Agent가 열립니다 (제안 카드 3개와 대화)](images/29_sequencer_screen/09_agent.png)
 
 ### 1.5 오토메이션 모드 (A)
-![오토메이션 모드 — 패턴 흐림 · 오토메이션 클립 · 맨 위 Tempo/Meter 줄 · 끄는 중(점선)과 멈추는 곳(max)](images/29_sequencer_screen/10_automation.png)
+![오토메이션 모드: 패턴이 흐려지고, 오토메이션 클립과 맨 위의 Tempo/Meter 줄이 보이며, 끄는 중(점선)과 멈추는 곳(max)이 표시됩니다](images/29_sequencer_screen/10_automation.png)
 
-![패턴을 오토메이션 아래에 놓았을 때 — Trim(기본) · Split · Undo](images/29_sequencer_screen/11_auto_dialog.png)
+![패턴을 오토메이션 아래에 놓았을 때: Trim(기본), Split, Undo](images/29_sequencer_screen/11_auto_dialog.png)
 
-### 1.6 그룹 · 리턴 · 레이어 트랙
-![1. Lead 펼침 — 악기 스택 (Wavetable + Operator + 10번에서 받은 레이어)](images/29_sequencer_screen/12_layer_stack.png)
+### 1.6 그룹, 리턴, 레이어 트랙
+![1. Lead를 펼친 모습: 악기 스택 (Wavetable, Operator, 10번에서 받은 레이어)](images/29_sequencer_screen/12_layer_stack.png)
 
-![그룹 Low End(6·7 이 안쪽) · 리턴 A Reverb / B Delay · MASTER](images/29_sequencer_screen/13_group_return.png)
+![그룹 Low End(6번과 7번이 안쪽), 리턴 A Reverb와 B Delay, MASTER](images/29_sequencer_screen/13_group_return.png)
 
-![10. Lead Hi 펼침 — 1번 악기 칸으로 보내는 레이어 트랙 (믹서 OFF)](images/29_sequencer_screen/14_layer_track.png)
+![10. Lead Hi를 펼친 모습: 1번 악기 칸으로 보내는 레이어 트랙 (믹서 OFF)](images/29_sequencer_screen/14_layer_track.png)
 
-### 1.7 상단 메뉴 · 언어
-![VIEW · TOOLS 메뉴 (FILE~HELP 8개 모두 같은 모양)](images/29_sequencer_screen/17_menus.png)
+### 1.7 상단 메뉴와 언어
+![VIEW와 TOOLS 메뉴 (FILE부터 HELP까지 8개 모두 같은 모양)](images/29_sequencer_screen/17_menus.png)
 
-![한국어 — FILE 메뉴](images/29_sequencer_screen/15_lang_ko.png)
+![한국어: FILE 메뉴](images/29_sequencer_screen/15_lang_ko.png)
 
-![일본어 — 언어 메뉴](images/29_sequencer_screen/16_lang_ja.png)
+![일본어: 언어 메뉴](images/29_sequencer_screen/16_lang_ja.png)
 
 > 언어 캡처는 사전(`sequencer.json`)을 캡처 스크립트에서 적용해 찍은 것입니다. 실제 화면에서 바꾸는 `setLanguage()`는 템플릿입니다.
 
-### 1.8 협업 패널 + 편집 메뉴
-![Members · Chat 패널과 EDIT 드롭다운](images/29_sequencer_screen/05_collab_menu.png)
+### 1.8 협업 패널과 편집 메뉴
+![Members와 Chat 패널, EDIT 드롭다운](images/29_sequencer_screen/05_collab_menu.png)
 
-### 1.9 녹음 중 · 라이트 테마
-![녹음 중 — 상단바가 보라 띠 + ● REC](images/29_sequencer_screen/06_recording.png)
+### 1.9 녹음 중과 라이트 테마
+![녹음 중: 상단바가 보라 띠가 되고 ● REC가 나옵니다](images/29_sequencer_screen/06_recording.png)
 
 ![라이트 테마 (C Light)](images/29_sequencer_screen/07_light.png)
 
-> 2026-10-06 이후: 편곡 영역이 화면을 꽉 채우고(64마디, 남는 높이는 빈 줄) 드래그가 동작합니다 → [30_sequencer_arrange_drag.md](30_sequencer_arrange_drag.md). 위 캡처는 그 전 모습입니다.
+> 2026-10-06 이후에는 편곡 영역이 화면을 꽉 채우고(64마디, 남는 높이는 빈 줄) 드래그가 동작합니다. 자세한 내용은 [30_sequencer_arrange_drag.md](30_sequencer_arrange_drag.md). 위 캡처는 그 전 모습입니다.
 
 > 화면의 트랙·클립·파일·숫자는 **모양 확인용 예시**입니다. `sequencer.js`를 구현하면 `GET /projects/{id}/full` 결과로 다시 그립니다.
 
@@ -75,9 +75,9 @@
 │      │ (협업 패널)   │                                                       │
 └──────┴──────────────┴──────────────────────────────────────────────────────┘
 ```
-- `<body class="sq">`가 **격자 하나**로 전체를 나눕니다: 행 = 상단바 / 나머지, 열 = 버튼 줄 / 파일 패널 / 편곡.
+- `<body class="sq">`가 **격자 하나**로 전체를 나눕니다. 행은 상단바와 나머지이고, 열은 버튼 줄, 파일 패널, 편곡입니다.
 - 페이지 전체는 스크롤하지 않습니다 (`height: 100svh; overflow: hidden`). 스크롤은 편곡 영역(`.sq-scroll`)과 파일 목록만 합니다.
-- 최소 폭 1280px — `core/studio.js`의 `STUDIO_MIN_WIDTH`와 같은 값입니다.
+- 최소 폭은 1280px이며, `core/studio.js`의 `STUDIO_MIN_WIDTH`와 같은 값입니다.
 
 ## 3. 주요 부분과 클래스
 | 영역 | 클래스 · id | 설명 |
@@ -161,7 +161,7 @@
 | 믹서를 열면 Nyxi가 MASTER 줄을 가림 | Nyxi가 늘 바닥에 붙음 | `.sq-main:has(.sq-bottom:not([hidden]))`일 때 아래 칸 위로 올림 |
 
 ## 5. JS 템플릿 (`static/js/pages/sequencer.js`)
-구현은 하지 않고 함수 이름·할 일·쓸 API만 적었습니다.
+구현은 하지 않고 함수 이름, 할 일, 쓸 API만 적었습니다.
 
 | 함수 | 할 일 |
 |---|---|
@@ -181,5 +181,5 @@
 | `updateTransport(state)` | 재생·녹음 상태, 시간 표시, 재생선 |
 
 ## 6. 남은 것
-- 화면(HTML/CSS)은 목업 01~18 을 모두 옮겼습니다. 다음은 `sequencer.js` 구현(직접)입니다.
-- 목업에만 있는 세부: 편곡 시간 범위 선택·오른쪽 클릭 메뉴·펀치 구간·크로스페이드(목업 16), 피아노롤 확장 레인(목업 17), 이펙트 병렬 갈래 그림(목업 05). 화면 틀은 같아서 JS 구현 때 같은 클래스로 붙이면 됩니다.
+- 화면(HTML/CSS)은 목업 01~18을 모두 옮겼습니다. 다음은 `sequencer.js` 구현이며, 사용자가 직접 합니다.
+- 목업에만 있는 세부: 편곡 시간 범위 선택·오른쪽 클릭 메뉴·펀치 구간·크로스페이드(목업 16), 피아노롤 확장 레인(목업 17), 이펙트 병렬 갈래 그림(목업 05). 화면 틀은 같으므로, JS를 구현할 때 같은 클래스로 붙이면 됩니다.
