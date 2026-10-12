@@ -12,7 +12,10 @@
 # ──────────────────────────────────────────────────────────────────────
 """project_sessions 테이블 (DB.md §3.1) — 뼈대: 구현은 직접 (P1-16 읽기, 기록은 Phase 2 FR-257)."""
 
-from sqlalchemy import BigInteger, ForeignKey
+from datetime import datetime
+
+from sqlalchemy import BigInteger, ForeignKey, text
+from sqlalchemy.dialects.mysql import DATETIME, INTEGER
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.session import Base
@@ -32,7 +35,13 @@ class ProjectSession(Base):
     )
     user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.user_id"))
 
-    # TODO: 나머지 컬럼
-    #   started_at      DATETIME(3) NOT NULL 기본 CURRENT  — 시퀀서에서 연 시각 (UTC)
-    #   last_seen_at    DATETIME(3) NOT NULL 기본 CURRENT  — 마지막 신호 (1분마다)
-    #   active_seconds  INT NOT NULL 기본 0                 — 5분 넘게 입력 없는 구간은 뺀 작업 시간
+    # (구현: AI — 2026-10-12, P1-16) 시각은 UTC · 시간대 없이 저장 (다른 시각 칸과 같음)
+    started_at: Mapped[datetime] = mapped_column(  # 시퀀서에서 연 시각
+        DATETIME(fsp=3), server_default=text("CURRENT_TIMESTAMP(3)")
+    )
+    last_seen_at: Mapped[datetime] = mapped_column(  # 마지막 신호 (1분마다, Phase 2)
+        DATETIME(fsp=3), server_default=text("CURRENT_TIMESTAMP(3)")
+    )
+    active_seconds: Mapped[int] = mapped_column(  # 5분 넘게 입력 없는 구간은 뺀 작업 시간
+        INTEGER(unsigned=True), server_default=text("0")
+    )

@@ -3,35 +3,35 @@
 | 항목 | 내용 |
 |---|---|
 | 파일 | `studionx/backend/app/services/user_service.py` |
-| 작업 | P1-08 회원 정보 — 프로필 사진 주소 · PRD 01 FR-106 |
-| 작성 | Claude (AI) · 2026-10-07 · 사용자 검토 |
+| 작업 | P1-08 회원 정보: 프로필 사진 주소 (PRD 01 FR-106) |
+| 작성 | Claude (AI), 2026-10-07, 사용자 검토 |
 | 이전 · 다음 | [34 `POST /auth/logout`](<../P1-05 - 로그인 API/34_auth_route_logout.md>) · [36 `to_me_response()`](36_user_service_to_me_response.md) |
 
 ## 1. 하는 일
-회원의 프로필 사진 **저장 경로**를 화면이 `<img src>` 에 넣을 **주소**로 바꾼다. 사진이 없으면 `None`.
+회원 프로필 사진의 **저장 경로**를, 화면이 `<img src>`에 넣을 **주소**로 바꿉니다. 사진이 없으면 `None`을 돌려줍니다.
 
 | `user.profile_image_path` (DB) | 돌려주는 값 |
 |---|---|
-| `None` · `""` | `None` → 화면은 닉네임 첫 글자를 보여 줌 |
+| `None`, `""` | `None`입니다. 화면은 대신 닉네임의 첫 글자를 보여 줍니다 |
 | `"profiles/3f9c2b7e0d1a4c5b8e6f7a9b0c1d2e3f.jpg"` | `"/api/v1/profile-images/3f9c2b7e0d1a4c5b8e6f7a9b0c1d2e3f.jpg"` |
 
 ## 2. 언제 쓰나
 | 쓰는 곳 | 하는 일 |
 |---|---|
-| 36 `to_me_response()` | `GET /users/me` 등의 응답 `profile_image_url` 칸 |
-| (P1-16) 대시보드 응답 | 프로필 카드 사진 |
+| 36번 `to_me_response()` | `GET /users/me` 등의 응답에 들어가는 `profile_image_url` 칸 |
+| (P1-16) 대시보드 응답 | 프로필 카드의 사진 |
 
-### 사용자 결정 (2026-10-07) — 주소에 회원 번호를 넣지 않음
-템플릿은 `/api/v1/users/{회원 번호}/profile-image?v=…` 였다. 이 주소는 로그인 없이 열린다(`<img>` 는 토큰을 붙일 수 없음). 그러면 누구나 번호를 1, 2, 3… 바꿔 가며 **그 번호의 회원이 있는지 · 사진이 무엇인지** 볼 수 있다. P1-04 때 정한 **탈퇴 추적 방지 ③ "회원 번호를 받는 공개 API 는 만들지 않음"** 과 어긋나서, 사용자가 **무작위 파일 이름**을 골랐다.
+### 사용자 결정 (2026-10-07): 주소에 회원 번호를 넣지 않음
+템플릿의 주소는 `/api/v1/users/{회원 번호}/profile-image?v=…`였습니다. 이 주소는 로그인 없이도 열립니다(`<img>`에는 토큰을 붙일 수 없기 때문입니다). 그러면 누구나 번호를 1, 2, 3… 바꿔 가며 **그 번호의 회원이 있는지, 사진이 무엇인지** 볼 수 있습니다. 이것은 P1-04 때 정한 **탈퇴 추적 방지 ③ "회원 번호를 받는 공개 API는 만들지 않는다"**와 어긋납니다. 그래서 사용자가 **무작위 파일 이름** 방식을 골랐습니다.
 
 | | 템플릿 | 결정 |
 |---|---|---|
 | 저장 경로 | `profiles/{회원 번호}/{무작위}.jpg` | `profiles/{무작위 32자}.jpg` |
 | 주소 | `/api/v1/users/85/profile-image?v=1696651200` | `/api/v1/profile-images/{무작위 32자}.jpg` |
-| 남의 사진 찾아보기 | 번호만 바꾸면 됨 | 32자(16진수 = 2¹²⁸ 가지)를 맞혀야 함 |
-| 사진을 바꿨을 때 캐시 | `?v=` 로 해결 | 이름 자체가 바뀌어 필요 없음 |
+| 남의 사진을 찾아보려면 | 번호만 바꾸면 됩니다 | 32자(16진수, 2¹²⁸가지)를 맞혀야 합니다 |
+| 사진을 바꿨을 때 캐시 문제 | `?v=`로 해결합니다 | 파일 이름 자체가 바뀌어서 필요 없습니다 |
 
-함께 고친 문서 · 주석: PRD 01 §7 의 API 표, 이 파일의 사진 저장(38) · 사진 파일(40) 템플릿 주석, `users.py` 머리말. 라우터 주소 자체는 43 을 구현할 때 바꾼다.
+함께 고친 문서와 주석은 PRD 01 §7의 API 표, 이 파일의 사진 저장(38)과 사진 파일(40) 템플릿 주석, `users.py`의 머리말입니다. 라우터 주소 자체는 43번을 구현할 때 바꿉니다.
 
 ## 3. 코드
 **import** (파일 맨 위)
@@ -44,7 +44,7 @@ from sqlalchemy.orm import Session
 from app.models import User
 from app.schemas.user import MeResponse, MeUpdateRequest
 ```
-**`PurePosixPath` 를 이번에 추가했다.**
+**`PurePosixPath`를 이번에 추가했습니다.**
 
 **상수** (이번에 추가)
 ```python
@@ -64,33 +64,33 @@ def profile_image_url(user: User) -> str | None:
 ### 문법 풀이
 | import 문법 | 뜻 |
 |---|---|
-| `from pathlib import Path, PurePosixPath` | `Path` 는 실제 파일(디스크)용, `PurePosixPath` 는 **글자만** 다루는 경로 — 디스크를 보지 않고, 구분자는 늘 `/` |
+| `from pathlib import Path, PurePosixPath` | `Path`는 실제 파일(디스크)을 다룰 때 쓰고, `PurePosixPath`는 경로를 **글자로만** 다룹니다. 디스크를 보지 않으며, 구분자는 항상 `/`입니다 |
 
 | 식 | 뜻 |
 |---|---|
-| `-> str \| None` | 글자 또는 `None` 을 돌려줌 (Python 3.10 문법) |
-| `if not user.profile_image_path:` | `None` 과 빈 글자 `""` 를 함께 걸러 냄 |
-| `PurePosixPath("profiles/3f9c….jpg").name` | 마지막 부분 = 파일 이름 `"3f9c….jpg"` |
-| `PROFILE_IMAGE_URL + …` | 글자 잇기 |
+| `-> str \| None` | 문자열 또는 `None`을 돌려준다는 표시입니다 (Python 3.10 문법) |
+| `if not user.profile_image_path:` | `None`과 빈 문자열 `""`를 함께 걸러 냅니다 |
+| `PurePosixPath("profiles/3f9c….jpg").name` | 경로의 마지막 부분, 즉 파일 이름 `"3f9c….jpg"`입니다 |
+| `PROFILE_IMAGE_URL + …` | 문자열을 이어 붙입니다 |
 
 ## 4. 흐름
-1. 저장 경로가 없으면 `None`.
-2. 있으면 파일 이름만 꺼내 주소 앞부분에 붙여 돌려준다.
+1. 저장 경로가 없으면 `None`을 돌려줍니다.
+2. 있으면 파일 이름만 꺼내서 주소의 앞부분에 붙여 돌려줍니다.
 
 ## 5. 왜 이렇게
 | 선택 | 이유 |
 |---|---|
-| 파일 이름만 주소에 (폴더 빼고) | 폴더 이름(`profiles`)은 서버 안의 사정이다. 주소는 `/profile-images/` 로 이미 사진임을 말한다 |
-| `PurePosixPath` (`Path` 아님) | DB 의 경로는 늘 `/` 로 저장한다(DB.md §1.5 상대 경로). Windows 에서 `Path` 를 쓰면 `\` 구분자로 바뀔 수 있다. 디스크를 볼 필요도 없다 |
-| 문자열 자르기(`split('/')[-1]`) 대신 `PurePosixPath` | 뜻이 이름에 드러난다 |
-| 주소 앞부분을 상수로 | 40 · 43(사진 파일 라우터)이 같은 주소를 쓴다. 한 곳만 고치면 된다 |
-| DB 를 보지 않음 | 이미 가진 `User` 만으로 계산 — 응답을 만들 때마다 부르므로 가볍게 |
+| 주소에는 파일 이름만 넣음 (폴더는 뺌) | 폴더 이름(`profiles`)은 서버 내부 사정입니다. 주소는 `/profile-images/`만으로도 사진이라는 것을 나타냅니다 |
+| `Path`가 아니라 `PurePosixPath` 사용 | DB의 경로는 항상 `/`로 저장합니다 (DB.md §1.5 상대 경로). Windows에서 `Path`를 쓰면 구분자가 `\`로 바뀔 수 있습니다. 게다가 디스크를 볼 필요도 없습니다 |
+| 문자열 자르기(`split('/')[-1]`) 대신 `PurePosixPath` | 무엇을 하는지가 이름에 드러납니다 |
+| 주소 앞부분을 상수로 둠 | 40번과 43번(사진 파일 라우터)이 같은 주소를 씁니다. 한 곳만 고치면 됩니다 |
+| DB를 보지 않음 | 이미 가진 `User`만으로 계산합니다. 응답을 만들 때마다 부르는 함수라서 가볍게 만들었습니다 |
 
-## 6. 시험 (`tests/test_user_service.py` 새 파일 · 5개)
+## 6. 시험 (`tests/test_user_service.py` 새 파일, 5개)
 | 시험 | 확인한 것 |
 |---|---|
-| 사진 없음 (`None`) · 빈 글자 | `None` |
-| `profiles/{32자}.jpg` · `.webp` | `/api/v1/profile-images/{32자}.jpg` · `.webp` |
-| 회원 번호 85 | 주소에 `85` · `/users/` 가 없음 |
+| 사진 없음(`None`), 빈 문자열 | `None`을 돌려줍니다 |
+| `profiles/{32자}.jpg`, `.webp` | `/api/v1/profile-images/{32자}.jpg`, `.webp`가 됩니다 |
+| 회원 번호 85 | 주소에 `85`와 `/users/`가 들어 있지 않습니다 |
 
-전체 시험 239개 통과, `ruff` 검사 통과.
+전체 시험 239개가 통과했고, `ruff` 검사도 통과했습니다.
