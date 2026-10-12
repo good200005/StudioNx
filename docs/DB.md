@@ -33,7 +33,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | 테이블명 | 소문자 `snake_case`, 복수형 (`users`, `projects`) |
 | PK | `<단수형>_id` `BIGINT UNSIGNED AUTO_INCREMENT` (연결 테이블은 복합 PK) |
 | FK | 참조 대상 PK와 같은 이름 사용 (예외: `owner_id`, `inviter_id`처럼 의미가 분명할 때) |
-| 시간 | `DATETIME(3)`, **UTC 기준**으로 저장 |
+| 시간 | `DATETIME(3)`, **UTC 기준**으로 저장. 기본값(`CURRENT_TIMESTAMP`)도 UTC가 되도록 앱이 연결할 때마다 `SET time_zone = '+00:00'`을 실행합니다 (`app/db/session.py`, 2026-10-12). DB 도구로 직접 넣을 때는 세션 시간대를 확인하십시오 |
 | 공통 컬럼 | `created_at` (기본값 현재시각), `updated_at` (수정 시 자동 갱신) |
 | 소프트 삭제 | 복구가 필요한 데이터(`users`, `projects`, `samples`, `chat_messages`, `timeline_comments`, `dev_notes`)는 `deleted_at`으로 표시만 함 |
 | 상태값 | `ENUM` 사용, 값은 대문자 |
