@@ -191,12 +191,19 @@ body { timeline-scope: --hero; }
   content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 1px;
   background: var(--c-rule);
 }
+/* 세 칸의 **글 폭이 같도록**: 칸은 같은 폭(1fr)이고, 칸 사이 간격(column-gap)을 두 배 여백으로 정한 뒤
+   구분선은 그 간격의 한가운데에 그림 (예전에는 첫 칸만 왼쪽 여백이 없어 첫 칸 글이 더 넓었음, 레퍼런스및수정사항5) */
 .personas {
+  --persona-pad: clamp(1rem, 2vw, 2rem);
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: calc(var(--persona-pad) * 2);
   margin-top: var(--sp-8);
 }
-.persona { padding: var(--sp-2) clamp(1rem, 2vw, 2rem) var(--sp-2) 0; }
-.persona + .persona { padding-left: clamp(1rem, 2vw, 2rem); border-left: 1px solid var(--c-rule); }
+.persona { position: relative; padding: var(--sp-2) 0; }
+.persona + .persona::before {   /* 칸 사이 세로 구분선 (간격의 가운데) */
+  content: ""; position: absolute; top: 0; bottom: 0; left: calc(var(--persona-pad) * -1); width: 1px;
+  background: var(--c-rule);
+}
 .persona__title {
   font: 700 var(--fs-md) / 1.35 var(--font-text);
   letter-spacing: 0.01em;
@@ -223,16 +230,21 @@ body { timeline-scope: --hero; }
 }
 
 /* ---------- Feature — 대표 기능 3개 (제목 · 내용 · 스크린샷 자리) ---------- */
+/* 세 칸의 글 폭이 같도록 Service 와 같은 방식: 같은 폭 칸 + 간격 + 간격 가운데의 구분선 */
 .features {
+  --feature-pad: clamp(1.25rem, 2.5vw, 2.5rem);
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: calc(var(--feature-pad) * 2);
 }
 .feature-item {
+  position: relative;
   display: flex; flex-direction: column;
-  padding: var(--sp-2) clamp(1.25rem, 2.5vw, 2.5rem);
+  padding: var(--sp-2) 0;
 }
-.feature-item:first-child { padding-left: 0; }
-.feature-item:last-child { padding-right: 0; }
-.feature-item + .feature-item { border-left: 1px solid var(--c-rule-violet); }
+.feature-item + .feature-item::before {
+  content: ""; position: absolute; top: 0; bottom: 0; left: calc(var(--feature-pad) * -1); width: 1px;
+  background: var(--c-rule-violet);
+}
 .feature-item__title {
   font: 700 var(--fs-lg) / 1.35 var(--font-display);
   letter-spacing: 0.01em;
@@ -281,13 +293,18 @@ body { timeline-scope: --hero; }
 }
 
 /* ---------- Development (공지) ---------- */
+/* 네 칸의 글 폭이 같도록 Service 와 같은 방식 */
 .dev-notes {
+  --note-pad: clamp(1rem, 2vw, 2rem);
   display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: calc(var(--note-pad) * 2);
   border-bottom: 1px solid var(--c-rule-violet);
 }
-.dev-note { min-height: clamp(14rem, 34svh, 22rem); padding: var(--sp-2) clamp(1rem, 2vw, 2rem) var(--sp-12); }
-.dev-note:first-child { padding-left: 0; }
-.dev-note + .dev-note { border-left: 1px solid var(--c-rule-violet); }
+.dev-note { position: relative; min-height: clamp(14rem, 34svh, 22rem); padding: var(--sp-2) 0 var(--sp-12); }
+.dev-note + .dev-note::before {
+  content: ""; position: absolute; top: 0; bottom: 0; left: calc(var(--note-pad) * -1); width: 1px;
+  background: var(--c-rule-violet);
+}
 .dev-note time {
   display: block;
   color: var(--c-violet-ink);
@@ -306,7 +323,27 @@ body { timeline-scope: --hero; }
 }
 .dev-more { margin-top: var(--sp-8); text-align: center; }
 .dev-empty { padding: var(--sp-8) 0; color: var(--c-ink-soft); text-align: center; }
-.dev-more[hidden], .dev-empty[hidden] { display: none; }
+.dev-more[hidden], .dev-empty[hidden], .dev-blank[hidden] { display: none; }
+
+/* 공지가 없을 때 (레퍼런스및수정사항5): 가운데에 일러스트 자리 + 문구. 가로 보라 구분선이 일러스트 뒤를 지나감 */
+.dev-notes:empty { display: none; }   /* 카드가 없으면 빈 목록의 아래 선도 그리지 않음 */
+.dev-blank {
+  display: flex; flex-direction: column; align-items: center; gap: var(--sp-6);
+  padding: var(--sp-8) 0 var(--sp-12);
+}
+.dev-blank__stage { position: relative; display: flex; justify-content: center; width: 100%; }
+.dev-blank__stage::before {   /* 일러스트 뒤를 지나가는 가로선 */
+  content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px;
+  background: var(--c-rule-violet);
+}
+.dev-blank__art {   /* 일러스트 자리 — 지금은 영역 표시만 (PixAI 에서 만들 예정). 그림이 오면 이 안에 <img> */
+  position: relative; width: min(30rem, 100%); aspect-ratio: 4 / 3;
+  background: var(--c-ground); border: 1px dashed var(--c-rule);
+}
+.dev-blank__art img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.dev-blank__text { color: var(--c-ink-soft); font-size: var(--fs-md); text-align: center; }
+.dev-blank[data-state="error"] .dev-blank__stage { display: none; }   /* 불러오기 실패: 일러스트 없이 문구만 */
+@media (max-width: 760px) { .dev-blank__stage { display: none; } }   /* 모바일: 일러스트 자리 없음 (Service, Feature 와 같게) */
 
 /* ---------- 공지 모달 (목록 / 상세) ---------- */
 #note-list-view[hidden], #note-detail-view[hidden] { display: none; }
@@ -388,8 +425,8 @@ body { timeline-scope: --hero; }
   .character__grid { grid-template-columns: 1fr; }
   .character__art img { height: min(60svh, 34rem); }
   .dev-notes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .feature-item { padding-inline: clamp(1rem, 2vw, 1.5rem); }
-  .dev-note:nth-child(3) { padding-left: 0; border-left: 0; }
+  .features { --feature-pad: clamp(1rem, 2vw, 1.5rem); }
+  .dev-note:nth-child(3)::before { display: none; }   /* 둘째 줄의 첫 칸에는 세로선 없음 */
   .dev-note:nth-child(n+3) { border-top: 1px solid var(--c-rule-violet); padding-top: var(--sp-8); }
 }
 
@@ -449,17 +486,21 @@ body { timeline-scope: --hero; }
   .section { padding-right: var(--gutter); }
   .service__intro p { font-size: var(--fs-md); }
   .personas { grid-template-columns: 1fr; }
-  .persona, .persona + .persona { padding: var(--sp-6) 0; border-left: 0; }
+  .personas { column-gap: 0; }
+  .persona, .persona + .persona { padding: var(--sp-6) 0; }
+  .persona + .persona::before { display: none; }
   .persona + .persona { border-top: 1px solid var(--c-rule); }
   .persona > p { margin-bottom: 0; }
   .persona__art, .feature__shot { display: none; }   /* 모바일: 일러스트·스크린샷 자리 없음 */
-  .features { grid-template-columns: 1fr; }
-  .feature-item, .feature-item + .feature-item { padding: var(--sp-6) 0; border-left: 0; }
+  .features { grid-template-columns: 1fr; column-gap: 0; }
+  .feature-item, .feature-item + .feature-item { padding: var(--sp-6) 0; }
+  .feature-item + .feature-item::before { display: none; }
   .feature-item + .feature-item { border-top: 1px solid var(--c-rule-violet); }
   .feature-item p { margin-bottom: 0; }
   .character__story p { font-size: var(--fs-md); }
-  .dev-notes { grid-template-columns: 1fr; }
-  .dev-note, .dev-note + .dev-note, .dev-note:nth-child(3) { min-height: 0; padding: var(--sp-6) 0; border-left: 0; }
+  .dev-notes { grid-template-columns: 1fr; column-gap: 0; }
+  .dev-note, .dev-note + .dev-note, .dev-note:nth-child(3) { min-height: 0; padding: var(--sp-6) 0; }
+  .dev-note + .dev-note::before { display: none; }
   .dev-note + .dev-note { border-top: 1px solid var(--c-rule-violet); }
   .form-row { grid-template-columns: 1fr; }
   .form-row label { padding: var(--sp-4) var(--sp-4) 0; border-right: 0; }

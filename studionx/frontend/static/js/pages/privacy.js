@@ -1,4 +1,4 @@
-// privacy.html 페이지 스크립트 — 공통 헤더·푸터·로그인 모달만 끼움 (core/include.js, 구현 완료)
+// privacy.html · privacy.ko.html · privacy.ja.html 페이지 스크립트 — 공통 헤더·푸터·로그인 모달을 끼우고, 목차 표시와 언어 전환 (core/include.js)
 import { includePartials } from '../core/include.js';
 import { initAuthState } from '../core/auth-ui.js';
 import { initModalFallback } from '../core/modal.js';
@@ -53,7 +53,39 @@ export function initTocActiveState() {
   window.addEventListener('scroll', function () { window.requestAnimationFrame(refresh); }, { passive: true });
 }
 
+/**
+ * 언어 전환 링크 (English · 한국어 · 日本語) — 읽던 절을 그대로 이어서 보여 줌
+ * - 링크를 누르기 직전에(마우스 누름, 포커스, 클릭) 링크 주소 뒤에 지금 읽는 절의 #번호를 붙임
+ *   · 지금 읽는 절 = 목차에서 aria-current 가 달린 항목 (initTocActiveState 가 표시), 없으면 주소의 #…, 둘 다 없으면 붙이지 않음
+ *   → '권리' 절을 읽다가 한국어를 누르면 privacy.ko.html#rights 로 열려 같은 절에서 이어서 읽음
+ * - 새 탭으로 열기(휠 클릭, 오른쪽 클릭 메뉴)도 같은 주소가 나오도록 클릭만이 아니라 누름과 포커스에서도 고침
+ * - 링크의 원래 주소(data-base)는 처음에 한 번만 저장해서, 여러 번 고쳐도 #…가 겹쳐 붙지 않음
+ * (구현: AI — 2026-10-13, P1-24, 함수 하나씩 검토)
+ */
+export function initLanguageLinks() {
+  const links = document.querySelectorAll('.policy__lang a');
+  for (const link of links) {
+    link.setAttribute('data-base', (link.getAttribute('href') || '').split('#')[0]);
+    const update = function () {
+      const base = link.getAttribute('data-base');
+      const current = document.querySelector('.policy__toc a[aria-current="true"]');
+      let hash = '';
+      if (current) {
+        const href = current.getAttribute('href') || '';
+        hash = href.indexOf('#') >= 0 ? href.slice(href.indexOf('#')) : '';
+      } else if (location.hash) {
+        hash = location.hash;
+      }
+      link.setAttribute('href', base + hash);
+    };
+    link.addEventListener('pointerdown', update);
+    link.addEventListener('focus', update);
+    link.addEventListener('click', update);
+  }
+}
+
 await includePartials();
 initAuthState();
 initModalFallback();
 initTocActiveState();
+initLanguageLinks();

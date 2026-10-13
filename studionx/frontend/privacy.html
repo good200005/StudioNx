@@ -1,7 +1,8 @@
 <!doctype html>
 <!-- 개인정보 처리방침 (2026-10-05, docs/Privacy_Policy_Draft.md 확정판의 영어 전문)
      GDPR · CCPA/CPRA · 한국 개인정보 보호법 필수 항목 기준. 내용을 바꾸면 PRIVACY_VERSION(아래 Version 줄, join.js)도 함께 올림
-     <base href="/"> : 오류 페이지처럼 어느 주소에서 열려도 CSS·조각이 루트 기준으로 동작 -->
+     <base href="/"> : 오류 페이지처럼 어느 주소에서 열려도 CSS·조각이 루트 기준으로 동작
+     한국어판 privacy.ko.html, 일본어판 privacy.ja.html 이 있음 — 내용(절 번호·표·Version)을 바꾸면 세 파일을 함께 고칠 것 -->
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8">
@@ -10,6 +11,10 @@
   <title>Privacy Policy — Studio Nx</title>
   <meta name="description" content="How Studio Nx collects, uses and protects your personal information.">
   <meta name="theme-color" content="#0b0a0f">
+  <link rel="alternate" hreflang="en" href="privacy.html">
+  <link rel="alternate" hreflang="ko" href="privacy.ko.html">
+  <link rel="alternate" hreflang="ja" href="privacy.ja.html">
+  <link rel="alternate" hreflang="x-default" href="privacy.html">
   <link rel="icon" type="image/svg+xml" href="static/assets/logo/favicon.svg">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,23 +41,30 @@
       <p class="policy__lead">Studio Nx is a music workstation that runs in your browser. We collect only what we need to run it, we never sell your data, and we don't use it for advertising.</p>
     </header>
 
-    <nav class="policy__toc" aria-label="On this page">
-      <p class="policy__toc-title">On this page</p>
-      <ol>
-        <li><a href="privacy.html#who">Who we are</a></li>
-        <li><a href="privacy.html#collect">What we collect and why</a></li>
-        <li><a href="privacy.html#cookies">Cookies and browser storage</a></li>
-        <li><a href="privacy.html#keep">How long we keep it</a></li>
-        <li><a href="privacy.html#share">Who else handles it</a></li>
-        <li><a href="privacy.html#sell">We don't sell your data</a></li>
-        <li><a href="privacy.html#rights">Your rights</a></li>
-        <li><a href="privacy.html#security">How we protect it</a></li>
-        <li><a href="privacy.html#children">Children</a></li>
-        <li><a href="privacy.html#breach">If something goes wrong</a></li>
-        <li><a href="privacy.html#changes">Changes to this policy</a></li>
-        <li><a href="privacy.html#contact">Contact</a></li>
-      </ol>
-    </nav>
+    <div class="policy__side">
+      <nav class="policy__lang" aria-label="Language">
+        <a href="privacy.html" lang="en" hreflang="en" aria-current="true">English</a>
+        <a href="privacy.ko.html" lang="ko" hreflang="ko">한국어</a>
+        <a href="privacy.ja.html" lang="ja" hreflang="ja">日本語</a>
+      </nav>
+      <nav class="policy__toc" aria-label="On this page">
+        <p class="policy__toc-title">On this page</p>
+        <ol>
+          <li><a href="privacy.html#who">Who we are</a></li>
+          <li><a href="privacy.html#collect">What we collect and why</a></li>
+          <li><a href="privacy.html#cookies">Cookies and browser storage</a></li>
+          <li><a href="privacy.html#keep">How long we keep it</a></li>
+          <li><a href="privacy.html#share">Who else handles it</a></li>
+          <li><a href="privacy.html#sell">We don't sell your data</a></li>
+          <li><a href="privacy.html#rights">Your rights</a></li>
+          <li><a href="privacy.html#security">How we protect it</a></li>
+          <li><a href="privacy.html#children">Children</a></li>
+          <li><a href="privacy.html#breach">If something goes wrong</a></li>
+          <li><a href="privacy.html#changes">Changes to this policy</a></li>
+          <li><a href="privacy.html#contact">Contact</a></li>
+        </ol>
+      </nav>
+    </div>
 
     <div class="policy__body">
       <section id="who">

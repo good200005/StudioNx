@@ -188,8 +188,9 @@ export function formatNoteDate(isoTime) {
  * - 로그인 없이 읽는 API 라서 토큰을 붙이지 않음 (auth: false)
  * - 칸마다 li.dev-note > time(날짜) · h3.dev-note__title(제목) · p.dev-note__excerpt(요약)
  * - 글자는 textContent 로만 넣음 (제목, 요약에 <b> 같은 글자가 있어도 태그로 해석되지 않게)
- * - 공지가 하나도 없으면 안내 문구('No notes yet…'), 불러오지 못하면 'Notes are unavailable…'
- *   두 경우 모두 + View More 는 숨김 (HTML 에 예시 문구를 두지 않음 — 가짜 공지가 보이지 않게)
+ * - 공지가 하나도 없으면 가운데에 일러스트 자리 + 'No notes yet. Check back soon.' (레퍼런스및수정사항5),
+ *   불러오지 못하면 일러스트 없이 'Notes are unavailable…' 문구만. 두 경우 모두 + View More 는 숨김
+ *   (HTML 에 예시 문구를 두지 않음 — 가짜 공지가 보이지 않게)
  * - 오류를 밖으로 던지지 않음 (홈의 나머지 동작이 멈추지 않게), 다시 불러도 같은 결과(목록을 비우고 다시 그림)
  * (구현: AI — 2026-10-13, P1-23, 함수 하나씩 검토)
  * @returns {Promise<void>}
@@ -197,14 +198,17 @@ export function formatNoteDate(isoTime) {
 export async function loadDevNotes() {
   const list = document.getElementById('dev-notes');
   const empty = document.getElementById('dev-notes-empty');
+  const emptyText = document.getElementById('dev-notes-empty-text');
   const more = document.getElementById('dev-notes-more');
   if (!list) return;
 
-  const showMessage = function (text) {
+  // state: 'empty' (공지 없음 — 일러스트 자리 + 문구), 'error' (불러오기 실패 — 문구만)
+  const showMessage = function (text, state) {
     list.textContent = '';
     if (more) more.hidden = true;
     if (empty) {
-      empty.textContent = text;
+      empty.setAttribute('data-state', state);
+      if (emptyText) emptyText.textContent = text;
       empty.hidden = false;
     }
   };
@@ -213,12 +217,12 @@ export async function loadDevNotes() {
   try {
     data = await api.get('/dev-notes?limit=4', { auth: false });
   } catch (err) {
-    showMessage('Notes are unavailable right now. Please try again later.');
+    showMessage('Notes are unavailable right now. Please try again later.', 'error');
     return;
   }
   const items = data && Array.isArray(data.items) ? data.items : [];
   if (items.length === 0) {
-    showMessage('No notes yet. Check back soon.');
+    showMessage('No notes yet. Check back soon.', 'empty');
     return;
   }
 

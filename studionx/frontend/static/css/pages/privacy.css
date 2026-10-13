@@ -19,8 +19,22 @@ body { display: flex; flex-direction: column; }
 .policy__meta { margin-top: var(--sp-3); color: var(--c-ink-faint); font-size: var(--fs-sm); }
 .policy__lead { margin-top: var(--sp-6, 1.5rem); color: var(--c-ink-soft); font-size: var(--fs-md); line-height: 1.7; }
 
-/* 목차: 스크롤해도 왼쪽에 남음 */
-.policy__toc { grid-area: toc; align-self: start; position: sticky; top: var(--sp-8); font-size: var(--fs-sm); }
+/* 왼쪽 옆줄: 언어 전환 + 목차. 스크롤해도 왼쪽에 남아서, 글을 읽다가도 언제든 언어를 바꿀 수 있음 */
+.policy__side { grid-area: toc; align-self: start; position: sticky; top: var(--sp-8); }
+
+/* 언어 전환 (English · 한국어 · 日本語): 목차 위에 한 줄. 지금 보는 언어는 보라색 굵은 글자 */
+.policy__lang { display: flex; flex-wrap: wrap; align-items: center; margin-bottom: var(--sp-6, 1.5rem); font-size: var(--fs-sm); }
+.policy__lang a {
+  padding: var(--sp-1) var(--sp-3); min-height: 24px; color: var(--c-ink-soft); text-decoration: none;
+  transition: color var(--dur) var(--ease-out);
+}
+.policy__lang a:first-child { padding-left: 0; }
+.policy__lang a + a { border-left: 1px solid var(--c-rule); }
+.policy__lang a:hover, .policy__lang a:focus-visible { color: var(--c-ink); }
+.policy__lang a[aria-current="true"] { color: var(--c-violet-ink); font-weight: 700; }
+
+/* 목차 */
+.policy__toc { font-size: var(--fs-sm); }
 .policy__toc-title { color: var(--c-ink-faint); font-size: var(--fs-xs); letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: var(--sp-3); }
 .policy__toc ol { list-style: none; padding: 0; margin: 0; border-left: 1px solid var(--c-rule); }
 .policy__toc a {
@@ -53,7 +67,20 @@ body { display: flex; flex-direction: column; }
 
 @media (max-width: 960px) {
   .policy { grid-template-columns: minmax(0, 1fr); grid-template-areas: "head" "toc" "body"; gap: var(--sp-8); padding-top: var(--sp-4); }
-  .policy__toc { position: static; }
+  .policy__side { position: static; }
   .policy__toc ol { columns: 2; column-gap: var(--sp-6, 1.5rem); }
 }
 @media (max-width: 520px) { .policy__toc ol { columns: 1; } }
+
+/* 한국어판·일본어판: Unbounded(영문 전용 제목 글꼴)에는 한글·가나·한자 글리프가 없어서 본문 글꼴로 바꾸고, 줄바꿈을 언어에 맞춤 */
+.policy:lang(ko), .policy:lang(ja) { --font-display: var(--font-text); }
+html:lang(ja) { --font-text: "Pretendard Variable", "Pretendard", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Yu Gothic", "Meiryo", sans-serif; }
+html:lang(ko) .policy { word-break: keep-all; overflow-wrap: break-word; }   /* 한국어: 어절 단위로 줄바꿈 */
+html:lang(ja) .policy { line-break: strict; overflow-wrap: break-word; }      /* 일본어: 금칙 처리를 엄격하게 */
+html:lang(ko) .policy__title, html:lang(ja) .policy__title { letter-spacing: 0; line-height: 1.2; font-weight: 800; }
+html:lang(ko) .policy__kicker, html:lang(ja) .policy__kicker { letter-spacing: 0.12em; }
+html:lang(ko) .policy__table thead th, html:lang(ja) .policy__table thead th { text-transform: none; letter-spacing: 0.04em; }
+/* 한국어·일본어는 글자 사이에서도 줄이 바뀌어서, 좁은 칸(처리 근거, 행 제목)이 한 글자씩 세로로 쌓이지 않게 최소 폭을 둠 */
+html:lang(ko) .policy__table tbody th, html:lang(ja) .policy__table tbody th { min-width: 7.5rem; }
+html:lang(ko) .policy__table td:last-child, html:lang(ja) .policy__table td:last-child { min-width: 6.5rem; }
+html:lang(ko) .policy__table table, html:lang(ja) .policy__table table { min-width: 42rem; }
