@@ -1,0 +1,1 @@
+marked 18.1.1 (MIT) — lib/marked.esm.js, npm 패키지에서 sourceMappingURL 주석 한 줄만 뺌 (2026-10-13, P1-23)

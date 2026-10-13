@@ -28,7 +28,8 @@ body { display: flex; flex-direction: column; }
   color: var(--c-ink-soft); text-decoration: none; border-left: 2px solid transparent; margin-left: -1px;
   transition: color var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out);
 }
-.policy__toc a:hover, .policy__toc a:focus-visible { color: var(--c-ink); border-left-color: var(--c-violet-ink); }
+.policy__toc a:hover, .policy__toc a:focus-visible,
+.policy__toc a[aria-current="true"] { color: var(--c-ink); border-left-color: var(--c-violet-ink); }
 
 /* 본문 */
 .policy__body { grid-area: body; color: var(--c-ink-soft); line-height: 1.75; font-size: var(--fs-md); }

@@ -120,7 +120,7 @@ export function setFieldState(field, state, message) {
  * @param {(next: string|null) => void} [options.onSuccess]  로그인 성공 후 할 일 (페이지마다 다름)
  *   - home.html: next 가 있으면 그 페이지로, 없으면 모달 닫고 <html data-auth="in">
  *   - join.html: location.href = 'home.html'
- * TODO:
+ * 구현 메모:
  * - #login-form submit 기본 동작 막기
  * - api.post('/auth/login', { email, password, remember }, { auth: false })  (core/api.js)
  *   remember = #login-remember 체크 여부, 성공 응답의 access_token → setAccessToken
