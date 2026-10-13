@@ -6,6 +6,8 @@
 //   import { includePartials } from '../core/include.js';
 //   await includePartials();   // 끝난 뒤에 헤더·모달을 찾는 init 함수들을 부름
 
+import { localizePrivacyLinks } from './privacy-links.js';
+
 /**
  * @param {ParentNode} [root=document]
  * @returns {Promise<void>}  모든 조각을 끼우면 끝남. 하나라도 못 받으면 오류를 던짐
@@ -20,4 +22,6 @@ export async function includePartials(root = document) {
     template.innerHTML = await res.text();
     slot.replaceWith(template.content);
   }));
+  // 푸터의 Privacy Policy 같은 처리방침 링크를 읽는 사람의 언어판(한국어, 일본어)으로 (core/privacy-links.js, P1-25)
+  localizePrivacyLinks(root);
 }
