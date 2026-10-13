@@ -1,0 +1,192 @@
+<!doctype html>
+<!-- プライバシーポリシー 日本語版 (privacy.html の英語全文を翻訳, 2026-10-13, P1-24)
+     GDPR・CCPA/CPRA・韓国の個人情報保護法の必須項目を基準にしています。英語版と節番号・表・Version を揃えること —
+     内容を変えるときは privacy.html, privacy.ko.html も一緒に直し, PRIVACY_VERSION(join.js)も上げます。
+     画面のボタンや文字は英語のサイトなので "Delete account" のように英語の名前をそのまま使い, 意味を括弧で添えています。
+     <base href="/"> : どのアドレスで開いても CSS・部品がルート基準で動く -->
+<html lang="ja" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <base href="/">
+  <title>プライバシーポリシー — Studio Nx</title>
+  <meta name="description" content="Studio Nx が個人情報をどのように収集し、利用し、保護するかをご案内します。">
+  <meta name="theme-color" content="#0b0a0f">
+  <link rel="alternate" hreflang="en" href="privacy.html">
+  <link rel="alternate" hreflang="ko" href="privacy.ko.html">
+  <link rel="alternate" hreflang="ja" href="privacy.ja.html">
+  <link rel="alternate" hreflang="x-default" href="privacy.html">
+  <link rel="icon" type="image/svg+xml" href="static/assets/logo/favicon.svg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+
+  <link rel="stylesheet" href="static/css/tokens.css">
+  <link rel="stylesheet" href="static/css/base.css">
+  <link rel="stylesheet" href="static/css/cursor.css">
+  <link rel="stylesheet" href="static/css/forms.css">
+  <link rel="stylesheet" href="static/css/auth.css">
+  <link rel="stylesheet" href="static/css/pages/privacy.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div data-include="static/partials/header.html"></div>
+
+  <main id="main" class="policy">
+    <header class="policy__head">
+      <p class="policy__kicker">法的事項</p>
+      <h1 class="policy__title">プライバシーポリシー</h1>
+      <p class="policy__meta">Version 2026-10-08 · ドラフト — Studio Nx を正式に公開するときに施行されます</p>
+      <p class="policy__lead">Studio Nx は、ブラウザで動く音楽制作ツールです。運営に必要な情報だけを収集し、個人情報を販売することはなく、広告にも利用しません。</p>
+    </header>
+
+    <div class="policy__side">
+      <nav class="policy__lang" aria-label="言語">
+        <a href="privacy.html" lang="en" hreflang="en">English</a>
+        <a href="privacy.ko.html" lang="ko" hreflang="ko">한국어</a>
+        <a href="privacy.ja.html" lang="ja" hreflang="ja" aria-current="true">日本語</a>
+      </nav>
+      <nav class="policy__toc" aria-label="このページの目次">
+        <p class="policy__toc-title">このページの目次</p>
+        <ol>
+          <li><a href="privacy.ja.html#who">運営者</a></li>
+          <li><a href="privacy.ja.html#collect">収集する情報と目的</a></li>
+          <li><a href="privacy.ja.html#cookies">Cookie とブラウザの保存領域</a></li>
+          <li><a href="privacy.ja.html#keep">保存期間</a></li>
+          <li><a href="privacy.ja.html#share">情報を共に取り扱う先</a></li>
+          <li><a href="privacy.ja.html#sell">個人情報を販売しません</a></li>
+          <li><a href="privacy.ja.html#rights">利用者の権利</a></li>
+          <li><a href="privacy.ja.html#security">安全管理の措置</a></li>
+          <li><a href="privacy.ja.html#children">子ども</a></li>
+          <li><a href="privacy.ja.html#breach">問題が起きたとき</a></li>
+          <li><a href="privacy.ja.html#changes">本ポリシーの変更</a></li>
+          <li><a href="privacy.ja.html#contact">お問い合わせ</a></li>
+        </ol>
+      </nav>
+    </div>
+
+    <div class="policy__body">
+      <section id="who">
+        <h2>1. 運営者</h2>
+        <p>Studio Nx は個人の開発者(以下「運営者」)が運営しています。運営者は、利用者の個人情報をどのように利用するかを決め、それに責任を負います。GDPR における<i>管理者(コントローラー)</i>、韓国の個人情報保護法における<i>個人情報処理者</i>にあたります。</p>
+      </section>
+
+      <section id="collect">
+        <h2>2. 収集する情報と目的</h2>
+        <div class="policy__table" role="region" aria-label="収集する情報" tabindex="0">
+          <table>
+            <thead><tr><th scope="col">いつ</th><th scope="col">収集する情報</th><th scope="col">目的</th><th scope="col">法的根拠</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">登録するとき</th><td>メールアドレス、ニックネーム、パスワード、本ポリシーに同意した時刻とそのバージョン</td><td>アカウントを作り、ログインできるようにするためです。パスワードは元に戻せないハッシュ(bcrypt)としてのみ保存し、平文では保存しません</td><td>契約の履行</td></tr>
+              <tr><th scope="row">プロフィールを編集するとき</th><td>プロフィール写真(任意、JPG/PNG/WebP、2 MB 以下)</td><td>利用者のプロフィールや、一緒に作業する人に表示するためです</td><td>契約の履行</td></tr>
+              <tr><th scope="row">ログインするとき</th><td>最後にログインした時刻</td><td>アカウントを安全に保ち、使われていないアカウントを見分けるためです</td><td>正当な利益</td></tr>
+              <tr><th scope="row">スタジオを使うとき</th><td>利用者のプロジェクト(タイトル、説明、テンポなど)、プロジェクトごとの作業時間、使用している保存容量</td><td>作業を保存し、My Page に活動状況と保存容量を表示するためです</td><td>契約の履行</td></tr>
+              <tr><th scope="row">お問い合わせをするとき</th><td>返信先のメールアドレス、タイトル、内容、本ポリシーに同意した時刻(ログインしている場合は会員番号も)</td><td>お問い合わせを読み、お答えするためです</td><td>同意</td></tr>
+              <tr><th scope="row">エラーが起きたとき</th><td>IP アドレス、ブラウザと OS、該当するページまたはリクエスト、エラーの内容</td><td>不具合を見つけて直すためです(第 5 節の Sentry を参照)</td><td>正当な利益</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="policy__note">アップロードされた音声、AI 分析、チームチャットは、それぞれの機能を公開する前にここへ追加します。</p>
+      </section>
+
+      <section id="cookies">
+        <h2>3. Cookie とブラウザの保存領域</h2>
+        <p>サイトの運営に厳密に必要なものだけを使います。広告用や分析用の Cookie は使わないため、Cookie の同意バナーはありません。</p>
+        <div class="policy__table" role="region" aria-label="Cookie と保存領域" tabindex="0">
+          <table>
+            <thead><tr><th scope="col">名前</th><th scope="col">種類</th><th scope="col">用途</th><th scope="col">保持期間</th></tr></thead>
+            <tbody>
+              <tr><th scope="row"><code>snx_refresh</code></th><td>Cookie(HttpOnly)</td><td>ログイン状態を保ちます。ページのスクリプトからは読めません</td><td>“Keep me signed in”(ログイン状態を保つ)を選ぶと 3 日間、選ばない場合はブラウザを閉じるまで</td></tr>
+              <tr><th scope="row"><code>snx-intro</code></th><td>セッションストレージ</td><td>最初のオープニングアニメーションをすでに見たことを覚えておきます</td><td>タブを閉じるまで</td></tr>
+              <tr><th scope="row"><code>studionx.readyDismissed</code></th><td>ローカルストレージ</td><td>“Ready to start” バナーで非表示にしたプロジェクト</td><td>ご自身で消すまで</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Cookie をブロックすると、ログイン状態が保たれません。</p>
+      </section>
+
+      <section id="keep">
+        <h2>4. 保存期間</h2>
+        <ul class="policy__list">
+          <li><b>アカウント</b> — 利用者が削除するまで保存します。</li>
+          <li><b>アカウントを削除した後</b> — その時点からログインできなくなり、プロフィール写真は削除されます。メールアドレスとニックネームは、すぐに他の人に使われないよう <b>3 日間</b>保存した後、自動的に削除します。</li>
+          <li><b>利用者が作成したプロジェクト</b> — 一緒に作業した人は引き続き利用でき、作成者は “Deleted user”(退会した利用者)と表示されます。</li>
+          <li><b>利用者からいただいたお問い合わせ</b> — 返信した日から 1 年間保存します。返信できなかった場合は、お送りいただいた日から 1 年間です。</li>
+          <li><b>エラーレポート</b> — Sentry の保存期間が終わると、Sentry が自動的に削除します。</li>
+        </ul>
+        <p>情報を削除するときは、復元できない方法で削除します。</p>
+      </section>
+
+      <section id="share">
+        <h2>5. 情報を共に取り扱う先</h2>
+        <p>法律で求められる場合を除き、利用者の情報を第三者に提供しません。次のサービスが、情報の一部を運営者に代わって取り扱います。</p>
+        <div class="policy__table" role="region" aria-label="サービス提供事業者" tabindex="0">
+          <table>
+            <thead><tr><th scope="col">サービス</th><th scope="col">所在地</th><th scope="col">受け取る情報</th><th scope="col">目的</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Sentry (Functional Software, Inc.)</th><td>アメリカ合衆国</td><td>問題が起きたときの IP アドレス、ブラウザの情報、エラーの内容。パスワード、ログイン用トークン、Cookie は送信前に取り除きます</td><td>エラーの監視</td></tr>
+              <tr><th scope="row">Google Fonts、jsDelivr</th><td>アメリカ合衆国など</td><td>利用者のブラウザが、このサイトで使うフォントをダウンロードするときの IP アドレス</td><td>フォントの表示 — 正式公開の前に、フォントを自前で配信するように切り替えます</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>情報が他の国へ渡る場合は、事業者の標準的なデータ保護条項(EU 標準契約条項など)で保護されます。ホスティング事業者は、決まり次第ここに追加します。</p>
+      </section>
+
+      <section id="sell">
+        <h2>6. 個人情報を販売しません</h2>
+        <p>利用者の個人情報を販売することはなく、ターゲティング広告のために共有することもありません。これは、米国カリフォルニア州法(CCPA/CPRA)が定義する意味においても同じです。</p>
+      </section>
+
+      <section id="rights">
+        <h2>7. 利用者の権利</h2>
+        <p>どこにお住まいでも、利用者は次のことを求めることができます。</p>
+        <ul class="policy__list">
+          <li>運営者が保有する利用者の情報を<b>確認</b>し、他でも使える一般的な形式で写しを受け取ること</li>
+          <li><b>訂正</b> — ニックネームと写真は Profile ページでいつでも変更できます</li>
+          <li><b>削除</b> — Profile ページの一番下にある <b>Delete account</b>(アカウント削除)を使います</li>
+          <li>情報の利用の<b>制限</b>または<b>異議</b></li>
+          <li>すでに行った<b>同意の撤回</b>(例: お送りいただいたお問い合わせへの同意)</li>
+        </ul>
+        <p>メールでご連絡いただければ(第 12 節)、30 日以内にご返信します。これらの権利を行使したことを理由に、不利益な扱いはしません。データ保護の監督機関に苦情を申し立てることもできます。韓国では個人情報保護委員会、EU や英国ではお住まいの地域の監督機関です。</p>
+      </section>
+
+      <section id="security">
+        <h2>8. 安全管理の措置</h2>
+        <ul class="policy__list">
+          <li>パスワードは bcrypt のハッシュとしてのみ保存します。</li>
+          <li>有効期間の短いログイン用トークンはページのメモリ内にだけ置き、有効期間の長いものはスクリプトから読めない Cookie に置きます。</li>
+          <li>公開中のサイトは HTTPS のみで接続できます。</li>
+          <li>管理者アカウントだけが管理画面を開けます。</li>
+          <li>パスワード、トークン、Cookie は、エラーレポートが運営者のサーバーを出る前に取り除きます。</li>
+        </ul>
+      </section>
+
+      <section id="children">
+        <h2>9. 子ども</h2>
+        <p>アカウントを作成するには、<b>16 歳以上</b>である必要があります。それより若い方の情報を知りながら収集することはなく、収集したことがわかった場合は削除します。</p>
+      </section>
+
+      <section id="breach">
+        <h2>10. 問題が起きたとき</h2>
+        <p>利用者の個人情報が漏えいした、または許可なくアクセスされたことを知った場合は、知った時から 72 時間以内に、何が起きたか、どのように対応しているかとあわせて、利用者と関係する機関にお知らせします。</p>
+      </section>
+
+      <section id="changes">
+        <h2>11. 本ポリシーの変更</h2>
+        <p>変更するときは、施行の 7 日前までにホームページの Development のお知らせに掲載します。利用者が同意した内容に影響する変更の場合は、あらためて同意をお願いします。</p>
+      </section>
+
+      <section id="contact">
+        <h2>12. お問い合わせ</h2>
+        <p>個人情報に関するお問い合わせ: Studio Nx 開発者 — <a class="text-link text-link--strong" href="mailto:good200005@naver.com">good200005@naver.com</a></p>
+      </section>
+    </div>
+  </main>
+
+  <div data-include="static/partials/footer.html"></div>
+  <div data-include="static/partials/login-modal.html"></div>
+  <script type="module" src="static/js/pages/privacy.js"></script>
+</body>
+</html>

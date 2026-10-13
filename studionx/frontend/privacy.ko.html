@@ -1,0 +1,192 @@
+<!doctype html>
+<!-- 개인정보 처리방침 한국어판 (privacy.html 의 영어 전문을 옮김, 2026-10-13, P1-24)
+     GDPR · CCPA/CPRA · 한국 개인정보 보호법 필수 항목 기준. 영어판과 절 번호, 표, Version 이 같아야 함 —
+     내용을 바꾸면 privacy.html, privacy.ja.html 도 함께 고치고 PRIVACY_VERSION(join.js)도 올림.
+     화면의 버튼과 글자는 사이트가 영어라서 "Delete account" 처럼 영어 이름을 그대로 쓰고 뜻을 괄호로 덧붙임.
+     <base href="/"> : 어느 주소에서 열려도 CSS·조각이 루트 기준으로 동작 -->
+<html lang="ko" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <base href="/">
+  <title>개인정보 처리방침 — Studio Nx</title>
+  <meta name="description" content="Studio Nx가 개인정보를 어떻게 수집하고 이용하고 보호하는지 안내합니다.">
+  <meta name="theme-color" content="#0b0a0f">
+  <link rel="alternate" hreflang="en" href="privacy.html">
+  <link rel="alternate" hreflang="ko" href="privacy.ko.html">
+  <link rel="alternate" hreflang="ja" href="privacy.ja.html">
+  <link rel="alternate" hreflang="x-default" href="privacy.html">
+  <link rel="icon" type="image/svg+xml" href="static/assets/logo/favicon.svg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+
+  <link rel="stylesheet" href="static/css/tokens.css">
+  <link rel="stylesheet" href="static/css/base.css">
+  <link rel="stylesheet" href="static/css/cursor.css">
+  <link rel="stylesheet" href="static/css/forms.css">
+  <link rel="stylesheet" href="static/css/auth.css">
+  <link rel="stylesheet" href="static/css/pages/privacy.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div data-include="static/partials/header.html"></div>
+
+  <main id="main" class="policy">
+    <header class="policy__head">
+      <p class="policy__kicker">법적 고지</p>
+      <h1 class="policy__title">개인정보 처리방침</h1>
+      <p class="policy__meta">Version 2026-10-08 · 초안 — Studio Nx를 정식으로 공개할 때 시행됩니다</p>
+      <p class="policy__lead">Studio Nx는 브라우저에서 실행되는 음악 작업 도구입니다. 서비스를 운영하는 데 꼭 필요한 정보만 수집하고, 개인정보를 판매하지 않으며, 광고에 이용하지 않습니다.</p>
+    </header>
+
+    <div class="policy__side">
+      <nav class="policy__lang" aria-label="언어">
+        <a href="privacy.html" lang="en" hreflang="en">English</a>
+        <a href="privacy.ko.html" lang="ko" hreflang="ko" aria-current="true">한국어</a>
+        <a href="privacy.ja.html" lang="ja" hreflang="ja">日本語</a>
+      </nav>
+      <nav class="policy__toc" aria-label="이 페이지의 목차">
+        <p class="policy__toc-title">이 페이지의 목차</p>
+        <ol>
+          <li><a href="privacy.ko.html#who">운영자</a></li>
+          <li><a href="privacy.ko.html#collect">수집하는 정보와 목적</a></li>
+          <li><a href="privacy.ko.html#cookies">쿠키와 브라우저 저장소</a></li>
+          <li><a href="privacy.ko.html#keep">보관 기간</a></li>
+          <li><a href="privacy.ko.html#share">정보를 함께 처리하는 곳</a></li>
+          <li><a href="privacy.ko.html#sell">개인정보를 판매하지 않습니다</a></li>
+          <li><a href="privacy.ko.html#rights">이용자의 권리</a></li>
+          <li><a href="privacy.ko.html#security">안전 조치</a></li>
+          <li><a href="privacy.ko.html#children">아동</a></li>
+          <li><a href="privacy.ko.html#breach">문제가 생겼을 때</a></li>
+          <li><a href="privacy.ko.html#changes">방침의 변경</a></li>
+          <li><a href="privacy.ko.html#contact">문의</a></li>
+        </ol>
+      </nav>
+    </div>
+
+    <div class="policy__body">
+      <section id="who">
+        <h2>1. 운영자</h2>
+        <p>Studio Nx는 개인 개발자(이하 “운영자”)가 운영합니다. 운영자는 이용자의 개인정보를 어떻게 이용할지 정하고 그에 대한 책임을 집니다. GDPR의 <i>컨트롤러(controller)</i>, 한국 개인정보 보호법의 <i>개인정보처리자</i>에 해당합니다.</p>
+      </section>
+
+      <section id="collect">
+        <h2>2. 수집하는 정보와 목적</h2>
+        <div class="policy__table" role="region" aria-label="수집하는 정보" tabindex="0">
+          <table>
+            <thead><tr><th scope="col">시점</th><th scope="col">수집 항목</th><th scope="col">목적</th><th scope="col">처리 근거</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">가입할 때</th><td>이메일, 닉네임, 비밀번호, 이 방침에 동의한 시각과 방침의 버전</td><td>계정을 만들고 로그인할 수 있게 하기 위해서입니다. 비밀번호는 되돌릴 수 없는 해시(bcrypt)로만 저장하고, 평문으로는 저장하지 않습니다</td><td>계약 이행</td></tr>
+              <tr><th scope="row">프로필을 고칠 때</th><td>프로필 사진(선택, JPG/PNG/WebP, 2 MB 이하)</td><td>이용자의 프로필과 함께 작업하는 사람에게 보여 주기 위해서입니다</td><td>계약 이행</td></tr>
+              <tr><th scope="row">로그인할 때</th><td>마지막으로 로그인한 시각</td><td>계정을 안전하게 지키고 사용하지 않는 계정을 알아보기 위해서입니다</td><td>정당한 이익</td></tr>
+              <tr><th scope="row">스튜디오를 사용할 때</th><td>이용자의 프로젝트(제목, 설명, 템포 등), 프로젝트마다 작업한 시간, 사용한 저장 용량</td><td>작업을 저장하고, My Page에 활동과 저장 용량을 보여 주기 위해서입니다</td><td>계약 이행</td></tr>
+              <tr><th scope="row">문의할 때</th><td>답장받을 이메일, 제목, 내용, 이 방침에 동의한 시각(로그인한 경우 회원 번호도)</td><td>문의를 읽고 답하기 위해서입니다</td><td>동의</td></tr>
+              <tr><th scope="row">오류가 났을 때</th><td>IP 주소, 브라우저와 운영체제, 해당 페이지 또는 요청, 오류 내용</td><td>오류를 찾아 고치기 위해서입니다 (5절의 Sentry 참고)</td><td>정당한 이익</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="policy__note">올려 둔 오디오, AI 분석, 팀 채팅은 해당 기능을 공개하기 전에 이곳에 추가합니다.</p>
+      </section>
+
+      <section id="cookies">
+        <h2>3. 쿠키와 브라우저 저장소</h2>
+        <p>사이트를 운영하는 데 꼭 필요한 것만 사용합니다. 광고나 분석용 쿠키는 쓰지 않으므로 쿠키 동의창은 없습니다.</p>
+        <div class="policy__table" role="region" aria-label="쿠키와 저장소" tabindex="0">
+          <table>
+            <thead><tr><th scope="col">이름</th><th scope="col">종류</th><th scope="col">용도</th><th scope="col">유지 기간</th></tr></thead>
+            <tbody>
+              <tr><th scope="row"><code>snx_refresh</code></th><td>쿠키(HttpOnly)</td><td>로그인 상태를 유지합니다. 페이지의 스크립트는 읽을 수 없습니다</td><td>“Keep me signed in”(로그인 상태 유지)을 선택하면 3일, 선택하지 않으면 브라우저를 닫을 때까지</td></tr>
+              <tr><th scope="row"><code>snx-intro</code></th><td>세션 저장소</td><td>첫 화면의 시작 애니메이션을 이미 보았다는 것을 기억합니다</td><td>탭을 닫을 때까지</td></tr>
+              <tr><th scope="row"><code>studionx.readyDismissed</code></th><td>로컬 저장소</td><td>“Ready to start” 배너에서 숨긴 프로젝트</td><td>직접 지울 때까지</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>쿠키를 막으면 로그인 상태가 유지되지 않습니다.</p>
+      </section>
+
+      <section id="keep">
+        <h2>4. 보관 기간</h2>
+        <ul class="policy__list">
+          <li><b>계정</b> — 이용자가 삭제할 때까지 보관합니다.</li>
+          <li><b>계정을 삭제한 뒤</b> — 그 순간부터 로그인할 수 없고 프로필 사진은 삭제됩니다. 이메일과 닉네임은 바로 다른 사람이 가져가지 못하도록 <b>3일</b> 동안 보관한 뒤 자동으로 지웁니다.</li>
+          <li><b>이용자가 만든 프로젝트</b> — 함께 작업한 사람들은 계속 사용할 수 있고, 만든 사람은 “Deleted user”(탈퇴한 이용자)로 표시됩니다.</li>
+          <li><b>이용자가 보낸 문의</b> — 답변한 때부터 1년 동안 보관합니다. 답변하지 못한 경우에는 보낸 때부터 1년입니다.</li>
+          <li><b>오류 보고</b> — Sentry의 보관 기간이 끝나면 Sentry가 자동으로 삭제합니다.</li>
+        </ul>
+        <p>정보를 삭제할 때는 복구할 수 없는 방식으로 삭제합니다.</p>
+      </section>
+
+      <section id="share">
+        <h2>5. 정보를 함께 처리하는 곳</h2>
+        <p>법률이 요구하는 경우를 제외하고는 이용자의 정보를 다른 곳에 제공하지 않습니다. 아래 서비스가 정보의 일부를 운영자를 대신해 처리합니다.</p>
+        <div class="policy__table" role="region" aria-label="서비스 제공업체" tabindex="0">
+          <table>
+            <thead><tr><th scope="col">서비스</th><th scope="col">위치</th><th scope="col">받는 정보</th><th scope="col">목적</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Sentry (Functional Software, Inc.)</th><td>미국</td><td>문제가 생겼을 때의 IP 주소, 브라우저 정보, 오류 내용. 비밀번호, 로그인 토큰, 쿠키는 보내기 전에 지웁니다</td><td>오류 모니터링</td></tr>
+              <tr><th scope="row">Google Fonts, jsDelivr</th><td>미국 등</td><td>이용자의 브라우저가 이 사이트의 글꼴을 내려받을 때의 IP 주소</td><td>글꼴 표시 — 정식 공개 전에 글꼴을 직접 제공하도록 바꿉니다</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>정보가 다른 나라로 넘어갈 때는 제공업체의 표준 개인정보 보호 약관(EU 표준계약조항 등)으로 보호합니다. 호스팅 업체는 정해지면 이곳에 추가합니다.</p>
+      </section>
+
+      <section id="sell">
+        <h2>6. 개인정보를 판매하지 않습니다</h2>
+        <p>이용자의 개인정보를 판매하지 않으며, 맞춤형 광고를 위해 공유하지도 않습니다. 이는 미국 캘리포니아 법(CCPA/CPRA)이 정의하는 의미에서도 같습니다.</p>
+      </section>
+
+      <section id="rights">
+        <h2>7. 이용자의 권리</h2>
+        <p>어느 나라에 살든 이용자는 다음을 요청할 수 있습니다.</p>
+        <ul class="policy__list">
+          <li>운영자가 가진 이용자의 정보를 <b>열람</b>하고, 다른 곳에서도 쓸 수 있는 일반적인 형식으로 사본을 받는 것</li>
+          <li><b>정정</b> — 닉네임과 사진은 Profile 페이지에서 언제든 바꿀 수 있습니다</li>
+          <li><b>삭제</b> — Profile 페이지 맨 아래의 <b>Delete account</b>(계정 삭제)를 사용합니다</li>
+          <li>정보 이용의 <b>제한</b> 또는 <b>반대</b></li>
+          <li>이미 한 <b>동의의 철회</b> (예: 보낸 문의에 대한 동의)</li>
+        </ul>
+        <p>이메일로 요청하시면(12절) 30일 안에 답변합니다. 이 권리를 행사했다고 해서 다르게 대하지 않습니다. 개인정보 보호 감독기관에 민원을 제기할 수도 있습니다. 한국에서는 개인정보 보호위원회, EU나 영국에서는 해당 지역의 감독기관입니다.</p>
+      </section>
+
+      <section id="security">
+        <h2>8. 안전 조치</h2>
+        <ul class="policy__list">
+          <li>비밀번호는 bcrypt 해시로만 저장합니다.</li>
+          <li>수명이 짧은 로그인 토큰은 페이지의 메모리에만 두고, 수명이 긴 토큰은 스크립트가 읽을 수 없는 쿠키에 둡니다.</li>
+          <li>운영 중인 사이트는 HTTPS로만 접속할 수 있습니다.</li>
+          <li>관리자 계정만 관리자 화면을 열 수 있습니다.</li>
+          <li>비밀번호, 토큰, 쿠키는 오류 보고가 운영자의 서버를 떠나기 전에 지웁니다.</li>
+        </ul>
+      </section>
+
+      <section id="children">
+        <h2>9. 아동</h2>
+        <p>계정을 만들려면 <b>만 16세 이상</b>이어야 합니다. 더 어린 사람의 정보는 알면서 수집하지 않으며, 수집한 사실을 알게 되면 삭제합니다.</p>
+      </section>
+
+      <section id="breach">
+        <h2>10. 문제가 생겼을 때</h2>
+        <p>이용자의 개인정보가 유출되거나 허락 없이 접근된 사실을 알게 되면, 알게 된 때부터 72시간 안에 이용자와 관계 기관에 무슨 일이 있었는지와 어떻게 대응하고 있는지를 함께 알립니다.</p>
+      </section>
+
+      <section id="changes">
+        <h2>11. 방침의 변경</h2>
+        <p>방침을 바꿀 때는 시행 7일 전까지 홈 페이지의 Development 공지에 게시합니다. 변경이 이용자가 동의한 내용에 영향을 주는 경우에는 다시 동의를 구합니다.</p>
+      </section>
+
+      <section id="contact">
+        <h2>12. 문의</h2>
+        <p>개인정보 문의: Studio Nx 개발자 — <a class="text-link text-link--strong" href="mailto:good200005@naver.com">good200005@naver.com</a></p>
+      </section>
+    </div>
+  </main>
+
+  <div data-include="static/partials/footer.html"></div>
+  <div data-include="static/partials/login-modal.html"></div>
+  <script type="module" src="static/js/pages/privacy.js"></script>
+</body>
+</html>

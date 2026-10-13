@@ -15,7 +15,7 @@
 | 상황 | 화면 |
 |---|---|
 | 공지가 있음 | 최신 순으로 카드 최대 4개와 `+ View More` |
-| 공지가 하나도 없음 | "No notes yet. Check back soon." (`+ View More`는 숨김) |
+| 공지가 하나도 없음 | "No notes yet. Check back soon." (`+ View More`는 숨김). **2026-10-13(P1-24)부터는 가운데에 일러스트 자리와 함께 보임** ([64](../../64_p1-24_ui_fixes_privacy_i18n.md)) |
 | 불러오지 못함 (서버 오류, 네트워크 끊김) | "Notes are unavailable right now. Please try again later." (`+ View More`는 숨김) |
 | 응답 모양이 이상함 (`items`가 없음 등) | 공지가 없는 것으로 처리 |
 
