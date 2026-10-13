@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mock</title>
+<link rel="stylesheet" href="file:///C:/Users/USER/Desktop/myProject/StudioNx/studionx/frontend/static/css/tokens.css">
+<link rel="stylesheet" href="file:///C:/Users/USER/Desktop/myProject/StudioNx/studionx/frontend/static/css/base.css">
+<link rel="stylesheet" href="file:///C:/Users/USER/Desktop/myProject/StudioNx/studionx/frontend/static/css/auth.css">
+<style>
+  body { background: #0b0a0f; min-height: 100vh; }
+  dialog.modal { position: static; display: block; margin: 2rem auto; }
+  .tag { position: fixed; top: .6rem; left: .8rem; font: 700 .8rem/1 sans-serif; color: #a78bfa; letter-spacing: .08em; }
+  /* 안 A: 글자 그대로, 줄바꿈만 */
+  .note-body--plain { white-space: pre-wrap; color: var(--c-ink-soft); font-size: var(--fs-sm); line-height: 1.7; margin-top: var(--sp-4); }
+  /* 안 B, C: 서식 */
+  .note-body--rich h1, .note-body--rich h2 { font: 700 var(--fs-md) / 1.4 var(--font-text); margin-top: var(--sp-6); }
+  .note-body--rich { margin-top: var(--sp-4); }
+  .note-body--rich p, .note-body--rich li { color: var(--c-ink-soft); }
+  .note-body--rich strong { color: var(--c-ink); }
+  .note-body--rich a { color: var(--c-violet-ink); text-decoration: underline; }
+  .note-body--rich code { background: rgb(255 255 255 / .08); padding: .1em .4em; border-radius: 3px; font-size: .9em; }
+  .note-body--rich blockquote { border-left: 3px solid var(--c-violet-ink); margin: var(--sp-4) 0; padding: .1rem 1rem; }
+  .note-body--rich table { border-collapse: collapse; margin-top: var(--sp-4); font-size: var(--fs-sm); }
+  .note-body--rich th, .note-body--rich td { border: 1px solid var(--c-rule-violet); padding: .35rem .7rem; color: var(--c-ink-soft); text-align: left; }
+  .meta { margin-top: var(--sp-2); color: var(--c-violet-ink); font: 600 var(--fs-xs) / 1 var(--font-text); letter-spacing: .08em; }
+  .back { margin-bottom: var(--sp-4); }
+  .list { list-style: none; padding: 0; }
+  .list li { display: flex; gap: var(--sp-4); align-items: baseline; padding: var(--sp-3) 0; border-bottom: 1px solid var(--c-rule-violet); margin-top: 0; }
+  .list time { color: var(--c-violet-ink); font: 600 var(--fs-xs) / 1 var(--font-text); letter-spacing: .08em; min-width: 5.5rem; }
+  .list button { background: none; border: 0; color: var(--c-ink); font: 600 var(--fs-sm) / 1.4 var(--font-text); text-align: left; cursor: pointer; padding: 0; }
+  .cmp { max-width: 40rem; margin: 1rem auto; color: var(--c-ink-soft); font: var(--fs-sm) / 1.7 var(--font-text); }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+  const view = new URLSearchParams(location.search).get('v');
+  const head = '<div class="modal__head"><h2 class="modal__title">Development notes</h2><button type="button" class="btn btn--ghost modal__close">Close</button></div>';
+  const tag = t => '<div class="tag">' + t + '</div>';
+  let html = '';
+  if (view === 'list') {
+    html = tag('목록 화면 (A, B, C 공통)') + '<dialog class="modal" open>' + head + '<div class="modal__body"><ol class="list">'
+      + ['2026.10.13|Newest note', '2026.10.12|Release 0.1', '2026.10.11|Second note', '2026.10.10|The admin screen is ready', '2026.10.05|Meet the plan']
+        .map(s => { const [d, t] = s.split('|'); return '<li><time>' + d + '</time><button type="button">' + t + '</button></li>'; }).join('')
+      + '</ol></div></dialog>';
+  } else if (view === 'a') {
+    const raw = '# Release 0.1\n\n- first line\n- second line\n\n**Export** now works. See [the guide](https://example.com/guide) and press `Ctrl+S` to save.\n\n> Tip: sign in first.\n\n| Format | Phase |\n|---|---|\n| WAV | 2 |\n| MP3 | 2 |';
+    html = tag('A. 글자 그대로, 줄바꿈만 살림') + '<dialog class="modal" open>' + head + '<div class="modal__body"><button type="button" class="btn btn--ghost back">&larr; Back to list</button><h3 style="margin-top:0">Release 0.1</h3><div class="meta">2026.10.12</div><div class="note-body--plain" id="raw"></div></div></dialog>';
+    app.innerHTML = html; document.getElementById('raw').textContent = raw; html = null;
+  } else if (view === 'b' || view === 'c') {
+    const label = view === 'b' ? 'B. 작은 변환기를 직접 만듦 (제목, 목록, 굵게, 링크, 코드)' : 'C. 라이브러리 (B + 인용, 표 등 더 넓은 문법)';
+    const extra = view === 'c' ? '<blockquote><p>Tip: sign in first.</p></blockquote><table><thead><tr><th>Format</th><th>Phase</th></tr></thead><tbody><tr><td>WAV</td><td>2</td></tr><tr><td>MP3</td><td>2</td></tr></tbody></table>'
+      : '<p>&gt; Tip: sign in first.</p><p>| Format | Phase |<br>|---|---|<br>| WAV | 2 |<br>| MP3 | 2 |</p>';
+    html = tag(label) + '<dialog class="modal" open>' + head + '<div class="modal__body"><button type="button" class="btn btn--ghost back">&larr; Back to list</button><h3 style="margin-top:0">Release 0.1</h3><div class="meta">2026.10.12</div><div class="note-body--rich"><h2>Release 0.1</h2><ul><li>first line</li><li>second line</li></ul><p><strong>Export</strong> now works. See <a href="#">the guide</a> and press <code>Ctrl+S</code> to save.</p>' + extra + '</div></div></dialog>';
+  }
+  if (html) app.innerHTML = html;
+</script>
+</body>
+</html>

@@ -90,7 +90,7 @@ export async function refreshAccessToken() {
  * @param {boolean} [options.auth=true]      false 면 토큰을 붙이지 않음 (회원가입·로그인)
  * @returns {Promise<any>}  성공 응답 JSON (204 면 null)
  * @throws {ApiError}
- * TODO:
+ * 구현 메모:
  * 1. 헤더: Accept: application/json, body 가 객체면 Content-Type: application/json + JSON.stringify
  * 2. auth 이고 accessToken 이 없으면 먼저 refreshAccessToken()
  * 3. auth 이고 토큰이 있으면 Authorization: Bearer <accessToken>

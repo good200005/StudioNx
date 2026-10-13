@@ -9,7 +9,48 @@ import { initModalFallback } from '../core/modal.js';
  *   .policy__toc a[href$="#<id>"] 에 aria-current="true" (CSS 는 :hover 와 같은 모양을 쓰면 됨)
  */
 export function initTocActiveState() {
-  // TODO
+  // (구현: AI — 2026-10-13, P1-23, 함수 하나씩 검토)
+  // - 화면 위쪽(위에서 10% ~ 20% 사이)의 얇은 띠에 걸친 절을 "지금 읽는 절"로 봄
+  // - 띠에 두 절이 함께 걸치면(절 경계) 아래쪽, 즉 막 들어오는 절을 표시함
+  // - 글머리(제목, 첫 문단)에서는 어느 목차도 표시하지 않음
+  // - 페이지 맨 아래에서는 마지막 절이 띠에 닿지 못할 수 있어서, 맨 아래면 마지막 절을 표시함
+  // - IntersectionObserver 를 못 쓰는 브라우저에서는 표시만 안 함 (목차 이동은 그대로 됨)
+  const links = document.querySelectorAll('.policy__toc a');
+  if (links.length === 0 || typeof IntersectionObserver === 'undefined') return;
+
+  const targets = [];   // { link, section, inside }
+  for (const link of links) {
+    const href = link.getAttribute('href') || '';
+    const hash = href.indexOf('#') >= 0 ? href.slice(href.indexOf('#') + 1) : '';
+    const section = hash ? document.getElementById(hash) : null;
+    if (section) targets.push({ link: link, section: section, inside: false });
+  }
+  if (targets.length === 0) return;
+
+  const refresh = function () {
+    let current = null;
+    for (const target of targets) {
+      if (target.inside) current = target;   // 띠에 두 절이 함께 걸치면 새로 들어오는 아래쪽 절
+    }
+    const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+    if (atBottom) current = targets[targets.length - 1];
+    for (const target of targets) {
+      if (target === current) target.link.setAttribute('aria-current', 'true');
+      else target.link.removeAttribute('aria-current');
+    }
+  };
+
+  const observer = new IntersectionObserver(function (entries) {
+    for (const entry of entries) {
+      for (const target of targets) {
+        if (target.section === entry.target) target.inside = entry.isIntersecting;
+      }
+    }
+    refresh();
+  }, { rootMargin: '-10% 0px -80% 0px', threshold: 0 });
+
+  for (const target of targets) observer.observe(target.section);
+  window.addEventListener('scroll', function () { window.requestAnimationFrame(refresh); }, { passive: true });
 }
 
 await includePartials();

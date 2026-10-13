@@ -13,7 +13,7 @@ export const LOGIN_PAGE = 'home.html';
 /**
  * 로그인 상태인지 확인 (토큰이 없으면 리프레시 쿠키로 재발급 시도)
  * @returns {Promise<boolean>}
- * TODO: getAccessToken() 이 있으면 true, 없으면 await refreshAccessToken()
+ * 구현 메모: getAccessToken() 이 있으면 true, 없으면 await refreshAccessToken()
  * (구현: AI — 2026-10-06, 함수 하나씩 검토)
  */
 export async function isLoggedIn() {
@@ -24,7 +24,7 @@ export async function isLoggedIn() {
 /**
  * 로그인이 필요한 페이지 맨 처음에 호출
  * @returns {Promise<boolean>} 로그인 상태면 true, 아니면 이동하고 false
- * TODO:
+ * 구현 메모:
  * - await isLoggedIn() 가 false 면
  *   location.replace(loginUrl(location.pathname + location.search)) 후 false
  * (구현: AI — 2026-10-06, 함수 하나씩 검토) 해시(#new 등)까지 돌아올 주소에 넣음
@@ -39,7 +39,7 @@ export async function requireLogin() {
  * 로그인 모달로 가는 주소
  * @param {string} [next]  로그인 후 돌아갈 경로 (예: '/myPage.html')
  * @returns {string}  예: 'home.html#login?next=%2FmyPage.html'
- * TODO: next 가 있으면 encodeURIComponent 해서 붙이고, 없으면 'home.html#login'
+ * 구현 메모: next 가 있으면 encodeURIComponent 해서 붙이고, 없으면 'home.html#login'
  * (구현: AI — 2026-10-06, 함수 하나씩 검토) 안전한 경로(safeNextPath)일 때만 next 를 붙임
  */
 export function loginUrl(next) {
@@ -51,7 +51,7 @@ export function loginUrl(next) {
  * 주소의 #login?next=... 읽기 (home.js 의 initLoginModalFromHash 에서 사용)
  * @param {string} [hash=location.hash]
  * @returns {{ open: boolean, next: string|null }}
- * TODO:
+ * 구현 메모:
  * - hash 가 '#login' 으로 시작하면 open = true
  * - '?' 뒤를 URLSearchParams 로 읽어 next 를 꺼내고 safeNextPath 로 검사
  * (구현: AI — 2026-10-06, 함수 하나씩 검토)
@@ -68,7 +68,7 @@ export function parseLoginHash(hash = location.hash) {
  * 로그인 후 이동할 경로가 안전한지 검사 (외부 사이트로 보내는 공격 막기 — open redirect)
  * @param {string|null} next
  * @returns {string|null}  안전하면 그대로, 아니면 null
- * TODO:
+ * 구현 메모:
  * - '/' 로 시작하고 '//' 로 시작하지 않는 같은 사이트 경로만 허용
  *   (또는 new URL(next, location.origin).origin === location.origin)
  * - 'javascript:' 등은 거부
@@ -87,7 +87,7 @@ export function safeNextPath(next, origin = location.origin) {
 
 /**
  * 로그아웃 (PRD 01 FR-104)
- * TODO:
+ * 구현 메모:
  * - await api.post('/auth/logout') — 실패(이미 만료 등)해도 계속 진행 (try/catch)
  *   (서버가 리프레시 쿠키 삭제)
  * - clearAccessToken()

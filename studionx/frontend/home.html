@@ -6,6 +6,9 @@
   <title>Studio Nx — Make your noise</title>
   <meta name="description" content="A DAW sequencer that runs in your browser. Give it a track you love and its AI suggests presets, mixing and mastering settings.">
   <meta name="theme-color" content="#0b0a0f">
+  <!-- 첫 접속 로딩: 이 탭에서 이미 봤으면 CSS 가 적용되기 전에 data-intro="seen" 을 달아 로딩이 잠깐도 보이지 않게 함
+       (home.js 는 헤더·푸터를 끼운 뒤에 실행되어 너무 늦음). 기록은 home.js initIntro 가 남김 -->
+  <script>try { if (sessionStorage.getItem('snx-intro') === 'seen') document.documentElement.dataset.intro = 'seen'; } catch (e) {}</script>
   <link rel="icon" type="image/svg+xml" href="static/assets/logo/favicon.svg">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,7 +31,7 @@
 <body>
   <!-- 첫 접속 로딩 (P1-20, 로딩 C "Crescent") — 약 1초, 건너뛰기 없음. 끝나면 첫 화면 등장 애니메이션이 이어짐
        - CSS만으로 재생·사라짐 (static/css/pages/intro.css). 화면 읽기 프로그램에는 숨김
-       - 첫 접속만 보이기: <html data-intro="seen"> 이면 숨김 → home.js initIntro (TODO, 직접 구현)
+       - 첫 접속만 보이기: <html data-intro="seen"> 이면 숨김 → home.js initIntro (이 탭에서 처음이면 기록, 두 번째부터는 위 <head> 의 짧은 검사가 숨김)
        - 움직임 줄이기 설정이면 보이지 않음 -->
   <div class="intro" aria-hidden="true">
     <div class="intro__stack">
@@ -176,30 +179,12 @@
         <p class="section-sub">Notes from the developer</p>
 
         <div class="section__body">
-          <!-- 최신 공지 4개. 실제 데이터는 GET /api/v1/dev-notes?limit=4 (관리자만 작성) — 지금은 예시 -->
-          <ol class="dev-notes">
-            <li class="dev-note">
-              <time datetime="2026-10-02">2026.10.02</time>
-              <h3 class="dev-note__title">The landing page takes shape</h3>
-              <p class="dev-note__excerpt">Nyxi on a violet zigzag, a Service overview, and the sections you are scrolling through right now.</p>
-            </li>
-            <li class="dev-note">
-              <time datetime="2026-10-02">2026.10.02</time>
-              <h3 class="dev-note__title">69 tasks, one board</h3>
-              <p class="dev-note__excerpt">Every planned task now lives on YouTrack, linked from epics down to single tasks and tied to GitHub branches.</p>
-            </li>
-            <li class="dev-note">
-              <time datetime="2026-10-01">2026.10.01</time>
-              <h3 class="dev-note__title">The database is ready</h3>
-              <p class="dev-note__excerpt">The MySQL schema for all six phases is in place: projects, patterns, automation, collaboration and more.</p>
-            </li>
-            <li class="dev-note">
-              <time datetime="2026-10-01">2026.10.01</time>
-              <h3 class="dev-note__title">Meet the plan</h3>
-              <p class="dev-note__excerpt">Six PRDs and a three-stage roadmap: an MVP first, then AI analysis and stem separation, then real-time collaboration.</p>
-            </li>
-          </ol>
-          <p class="dev-more">
+          <!-- 최신 공지 4개: pages/home.js loadDevNotes 가 GET /api/v1/dev-notes?limit=4 로 채움 (관리자만 작성).
+               각 칸 모양: <li class="dev-note"><time datetime="2026-10-02">2026.10.02</time>
+               <h3 class="dev-note__title">…</h3><p class="dev-note__excerpt">…</p></li> -->
+          <ol class="dev-notes" id="dev-notes" aria-live="polite"></ol>
+          <p class="dev-empty" id="dev-notes-empty" hidden></p>
+          <p class="dev-more" id="dev-notes-more" hidden>
             <button type="button" class="text-link" command="show-modal" commandfor="dev-notes-modal">+ View More</button>
           </p>
         </div>
@@ -255,8 +240,18 @@
       <button type="button" class="btn btn--ghost modal__close" command="close" commandfor="dev-notes-modal">Close</button>
     </div>
     <div class="modal__body">
-      <!-- 전체 목록 디자인은 추후 (GET /api/v1/dev-notes) -->
-      <p>The full archive of developer notes will be listed here.</p>
+      <!-- 목록 화면 / 상세 화면: pages/home.js initDevNotesModal 이 번갈아 보여 줌 -->
+      <div id="note-list-view">
+        <ol class="note-list" id="note-list"></ol>
+        <p class="dev-empty" id="note-list-empty" hidden></p>
+      </div>
+      <article id="note-detail-view" hidden>
+        <button type="button" class="btn btn--ghost note-back" id="note-back">&larr; Back to list</button>
+        <h3 class="note-detail__title" id="note-detail-title" tabindex="-1"></h3>
+        <time class="note-detail__date" id="note-detail-date"></time>
+        <div class="note-body" id="note-detail-body"></div>
+        <p class="dev-empty" id="note-detail-empty" hidden></p>
+      </article>
     </div>
   </dialog>
 
