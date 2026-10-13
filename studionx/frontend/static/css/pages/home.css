@@ -134,6 +134,8 @@ body { timeline-scope: --hero; }
   pointer-events: none;
   transition: opacity var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
 }
+/* 맨 위로 (첫 화면으로 돌아가는 화살표) */
+.side-nav__link--top svg { display: block; width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: square; }
 .side-nav__link:hover,
 .side-nav__link:focus-visible,
 .side-nav__link[aria-current="true"] { color: var(--c-violet-ink); }

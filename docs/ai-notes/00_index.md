@@ -1,4 +1,4 @@
-# AI 구현 설명 색인 — Phase 1 (P1-01 ~ P1-24)
+# AI 구현 설명 색인 — Phase 1 (P1-01 ~ P1-25)
 
 | 항목 | 내용 |
 |---|---|
@@ -9,7 +9,7 @@
 ## 1. 문서를 읽는 법
 | 종류 | 위치 | 내용 |
 |---|---|---|
-| **개요 문서** | `docs/ai-notes/NN_*.md` (01 ~ 65번) | 작업 하나의 목적, 결정, 바뀐 파일, 시험 결과를 한 문서로 설명합니다. 화면 작업은 디자인 선택까지 적습니다 |
+| **개요 문서** | `docs/ai-notes/NN_*.md` (01 ~ 66번) | 작업 하나의 목적, 결정, 바뀐 파일, 시험 결과를 한 문서로 설명합니다. 화면 작업은 디자인 선택까지 적습니다 |
 | **함수 문서** | `docs/ai-notes/javascript/P1-NN - …/`, `docs/ai-notes/backend(fastAPI_Python)/P1-NN - …/` | 함수 하나가 문서 하나입니다. 하는 일, 코드, 문법 풀이, 흐름, 왜 이렇게 했는지, 시험을 순서대로 적습니다 |
 | **시험 문서** | 개요 문서 중 `…_site_test.md` | 실제 서버와 브라우저로 사람처럼 클릭해서 확인한 결과와 화면 캡처입니다 |
 | **합본 PDF** | 함수 문서 폴더 안의 `P1-NN_*.pdf` | 그 작업의 함수 문서를 한 파일로 묶은 것입니다 |
@@ -43,11 +43,13 @@
 | [63](63_p1-23_site_test.md) | P1-23 실제 화면 시험 (홈, 처리방침, 오류 페이지를 사람처럼 클릭해서) |
 | [64](64_p1-24_ui_fixes_privacy_i18n.md) | P1-24 홈 화면 수정과 개인정보 처리방침 한국어, 일본어판 |
 | [65](65_p1-24_site_test.md) | P1-24 실제 화면 시험 (세 칸 폭, 공지 없음 화면, 처리방침 세 판과 언어 전환) |
+| [66](66_p1-25_privacy_links.md) | P1-25 처리방침 링크의 언어 연결, 일본 감독기관 안내, 목차 표시 오류 수정 |
 | P1-20 | 첫 접속 로딩, 로고, 별 커서 | [25](25_intro_logo.md), [26](26_star_cursor.md) | — | — |
 | P1-21 | Development 공지 API와 관리자 화면(/admin) | [23](23_dev_notes_admin_template.md), [59](59_p1-21_dev_notes_admin.md) | [백엔드 82~92](<backend(fastAPI_Python)/P1-21 - 공지 API와 관리자 화면/>) | [60](60_p1-21_site_test.md) |
 | P1-22 | 오류 페이지 7종과 서버 연결 (화면은 HTML, API는 JSON) | [11](11_error_pages.md), [12](12_http_status_poster.md), [57](57_p1-22_error_pages.md) | [백엔드 78~81](<backend(fastAPI_Python)/P1-22 - 오류 페이지 연결/>) | [58](58_p1-22_site_test.md) |
 | P1-23 | 화면 마무리: 오류 페이지 버튼, 홈의 공지 카드와 모달, 로딩, 세로 앵커, 모바일 메뉴, 개인정보 목차 | [62](62_p1-23_ui_polish.md) | [JS 96~101](<javascript/P1-23 - 화면 마무리/>) | [63](63_p1-23_site_test.md) |
 | P1-24 | 홈 화면 수정(Service, Feature 세 칸 폭, Development 공지 없음 화면)과 개인정보 처리방침 한국어, 일본어판 | [64](64_p1-24_ui_fixes_privacy_i18n.md) | [JS 102](<javascript/P1-24 - 화면 수정과 처리방침 번역/>) | [65](65_p1-24_site_test.md) |
+| P1-25 | 처리방침 링크의 언어 연결, 일본 감독기관 안내, 목차 표시 오류 수정 | [66](66_p1-25_privacy_links.md) | [JS 103](<javascript/P1-25 - 처리방침 링크 언어 연결/>) | 66 §4 |
 | (기타) | 개인정보 처리방침 페이지와 가입 동의, 개발 환경 | [27](27_privacy_policy.md), [01](01_dev_environment.md) | — | — |
 
 P1-19는 이 색인과 `develop`으로의 PR입니다. P1-15의 시퀀서 JS는 Phase 2에서 만듭니다.

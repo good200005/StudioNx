@@ -51,7 +51,7 @@ export function initSideNavActiveState() {
   const targets = [];   // { id, link, section, inside }
   for (const link of links) {
     const href = link.getAttribute('href') || '';
-    if (href.charAt(0) !== '#') continue;
+    if (href.charAt(0) !== '#' || href === '#top') continue;   // '#top'(맨 위로)은 구간이 아니라 이동 버튼이라 표시 대상이 아님
     const section = document.getElementById(href.slice(1));
     if (section) targets.push({ id: href.slice(1), link: link, section: section, inside: false });
   }

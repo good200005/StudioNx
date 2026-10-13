@@ -6,6 +6,11 @@
    - 위쪽 2px 선: 보통 보라, 오류 빨강, 되돌릴 수 없는 확인 빨강
    ========================================================= */
 
+/* 알림창이 뜰 때 스크롤바가 사라지며 화면이 밀리는 것을 막음 (2026-10-13)
+   - 라이브러리는 body 에 overflow:hidden 을 걸어서, 일반 스크롤바(Windows)가 사라지고 화면 폭이 그만큼 넓어짐
+   - 스크롤바와 화면 위치를 그대로 두고, 뒤 배경은 위의 backdrop 이 가림 */
+body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown) { overflow: visible !important; padding-right: 0 !important; }
+
 /* 뒤 배경 — 모달(.modal::backdrop)과 같게 */
 .swal2-container.swal2-backdrop-show { background: rgb(11 10 15 / 0.72); backdrop-filter: blur(3px); }
 

@@ -10,10 +10,10 @@ import { initModalFallback } from '../core/modal.js';
  */
 export function initTocActiveState() {
   // (구현: AI — 2026-10-13, P1-23, 함수 하나씩 검토)
-  // - 화면 위쪽(위에서 10% ~ 20% 사이)의 얇은 띠에 걸친 절을 "지금 읽는 절"로 봄
-  // - 띠에 두 절이 함께 걸치면(절 경계) 아래쪽, 즉 막 들어오는 절을 표시함
+  // - 위쪽 끝이 화면 위쪽 기준선(절의 scroll-margin-top)에 닿은 마지막 절을 "지금 읽는 절"로 봄
+  //   (목차를 눌러 이동한 절은 짧아도 그 절이 표시됨: 이전에는 짧은 절 뒤의 다음 절이 표시되었음, 2026-10-13)
   // - 글머리(제목, 첫 문단)에서는 어느 목차도 표시하지 않음
-  // - 페이지 맨 아래에서는 마지막 절이 띠에 닿지 못할 수 있어서, 맨 아래면 마지막 절을 표시함
+  // - 페이지 맨 아래에서는 끝쪽 절이 기준선에 닿지 못해서, 주소의 절이 화면 안에 있으면 그 절을, 아니면 마지막 절을 표시함
   // - IntersectionObserver 를 못 쓰는 브라우저에서는 표시만 안 함 (목차 이동은 그대로 됨)
   const links = document.querySelectorAll('.policy__toc a');
   if (links.length === 0 || typeof IntersectionObserver === 'undefined') return;
@@ -30,10 +30,19 @@ export function initTocActiveState() {
   const refresh = function () {
     let current = null;
     for (const target of targets) {
-      if (target.inside) current = target;   // 띠에 두 절이 함께 걸치면 새로 들어오는 아래쪽 절
+      // 목차를 눌러 이동하면 절의 위쪽 끝이 scroll-margin-top 만큼 아래에 멈춤: 그 위치에 닿은 마지막 절이 지금 절
+      const margin = parseFloat(window.getComputedStyle(target.section).scrollMarginTop) || 0;
+      if (target.section.getBoundingClientRect().top <= margin + 4) current = target;
     }
     const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
-    if (atBottom) current = targets[targets.length - 1];
+    if (atBottom) {
+      // 끝쪽 절은 짧아서 맨 위까지 올라올 수 없으므로, 주소(#…)의 절이 화면 안에 있으면 그 절, 아니면 마지막 절
+      current = targets[targets.length - 1];
+      for (const target of targets) {
+        const top = target.section.getBoundingClientRect().top;
+        if (location.hash === '#' + target.section.id && top >= 0 && top < window.innerHeight) current = target;
+      }
+    }
     for (const target of targets) {
       if (target === current) target.link.setAttribute('aria-current', 'true');
       else target.link.removeAttribute('aria-current');
@@ -51,6 +60,7 @@ export function initTocActiveState() {
 
   for (const target of targets) observer.observe(target.section);
   window.addEventListener('scroll', function () { window.requestAnimationFrame(refresh); }, { passive: true });
+  window.addEventListener('hashchange', function () { window.requestAnimationFrame(refresh); });   // 이미 맨 아래라서 스크롤이 일어나지 않는 이동도 반영
 }
 
 /**
