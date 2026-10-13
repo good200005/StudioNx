@@ -9,7 +9,7 @@ body { display: flex; flex-direction: column; }
 
 .policy {
   display: grid; grid-template-columns: minmax(12rem, 15rem) minmax(0, 46rem);
-  grid-template-areas: ". head" "toc body";
+  grid-template-areas: "side head" "side body";   /* 옆줄은 두 줄에 걸쳐 맨 위에서 시작 → 제목 길이가 언어마다 달라도 옆줄 위치는 같음 */
   gap: var(--sp-8) var(--sp-16); justify-content: center;
   padding: var(--sp-8) var(--gutter) var(--sp-16);
 }
@@ -20,7 +20,7 @@ body { display: flex; flex-direction: column; }
 .policy__lead { margin-top: var(--sp-6, 1.5rem); color: var(--c-ink-soft); font-size: var(--fs-md); line-height: 1.7; }
 
 /* 왼쪽 옆줄: 언어 전환 + 목차. 스크롤해도 왼쪽에 남아서, 글을 읽다가도 언제든 언어를 바꿀 수 있음 */
-.policy__side { grid-area: toc; align-self: start; position: sticky; top: var(--sp-8); }
+.policy__side { grid-area: side; align-self: start; position: sticky; top: var(--sp-8); }
 
 /* 언어 전환 (English · 한국어 · 日本語): 목차 위에 한 줄. 지금 보는 언어는 보라색 굵은 글자 */
 .policy__lang { display: flex; flex-wrap: wrap; align-items: center; margin-bottom: var(--sp-6, 1.5rem); font-size: var(--fs-sm); }
@@ -66,8 +66,11 @@ body { display: flex; flex-direction: column; }
 .policy__table tbody th { color: var(--c-ink); font-weight: 700; }
 
 @media (max-width: 960px) {
-  .policy { grid-template-columns: minmax(0, 1fr); grid-template-areas: "head" "toc" "body"; gap: var(--sp-8); padding-top: var(--sp-4); }
-  .policy__side { position: static; }
+  /* 좁은 화면: 언어 전환은 맨 위(언어와 관계없이 같은 자리), 그다음 제목, 목차, 본문 */
+  .policy { grid-template-columns: minmax(0, 1fr); grid-template-areas: "lang" "head" "toc" "body"; gap: var(--sp-8); padding-top: var(--sp-4); }
+  .policy__side { display: contents; }
+  .policy__lang { grid-area: lang; margin-bottom: calc(var(--sp-4) * -1); }
+  .policy__toc { grid-area: toc; }
   .policy__toc ol { columns: 2; column-gap: var(--sp-6, 1.5rem); }
 }
 @media (max-width: 520px) { .policy__toc ol { columns: 1; } }

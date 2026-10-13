@@ -325,20 +325,16 @@ body { timeline-scope: --hero; }
 .dev-empty { padding: var(--sp-8) 0; color: var(--c-ink-soft); text-align: center; }
 .dev-more[hidden], .dev-empty[hidden], .dev-blank[hidden] { display: none; }
 
-/* 공지가 없을 때 (레퍼런스및수정사항5): 가운데에 일러스트 자리 + 문구. 가로 보라 구분선이 일러스트 뒤를 지나감 */
+/* 공지가 없을 때 (레퍼런스및수정사항5): 가운데에 일러스트 자리 + 문구. 일러스트를 가로지르는 선은 없음 (2026-10-13 사용자 요청) */
 .dev-notes:empty { display: none; }   /* 카드가 없으면 빈 목록의 아래 선도 그리지 않음 */
 .dev-blank {
   display: flex; flex-direction: column; align-items: center; gap: var(--sp-6);
   padding: var(--sp-8) 0 var(--sp-12);
 }
-.dev-blank__stage { position: relative; display: flex; justify-content: center; width: 100%; }
-.dev-blank__stage::before {   /* 일러스트 뒤를 지나가는 가로선 */
-  content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px;
-  background: var(--c-rule-violet);
-}
+.dev-blank__stage { display: flex; justify-content: center; width: 100%; }
 .dev-blank__art {   /* 일러스트 자리 — 지금은 영역 표시만 (PixAI 에서 만들 예정). 그림이 오면 이 안에 <img> */
-  position: relative; width: min(30rem, 100%); aspect-ratio: 4 / 3;
-  background: var(--c-ground); border: 1px dashed var(--c-rule);
+  width: min(30rem, 100%); aspect-ratio: 4 / 3;
+  border: 1px dashed var(--c-rule);
 }
 .dev-blank__art img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .dev-blank__text { color: var(--c-ink-soft); font-size: var(--fs-md); text-align: center; }
