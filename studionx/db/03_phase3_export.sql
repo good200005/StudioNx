@@ -16,6 +16,7 @@ CREATE TABLE export_jobs (
   range_start_tick INT UNSIGNED      NOT NULL DEFAULT 0,
   range_end_tick   INT UNSIGNED      NULL,
   render_mode      ENUM('CLIENT','SERVER') NOT NULL DEFAULT 'CLIENT',
+  export_mode      ENUM('MIXDOWN','STEMS') NOT NULL DEFAULT 'MIXDOWN',
   status           ENUM('PENDING','PROCESSING','DONE','FAILED') NOT NULL DEFAULT 'PENDING',
   progress         TINYINT UNSIGNED  NOT NULL DEFAULT 0,
   result_path      VARCHAR(500)      NULL,

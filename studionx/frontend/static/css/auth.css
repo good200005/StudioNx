@@ -20,6 +20,7 @@
 .pw__toggle {
   position: absolute; right: 0; bottom: var(--sp-2);
   padding: var(--sp-1) var(--sp-2); border: 0; background: none; cursor: pointer;
+  min-height: 24px;   /* 누르는 영역 24px 이상 (WCAG 2.5.8) */
   color: var(--c-ink-soft); font: 600 var(--fs-xs) / 1 var(--font-text); letter-spacing: 0.06em;
   transition: color var(--dur) var(--ease-out);
 }
@@ -77,6 +78,9 @@
 @media (prefers-color-scheme: light) {
   :root[data-theme="system"] .oauth--google:is(:hover, :focus-visible) { border-color: var(--c-rule); }
 }
+
+/* 소셜 버튼 아래 "Coming soon" 안내 (auth-ui.js initOAuthPlaceholders 가 만듦, P1-07) */
+.oauth-note { margin-top: var(--sp-2); text-align: center; }
 
 /* ---------- 아래 안내 줄 (New here? Join Us) ---------- */
 .auth-foot { margin-top: var(--sp-6); text-align: center; color: var(--c-ink-soft); font-size: var(--fs-sm); }

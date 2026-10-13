@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 from sqlalchemy import text
 
+from app.api.v1 import auth, dev_notes, inquiries, me, projects, users
 from app.db.session import engine
 
 api_router = APIRouter()
@@ -25,4 +26,11 @@ def health_db() -> dict:
         return {"db": "error", "detail": type(exc).__name__}
 
 
-# TODO(Phase 1): api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
+api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
+api_router.include_router(users.router, prefix="/users", tags=["users"])
+api_router.include_router(users.images_router, prefix="/profile-images", tags=["users"])  # P1-08
+api_router.include_router(inquiries.router, prefix="/inquiries", tags=["inquiries"])
+api_router.include_router(projects.router, prefix="/projects", tags=["projects"])
+api_router.include_router(me.router, prefix="/me", tags=["me"])
+api_router.include_router(dev_notes.router, prefix="/dev-notes", tags=["dev-notes"])
+# TODO(Phase 1): users, projects, inquiries ... 라우터도 같은 방식으로 추가

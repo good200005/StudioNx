@@ -13,6 +13,7 @@
   background: color-mix(in srgb, var(--c-violet) 10%, var(--c-ground-raised));
 }
 .ready[hidden] { display: none; }
+.lanes__ruler[hidden], .lanes__list[hidden] { display: none; }   /* display: grid / flex 가 hidden 을 이기지 않게 */
 .ready__label {
   grid-column: 1 / -1;
   color: var(--c-violet-ink); font: 700 var(--fs-xs) / 1 var(--font-text); letter-spacing: 0.14em; text-transform: uppercase;

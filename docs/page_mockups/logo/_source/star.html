@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>Studio Nx logo — Star variations</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&display=swap">
+<style>
+  :root { --ink:#f4f3f7; --bg:#0b0a0f; --v:#6a24f6; --vi:#a383ff; --paper:#f6f5f9; --soft:#b9b6c4; --faint:#7f7b8c; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #000; font: 15px/1.45 "Malgun Gothic", sans-serif; color: var(--ink); }
+  .sheet { width: 1600px; background: var(--bg); padding: 48px 56px 56px; }
+  h1 { font: 800 30px/1.1 Unbounded, sans-serif; letter-spacing: -.01em; }
+  .lead { color: var(--soft); margin: 10px 0 30px; }
+  .grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+  .card { border: 1px solid rgb(244 243 247 / .12); display: grid; grid-template-rows: auto auto auto auto 1fr; }
+  .big { display: flex; justify-content: center; gap: 14px; padding: 22px 8px 14px; }
+  .lightbar { background: var(--paper); display: flex; justify-content: center; align-items: center; gap: 14px; padding: 14px 8px; }
+  .small { display: flex; justify-content: center; align-items: flex-end; gap: 12px; padding: 14px 8px 4px; }
+  .small span { display: grid; justify-items: center; gap: 3px; font-size: 10px; color: var(--faint); }
+  .meta { padding: 10px 14px 16px; }
+  .name { font: 800 14px/1.2 Unbounded, sans-serif; }
+  .desc { font-size: 12px; color: var(--soft); margin-top: 6px; line-height: 1.5; }
+  .app { border-radius: 22%; display: grid; place-items: center; }
+  svg { display: block; }
+  /* 시트 2 */
+  .use { display: grid; grid-template-columns: 220px repeat(3, minmax(0, 1fr)); gap: 14px; align-items: stretch; margin-bottom: 14px; }
+  .lab { color: var(--faint); font-size: 13px; font-weight: 700; display: flex; align-items: center; }
+  .box { border: 1px solid rgb(244 243 247 / .12); padding: 18px; display: grid; place-items: center; gap: 12px; }
+  .box.light { background: var(--paper); color: #0b0a0f; }
+  .brand { display: flex; align-items: center; gap: 10px; font: 800 20px/1 Unbounded, sans-serif; }
+  .meter { display: flex; gap: 3px; } .meter i { width: 10px; height: 8px; background: var(--vi); } .meter i:nth-child(n+14) { background: #ffd166; } .meter i:nth-child(16) { background: #ff6b6b; }
+  .tag { font: 700 10px/1 "Malgun Gothic", sans-serif; letter-spacing: .24em; color: var(--faint); }
+  .colhead { font: 800 16px/1 Unbounded, sans-serif; text-align: center; padding: 6px; }
+</style></head><body>
+
+<section class="sheet" id="s1">
+  <h1>Logo — Star variations</h1>
+  <p class="lead">4안(초승달 + 반짝임)을 중심으로 10가지. 겹치는 부분 비우기(XOR), 별로 깎기, 뿔 끝 반짝임, 윤곽선 등. 카드마다 위: 다크(보라·흰색) · 가운데: 라이트 · 아래: 16·24·32px</p>
+  <div class="grid" id="grid"></div>
+</section>
+
+<section class="sheet" id="s2">
+  <h1>Star — top 3 in use</h1>
+  <p class="lead">추천 3안을 같은 자리에 놓고 비교 (헤더 · 앱 아이콘 · 파비콘 · 로딩 C)</p>
+  <div class="use" id="u-head"><div class="lab"></div></div>
+  <div class="use" id="u-hdr"><div class="lab">헤더 (다크)</div></div>
+  <div class="use" id="u-hdr2"><div class="lab">헤더 (라이트)</div></div>
+  <div class="use" id="u-app"><div class="lab">앱 아이콘 · 파비콘</div></div>
+  <div class="use" id="u-ld"><div class="lab">로딩 C</div></div>
+</section>
+
+<script>
+// ---- 기하 (100×100): 1안과 같은 굵은 초승달 = 바깥 원 O 에서 비켜난 원 I 를 뺌
+const O = { cx: 48, cy: 50, r: 42 }, I = { cx: 67, cy: 44, r: 28 };
+let uid = 0; const nid = p => p + (++uid);
+// 4갈래 반짝임 (오목한 변). k: 허리 두께(0 = 아주 가늚), rot: 회전(도)
+const spark = (cx, cy, R, k = 0.14, rot = 0) => {
+  const w = R * k, q = (x, y) => `${x},${y}`;
+  const d = `M${q(cx, cy - R)} Q${q(cx + w, cy - w)} ${q(cx + R, cy)} Q${q(cx + w, cy + w)} ${q(cx, cy + R)} Q${q(cx - w, cy + w)} ${q(cx - R, cy)} Q${q(cx - w, cy - w)} ${q(cx, cy - R)}Z`;
+  return `<path d="${d}" transform="rotate(${rot} ${cx} ${cy})"/>`;
+};
+const moonD = (o = O) => `<circle cx="${o.cx}" cy="${o.cy}" r="${o.r}"/>`;
+const cutD = (i = I) => `<circle cx="${i.cx}" cy="${i.cy}" r="${i.r}"/>`;
+// 모양 A 에서 모양 B 를 뺀 것을 칠하는 도우미
+const minus = (fill, shapeA, shapeB, extraCut = '') => {
+  const m = nid('m');
+  return `<defs><mask id="${m}" maskUnits="userSpaceOnUse" x="-10" y="-10" width="120" height="120"><rect x="-10" y="-10" width="120" height="120" fill="#fff"/><g fill="#000" stroke="#000">${shapeB}</g>${extraCut}</mask></defs><g fill="${fill}" mask="url(#${m})">${shapeA}</g>`;
+};
+const crescent = (fill, extraCut = '') => minus(fill, moonD(), `<g stroke="none">${cutD()}</g>`, extraCut);
+// XOR: 초승달 − 별, 별 − 초승달
+const xor = (c, a, star) => {
+  const mc = nid('m'), ms = nid('m');
+  return `<defs>
+    <mask id="${mc}" maskUnits="userSpaceOnUse" x="-10" y="-10" width="120" height="120"><rect x="-10" y="-10" width="120" height="120" fill="#fff"/><g fill="#000">${cutD()}${star}</g></mask>
+    <mask id="${ms}" maskUnits="userSpaceOnUse" x="-10" y="-10" width="120" height="120"><rect x="-10" y="-10" width="120" height="120" fill="#fff"/>
+      <g fill="#000">${moonD()}</g><g fill="#fff">${cutD()}</g></mask></defs>
+    <g fill="${c}" mask="url(#${mc})">${moonD()}</g><g fill="${a}" mask="url(#${ms})">${star}</g>`;
+};
+// 겹치는 곳 둘레에 바탕색 틈(gap)을 두는 방식
+const gapped = (c, a, star, starStroke) => crescent(c, `<g fill="#000" stroke="#000" stroke-width="${starStroke}" stroke-linejoin="round">${star}</g>`) + `<g fill="${a}">${star}</g>`;
+
+const V = [
+  ['S1 · Inside', '기준(4안). 반짝임이 안쪽 빈 곳에 떠 있음',
+    (c, a) => crescent(c) + `<g fill="${a}">${spark(73, 42, 12, .16, 45)}</g>`],
+  ['S2 · XOR Horn', '큰 반짝임이 위쪽 뿔에 걸쳐 겹치고, 겹친 곳은 비움(XOR). 사용자 제안의 기본형',
+    (c, a) => xor(c, a, spark(64, 17, 19, .14, 0))],
+  ['S3 · XOR Center', '반짝임이 몸통 한가운데를 관통 — 겹친 십자 모양만 비어 "빛이 새어 나오는" 느낌',
+    (c, a) => xor(c, a, spark(38, 50, 30, .1, 0))],
+  ['S4 · Carved', '반짝임 모양으로 몸통을 깎아 냄(음각). 한 덩어리라 작은 크기에 강함',
+    (c) => crescent(c, `<g fill="#000">${spark(30, 52, 15, .16, 0)}</g>`)],
+  ['S5 · Gap', '반짝임이 뿔 위에 겹치되, 둘레에 바탕색 틈을 둠. 두 색을 써도 경계가 또렷',
+    (c, a) => gapped(c, a, spark(65, 18, 16, .16, 0), 7)],
+  ['S6 · Horn tip', '위쪽 뿔 끝이 반짝임으로 끝남 — 머리핀 끝이 빛나는 모양',
+    (c, a) => crescent(c) + `<g fill="${a}">${spark(80, 16, 13, .14, 0)}</g>`],
+  ['S7 · Flare', '긴 빛줄기(가로 길게) 반짝임이 초승달을 가로지름, 겹친 곳 XOR — 렌즈 플레어',
+    (c, a) => xor(c, a, `<g transform="translate(60 40) scale(1.9 .62) translate(-60 -40)">${spark(60, 40, 22, .12, 0)}</g>`)],
+  ['S8 · Outline', '초승달은 윤곽선, 반짝임은 꽉 채움 — 가볍고 세련됨. 작은 크기에선 선이 얇아짐',
+    (c, a) => { const m1 = nid('m'), m2 = nid('m'), t = 7;
+      return `<defs><mask id="${m1}" maskUnits="userSpaceOnUse" x="-10" y="-10" width="120" height="120"><rect x="-10" y="-10" width="120" height="120" fill="#fff"/>${cutD().replace('/>', ' fill="#000"/>')}</mask>
+        <mask id="${m2}" maskUnits="userSpaceOnUse" x="-10" y="-10" width="120" height="120"><rect x="-10" y="-10" width="120" height="120" fill="#fff"/>
+          <circle cx="${O.cx}" cy="${O.cy}" r="${O.r - t}" fill="#000"/><circle cx="${I.cx}" cy="${I.cy}" r="${I.r + t}" fill="#fff"/></mask></defs>
+        <g mask="url(#${m2})"><g fill="${c}" mask="url(#${m1})">${moonD()}</g></g><g fill="${a}">${spark(73, 42, 13, .16, 0)}</g>`; }],
+  ['S9 · Star bite', '둥근 원 대신 큰 반짝임 모양으로 베어 낸 초승달 — 안쪽 가장자리가 별의 곡선',
+    (c, a) => minus(c, moonD(), `<g stroke="none">${spark(70, 42, 40, .34, 0)}</g>`)],
+  ['S10 · Twin', '작은 반짝임 두 개(큰·작은) — 밤하늘·리듬감. 큰 별은 뿔과 XOR',
+    (c, a) => xor(c, a, spark(64, 18, 16, .14, 0)) + `<g fill="${a}">${spark(76, 52, 7, .18, 0)}</g>`],
+];
+
+const svg = (fn, size, c, a) => `<svg width="${size}" height="${size}" viewBox="0 0 100 100" aria-hidden="true">${fn(c, a ?? c)}</svg>`;
+const grid = document.getElementById('grid');
+for (const [name, desc, fn] of V) {
+  grid.insertAdjacentHTML('beforeend', `<div class="card">
+    <div class="big">${svg(fn, 96, '#a383ff', '#f4f3f7')}${svg(fn, 96, '#f4f3f7', '#a383ff')}</div>
+    <div class="lightbar">${svg(fn, 64, '#0b0a0f', '#6a24f6')}${svg(fn, 64, '#6a24f6', '#0b0a0f')}<div class="app" style="width:64px;height:64px;background:#6a24f6">${svg(fn, 44, '#f4f3f7', '#0b0a0f')}</div></div>
+    <div class="small">${[16, 24, 32].map(s => `<span>${svg(fn, s, '#f4f3f7', '#a383ff')}${s}</span>`).join('')}<span style="background:#f6f5f9;padding:3px">${svg(fn, 16, '#0b0a0f', '#6a24f6')}</span><span style="background:#f6f5f9;padding:3px">${svg(fn, 24, '#0b0a0f', '#6a24f6')}</span></div>
+    <div class="meta"><div class="name">${name}</div><p class="desc">${desc}</p></div></div>`);
+}
+// 시트 2 — 추천 3안
+const PICK = (new URLSearchParams(location.search).get('pick') || '1,3,4').split(',').map(Number);
+const add = (row, html, cls = '') => document.getElementById(row).insertAdjacentHTML('beforeend', `<div class="box ${cls}">${html}</div>`);
+for (const i of PICK) {
+  const [name, , fn] = V[i];
+  document.getElementById('u-head').insertAdjacentHTML('beforeend', `<div class="colhead">${name}</div>`);
+  add('u-hdr', `<span class="brand">${svg(fn, 32, '#a383ff', '#f4f3f7')}Studio Nx</span>`);
+  add('u-hdr2', `<span class="brand">${svg(fn, 32, '#6a24f6', '#0b0a0f')}Studio Nx</span>`, 'light');
+  add('u-app', `<div style="display:flex;gap:12px;align-items:flex-end">${[[96, '#6a24f6', '#f4f3f7', '#0b0a0f'], [96, '#0b0a0f', '#a383ff', '#f4f3f7'], [40, '#6a24f6', '#f4f3f7', '#0b0a0f']].map(([s, bg, c, a]) => `<div class="app" style="width:${s}px;height:${s}px;background:${bg};border:1px solid rgb(244 243 247 / .14)">${svg(fn, s * .68, c, a)}</div>`).join('')}<span style="display:flex;align-items:center;gap:6px;background:#26232f;padding:6px 10px;border-radius:6px 6px 0 0;font-size:11px;color:#b9b6c4">${svg(fn, 16, '#a383ff', '#f4f3f7')}Studio Nx</span></div>`);
+  add('u-ld', `${svg(fn, 96, '#a383ff', '#f4f3f7')}<span class="brand" style="font-size:24px">Studio Nx</span><div class="meter">${'<i></i>'.repeat(16)}</div><span class="tag">WARMING UP · 0 DB</span>`);
+}
+</script>
+</body></html>

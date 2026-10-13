@@ -1,0 +1,5 @@
+<!-- 파비콘: 밝은 탭에서는 진한 보라, 어두운 탭에서는 밝은 보라 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-1 -5 98 98">
+  <style>path { fill: #6a24f6; } @media (prefers-color-scheme: dark) { path { fill: #a383ff; } }</style>
+  <path fill-rule="evenodd" d="M73.76 16.83A42 42 0 1 0 88.14 62.36A28 28 0 1 1 73.76 16.83ZM64 -2Q66.66 14.34 83 17Q66.66 19.66 64 36Q61.34 19.66 45 17Q61.34 14.34 64 -2Z"/>
+</svg>

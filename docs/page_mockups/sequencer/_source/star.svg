@@ -1,0 +1,2 @@
+<!-- 기본 커서: 로고 S2의 반짝임 — 흰 별 + 먹색 테두리 (밝은·어두운 바탕 모두 보임). 기준점(hotspot)은 가운데 12,12 -->
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 1Q14.42 9.58 23 12Q14.42 14.42 12 23Q9.58 14.42 1 12Q9.58 9.58 12 1Z" fill="#f4f3f7" stroke="#0b0a0f" stroke-width="1.4" stroke-linejoin="round"/></svg>

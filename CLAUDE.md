@@ -8,13 +8,21 @@
    git fetch --all --prune
    git for-each-ref --sort=-committerdate refs/remotes/origin/feature refs/remotes/origin/fix --format="%(committerdate:iso) %(refname:short) %(subject)" --count=5
    ```
-   맨 위 브랜치로 `git switch <브랜치>` 후 `git pull`. 바꾸기 전에 `git status`로 커밋 안 된 변경이 있으면 사용자에게 먼저 묻는다. 어떤 브랜치로 바꿨는지와 최신 커밋을 사용자에게 알린다. 백엔드 의존성 파일이 바뀌었으면 `.venv`에 다시 설치한다.
-2. 작업 전에 **`docs/context_*.md` 중 날짜가 가장 최신인 파일을 먼저 읽는다** (1번으로 최신 브랜치에 맞춘 뒤, 현재: `docs/context_2026-10-02.md`). 지금까지의 결정·진행 상황·남은 일·사용자 주의 사항(PowerShell 사용 등)이 정리되어 있다. Claude Code 메모리는 컴퓨터마다 따로라서 이 파일이 맥락을 이어 준다.
+   맨 위 브랜치로 `git switch <브랜치>` 후 `git pull`. 바꾸기 전에 `git status`로 커밋 안 된 변경이 있으면 사용자에게 먼저 묻는다. 어떤 브랜치로 바꿨는지와 최신 커밋을 사용자에게 알린다.
+2. **pull 하거나 브랜치를 바꾼 뒤에는 백엔드 의존성을 항상 다시 설치하고 확인한다** (바뀌었는지 따지지 말고 매번 — 이미 있으면 금방 끝남). 컴퓨터마다 `.venv`가 따로라서, 다른 컴퓨터에서 추가한 패키지(예: 2026-10-03 `sqladmin`, `greenlet`)가 빠져 있으면 서버가 시작되지 않는다.
+   ```powershell
+   cd studionx/backend
+   ..\.venv\Scripts\python -m pip install -r requirements-dev.txt
+   ..\.venv\Scripts\python -c "import app.main"      # 오류 없으면 통과
+   ..\.venv\Scripts\python -m pytest -q
+   ```
+   `.venv`가 없으면 `docs/ai-notes/01_dev_environment.md` 절차로 만든다. 설치한 패키지가 있었으면 사용자에게 알린다. `ModuleNotFoundError`가 나면 먼저 이 단계를 다시 한다.
+3. 작업 전에 **`docs/context_*.md` 중 날짜가 가장 최신인 파일을 먼저 읽는다** (1번으로 최신 브랜치에 맞춘 뒤, 현재: `docs/context_2026-10-05.md`). 지금까지의 결정·진행 상황·남은 일·사용자 주의 사항(PowerShell 사용 등)이 정리되어 있다. Claude Code 메모리는 컴퓨터마다 따로라서 이 파일이 맥락을 이어 준다.
 
 ## 프로젝트 원칙 (반드시 지킬 것)
 @StudioNx_CLAUDE.md
 
-요약: HTML/CSS는 AI가 작성(먼저 `studionx/frontend-reference/` 확인) · JS/백엔드는 **템플릿만**(요청 시에만 구현) · C++(`studionx/native/`)은 손대지 않음 · AI가 구현한 코드는 `docs/ai-notes/`에 설명 문서 필수.
+요약: HTML/CSS는 AI가 작성(먼저 `studionx/frontend-reference/` 확인) · JS/백엔드는 **AI가 함수 하나씩 구현 → 멈추고 사용자 검토 → OK 후 다음 함수** (2026-10-06 변경) · JS 실제 코드는 전통 문법(`?.` · `??` 등 금지), 최신 문법 버전은 문서에만 (2026-10-07) · C++(`studionx/native/`)은 손대지 않음 · AI가 구현한 코드는 `docs/ai-notes/`에 설명 문서 필수.
 
 ## 구조
 | 경로 | 내용 |
@@ -43,6 +51,14 @@
 
 ## 문서 작성
 문서(md·PDF·docx)를 만들거나 고칠 때는 **먼저 `docs/AI_Doc_Template_Guide.md`를 읽고** 그 템플릿·빌드·검증 절차를 따른다.
+
+**문장 규칙 (2026-10-12, ai-note 전체를 이 규칙으로 다시 썼다):**
+- ~합니다체로, 조사·어미를 살린 완성된 문장으로 쓴다. 표 칸도 가능하면 서술어로 끝낸다 ("~합니다", "~입니다").
+- "·" 로 항목을 잇지 말고 쉼표와 조사를 쓴다. 산문에서 엠대시(—)는 쓰지 않고 콜론이나 접속사로 바꾼다 (H1의 "NN — 제목" 형식만 유지).
+- 머리 표는 "작업 | X: Y (FR…)", "작성 | Claude (AI), 날짜, 사용자 검토" 형식으로 쓴다.
+- 코드 블록·식별자·숫자·링크는 그대로 둔다.
+- 질문 문장은 "Q. …하나요?" 처럼 존댓말로 쓴다.
+- PDF는 고친 문서의 것만 다시 만든다 (node docs/_build/build.js pdf <이름 일부>). 사용자가 요청하지 않은 새 합본이나 전체 합본은 만들지 않는다.
 
 ## Git
 - 브랜치·커밋 규칙: `docs/Git_Manual.md`

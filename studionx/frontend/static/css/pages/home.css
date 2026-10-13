@@ -356,9 +356,15 @@ body { timeline-scope: --hero; }
   .dev-note:nth-child(n+3) { border-top: 1px solid var(--c-rule-violet); padding-top: var(--sp-8); }
 }
 
-/* ---------- 모바일 ---------- */
-@media (max-width: 760px) {
-  .hero { min-height: max(100svh, 44rem); }
+/* ---------- 첫 화면: 모바일·태블릿 세로 — 위 칸 글자 / 아래 칸 Nyxi ----------
+   2026-10-05: 예전에는 글자(위에 고정)와 Nyxi(아래에서 화면 높이의 58%)가 따로 자리를 잡아,
+   세로가 짧은 폰(360×640 등)에서 Nyxi 머리가 설명 글과 겹쳤고, 태블릿 세로(768×1024)는
+   PC 배치라 글자가 그림 위에 올라갔음 → 두 칸 격자로 바꿔 Nyxi 는 "글자 아래 남은 공간"만 씀 */
+@media (max-width: 760px), (max-width: 1100px) and (orientation: portrait) {
+  .hero {
+    min-height: max(100svh, 44rem);
+    display: grid; grid-template-rows: auto minmax(0, 1fr);
+  }
   /* 띠 전체(-20~1530 × -130~900)를 오른쪽 아래(세로 51~100%)에 축소.
      SVG 박스는 기준 프레임 0~1440 × 0~900 이고, 그 바깥(꼭짓점·사선 끝)은 overflow: visible 로 그려짐.
      2026-10-03: 왼쪽 12.1% → 28% — 띠 가운데가 Nyxi 뒤에 가려 두 조각으로 끊겨 보여서 오른쪽으로 옮김.
@@ -366,13 +372,42 @@ body { timeline-scope: --hero; }
   .hero__ribbon { inset: 57.1% auto auto 28%; width: 78%; height: 42.4%; }
   .hero__echo--3 { display: none; }
   .hero__copy {
-    top: calc(var(--header-h) + var(--sp-6)); bottom: auto;
-    max-width: none; left: var(--gutter);
+    position: relative; grid-row: 1;
+    inset: auto; max-width: none;
+    padding: calc(var(--header-h) + var(--sp-6)) var(--gutter) var(--sp-4);
   }
   .hero__lede { margin-top: var(--sp-4); font-size: var(--fs-md); }
   .hero__sub { font-size: var(--fs-sm); }
-  .hero__nyxi { left: 50%; translate: -60% 0; height: min(58svh, 30rem); }
+  /* 아래 칸을 꽉 채우되(남은 높이 = 100%) 너무 커지지 않게. 가운데에서 조금 왼쪽 (띠가 오른쪽에 보이게) */
+  .hero__nyxi {
+    position: relative; grid-row: 2; align-self: end; justify-self: center;
+    left: auto; bottom: auto; translate: -10% 0;
+    height: 100%; max-height: 30rem; width: auto;
+  }
   .hero__scroll { display: none; }
+}
+/* 태블릿 세로 (761~1100px): 두 칸으로 나누면 Nyxi 가 너무 작아짐(사용자 의견) → PC 처럼 크게 왼쪽 아래 + 글자 오른쪽 위.
+   2026-10-05 2차: 너무 왼쪽에 치우쳐 보여 왼쪽 -10vw → 0 (크기는 그대로).
+   겹치지 않는 근거 (실측, 그려진 픽셀 기준): 글자 줄 높이에는 Nyxi 의 폭이 좁은 머리 쪽만 와서
+   글자 왼쪽 끝과의 간격이 768×1024 에서 42px, 그 밖의 태블릿 세로 크기는 68~226px.
+   4vw 면 11px, 8vw 면 설명 글과 겹침 → 0 으로 정함 */
+@media (min-width: 761px) and (max-width: 1100px) and (orientation: portrait) {
+  .hero { display: block; min-height: 100svh; }
+  /* 보라 띠는 모바일 위치(오른쪽 아래) 그대로 → 글자가 있는 오른쪽 위는 어두운 바탕 (보라 "NOISE" 대비) */
+  .hero__copy {
+    position: absolute; inset: auto; padding: 0;
+    top: calc(var(--header-h) + var(--sp-8)); right: var(--gutter);
+    max-width: 44vw;
+  }
+  .hero__nyxi {
+    position: absolute; left: 0; bottom: 0; translate: none;
+    /* 폭 70vw (그림 비율 768:1280 → 높이 116.7vw), 단 헤더 아래로 넘치지 않게 */
+    height: min(116.7vw, calc(100svh - var(--header-h) - var(--sp-4))); max-height: none;
+  }
+}
+
+/* ---------- 모바일 ---------- */
+@media (max-width: 760px) {
   .side-nav { display: none; }
   .section { padding-right: var(--gutter); }
   .service__intro p { font-size: var(--fs-md); }

@@ -1,3 +1,15 @@
+# ──────────────────────────────────────────────────────────────────────
+# [직접 구현 안내] 단계 순서: 1) P1-03 → 2) P1-04·05 → 3) P1-08·09·12·13 → 4) P1-16 → 5) P1-21·22
+#
+# P1-03 백엔드 공통 — 모델 컬럼·오류 처리기·토큰 검사·get_current_user
+#   브랜치  : feature/phase1/p1-03-backend-core
+#   순서    : 1단계 — 가장 먼저 (나머지 API가 모두 이 작업을 씀)
+#
+# 시작 전 : git switch feature/phase1/p1-03-backend-core
+#           git merge feature/phase1-account   ← 앞 단계 구현을 받아 오기 (꼭)
+# 끝나면  : PR → feature/phase1-account  (병합되면 YouTrack Closed)
+# 설명 문서: docs/ai-notes/ (작업별 템플릿 설명) · 순서 원본: docs/Implementation_Plan.md §2.1
+# ──────────────────────────────────────────────────────────────────────
 """라우터 공통 의존성 — 뼈대: 구현은 직접 (P1-03).
 
 로그인이 필요한 API:
@@ -11,6 +23,8 @@ from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
+from app.core.errors import AppError, ErrorCode
+from app.core.security import decode_access_token
 from app.db.session import get_db
 from app.models import User
 
@@ -35,7 +49,13 @@ def get_current_user(
     5. return user
     - 프론트(P1-02)는 401 + code=UNAUTHORIZED 를 받으면 /auth/refresh 로 재발급 후 한 번 다시 요청
     """
-    raise NotImplementedError
+    if credentials is None:
+        raise AppError(ErrorCode.UNAUTHORIZED, 401, "Please sign in.")
+    user_id = decode_access_token(credentials.credentials)
+    user = db.get(User, user_id)
+    if user is None or user.status != "ACTIVE":
+        raise AppError(ErrorCode.UNAUTHORIZED, 401, "Please sign in again.")
+    return user
 
 
 def get_current_user_optional(
@@ -46,7 +66,12 @@ def get_current_user_optional(
 
     TODO: credentials 가 없으면 None, 있으면 get_current_user 와 같은 검사 (실패하면 None)
     """
-    raise NotImplementedError
+    if credentials is None:
+        return None
+    try:
+        return get_current_user(credentials, db)
+    except AppError:
+        return None
 
 
 # 라우터에서 짧게 쓰기 위한 별칭

@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>Studio Nx logo mockups</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&display=swap">
+<style>
+  :root { --ink:#f4f3f7; --bg:#0b0a0f; --v:#6a24f6; --vi:#a383ff; --paper:#f6f5f9; --soft:#b9b6c4; --faint:#7f7b8c; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #000; font: 15px/1.45 "Malgun Gothic", sans-serif; color: var(--ink); }
+  .sheet { width: 1600px; background: var(--bg); padding: 48px 56px 56px; }
+  h1 { font: 800 30px/1.1 Unbounded, sans-serif; letter-spacing: -.01em; }
+  .lead { color: var(--soft); margin: 10px 0 34px; }
+  .row { display: grid; grid-template-columns: 150px repeat(5, minmax(0, 1fr)); gap: 14px; align-items: stretch; margin-bottom: 14px; }
+  .rowlab { color: var(--faint); font-size: 13px; font-weight: 700; display: flex; align-items: center; }
+  .cell { border: 1px solid rgb(244 243 247 / .12); display: grid; place-items: center; padding: 22px 10px; gap: 10px; text-align: center; }
+  .cell.light { background: var(--paper); color: #0b0a0f; border-color: rgb(11 10 15 / .1); }
+  .cell.violet { background: var(--v); }
+  .name { font: 800 15px/1 Unbounded, sans-serif; }
+  .desc { font-size: 12.5px; color: var(--soft); line-height: 1.5; }
+  .sizes { display: flex; gap: 14px; align-items: flex-end; }
+  .sizes span { display: grid; justify-items: center; gap: 4px; font-size: 10px; color: var(--faint); }
+  svg { display: block; }
+  /* 시트 2 */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .card { border: 1px solid rgb(244 243 247 / .12); padding: 22px; }
+  .card h2 { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin-bottom: 16px; }
+  .hdr { display: flex; align-items: center; justify-content: space-between; padding: 16px 22px; border: 1px solid rgb(244 243 247 / .12); margin-bottom: 10px; }
+  .hdr.light { background: var(--paper); color: #0b0a0f; }
+  .brand { display: flex; align-items: center; gap: 10px; font: 800 20px/1 Unbounded, sans-serif; }
+  .nav { display: flex; gap: 18px; font: 700 11px/1 Unbounded, sans-serif; letter-spacing: .08em; opacity: .7; }
+  .icons { display: flex; gap: 18px; align-items: flex-end; }
+  .app { border-radius: 22%; display: grid; place-items: center; }
+  .tab { display: flex; align-items: center; gap: 8px; background: #26232f; border-radius: 8px 8px 0 0; padding: 8px 14px; width: 240px; font-size: 12px; color: var(--soft); }
+  .loader { height: 300px; background: var(--bg); border: 1px solid rgb(244 243 247 / .12); display: grid; place-items: center; }
+  .loader .stack { display: grid; justify-items: center; gap: 16px; }
+  .meter { display: flex; gap: 4px; } .meter i { width: 14px; height: 10px; background: var(--vi); } .meter i:nth-child(n+14) { background: #ffd166; } .meter i:nth-child(16) { background: #ff6b6b; }
+  .tag { font: 700 11px/1 "Malgun Gothic", sans-serif; letter-spacing: .24em; color: var(--faint); }
+  .pin { position: relative; width: 300px; height: 220px; background: #fff; overflow: hidden; }
+</style></head><body>
+<section class="sheet" id="s1">
+  <h1>Studio Nx — Logo marks</h1>
+  <p class="lead">Nyxi의 초승달 머리핀(굵고 꽉 찬 초승달, 오른쪽 위로 열림, 뾰족한 뿔, 머리카락이 가로지름)에서 출발한 5안. 위: 어두운 바탕 · 가운데: 밝은 바탕 · 아래: 작은 크기(파비콘) 테스트</p>
+  <div class="row" id="r-dark"><div class="rowlab">다크 (보라 · 흰색)</div></div>
+  <div class="row" id="r-light"><div class="rowlab">라이트 (먹색)</div></div>
+  <div class="row" id="r-violet"><div class="rowlab">보라 바탕 (앱 아이콘)</div></div>
+  <div class="row" id="r-size"><div class="rowlab">작은 크기<br>16 · 24 · 32 · 48px</div></div>
+  <div class="row" id="r-desc"><div class="rowlab">설명</div></div>
+</section>
+
+<section class="sheet" id="s2">
+  <h1>Studio Nx — In use</h1>
+  <p class="lead">추천 1안(<b id="pick-name"></b>)을 실제 자리에 놓아 본 모습. 다른 안도 같은 방식으로 바꿔 끼울 수 있음</p>
+  <div class="grid2">
+    <div class="card"><h2>Header lockup</h2>
+      <div class="hdr"><span class="brand" id="lk1"></span><span class="nav"><span>SERVICE</span><span>CHARACTER</span><span>FEATURE</span></span></div>
+      <div class="hdr light"><span class="brand" id="lk2"></span><span class="nav"><span>SERVICE</span><span>CHARACTER</span><span>FEATURE</span></span></div>
+      <div style="display:flex;gap:24px;align-items:center;margin-top:18px"><span class="brand" id="lk3" style="font-size:34px;gap:14px"></span></div>
+    </div>
+    <div class="card"><h2>App icon · Favicon</h2>
+      <div class="icons" id="icons"></div>
+      <div style="margin-top:22px;display:flex;gap:10px" id="tabs"></div>
+    </div>
+    <div class="card"><h2>Loader C (선택한 로딩)</h2>
+      <div class="loader"><div class="stack"><span id="ld"></span><span class="name" style="font-size:30px">Studio Nx</span><div class="meter">${'<i></i>'}</div><span class="tag">WARMING UP · 0 DB</span></div></div>
+    </div>
+    <div class="card"><h2>Nyxi 머리핀과 나란히</h2>
+      <div style="display:flex;gap:18px;align-items:center"><img id="pinref" style="width:220px;height:220px;object-fit:cover;background:#fff"><span id="pinmark"></span></div>
+      <p class="desc" style="margin-top:12px">왼쪽: 캐릭터 시트의 머리핀 (확대) · 오른쪽: 로고. 캐릭터와 로고가 같은 물건으로 읽히도록 열린 방향·굵기·뿔 모양을 맞춤</p>
+    </div>
+  </div>
+</section>
+
+<script>
+// ---- 기하: 100×100. 바깥 원에서 오른쪽(살짝 위)으로 비켜난 원을 빼서 굵은 초승달 (머리핀 비율: 몸통 두께 ≈ 지름의 40%)
+const O = { cx: 48, cy: 50, r: 42 }, I = { cx: 67, cy: 44, r: 28 };
+let uid = 0;
+const crescentMask = (extra = '') => {
+  const id = 'm' + (++uid);
+  return { id, defs: `<mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect width="100" height="100" fill="#fff"/><circle cx="${I.cx}" cy="${I.cy}" r="${I.r}" fill="#000"/>${extra}</mask>` };
+};
+// 1 Pin — 머리핀 그대로
+const pin = (c) => { const m = crescentMask(); return `<defs>${m.defs}</defs><circle cx="${O.cx}" cy="${O.cy}" r="${O.r}" fill="${c}" mask="url(#${m.id})"/>`; };
+// 2 Strand — 머리카락 한 가닥이 가로지르는 틈 (머리핀이 머리에 꽂힌 모습)
+const strand = (c) => { const m = crescentMask(`<path d="M4,26 C28,44 44,64 56,100" stroke="#000" stroke-width="5.5" fill="none"/>`); return `<defs>${m.defs}</defs><circle cx="${O.cx}" cy="${O.cy}" r="${O.r}" fill="${c}" mask="url(#${m.id})"/>`; };
+// 3 Meter — 레벨 미터 막대로 채운 초승달 (로딩 C의 미터와 연결)
+const meter = (c) => { const m = crescentMask(); let bars = ''; for (let x = 8; x < 92; x += 8.4) bars += `<rect x="${x}" y="0" width="5.6" height="100" fill="${c}"/>`; const cid = 'c' + (++uid);
+  return `<defs>${m.defs}<clipPath id="${cid}"><circle cx="${O.cx}" cy="${O.cy}" r="${O.r}"/></clipPath></defs><g clip-path="url(#${cid})" mask="url(#${m.id})">${bars}</g>`; };
+// 4 Star — 초승달 + 안쪽의 반짝임(✕ 모양 = Nx 의 x)
+const star = (c, accent) => { const m = crescentMask(); const s = (cx, cy, R, r) => { let p = ''; for (let i = 0; i < 8; i++) { const a = Math.PI / 4 * i + Math.PI / 4; const rr = i % 2 ? r : R; p += `${cx + rr * Math.cos(a)},${cy + rr * Math.sin(a)} `; } return p; };
+  return `<defs>${m.defs}</defs><circle cx="${O.cx}" cy="${O.cy}" r="${O.r}" fill="${c}" mask="url(#${m.id})"/><polygon points="${s(72, 42, 12, 3)}" fill="${accent || c}"/>`; };
+// 5 Zigzag — 안쪽 가장자리를 후드 지그재그(첫 화면 띠)로
+const zig = (c) => { let p = ''; const n = 44; for (let i = 0; i <= n; i++) { const a = (i / n) * Math.PI * 2; const rr = I.r + (i % 2 ? 3.6 : -1.2); p += `${I.cx + rr * Math.cos(a)},${I.cy + rr * Math.sin(a)} `; }
+  const id = 'm' + (++uid); return `<defs><mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><rect width="100" height="100" fill="#fff"/><polygon points="${p}" fill="#000"/></mask></defs><circle cx="${O.cx}" cy="${O.cy}" r="${O.r}" fill="${c}" mask="url(#${id})"/>`; };
+
+const MARKS = [
+  ['1 · Pin', pin, '머리핀을 그대로. 가장 단순해 16px에서도 또렷함. 현재 임시 로고를 굵고 기울게 다듬은 형태'],
+  ['2 · Strand', strand, '머리카락이 가로지르는 가는 틈. "머리에 꽂힌 핀"이라는 이야기가 생기고, 작은 크기에선 1안처럼 보임'],
+  ['3 · Meter', meter, '레벨 미터 막대로 채운 초승달. DAW·소리와 바로 연결되고 로딩 C의 미터와 이어짐. 16px에선 뭉개짐 → 작은 크기는 1안으로'],
+  ['4 · Star', star, '초승달 안의 반짝임(✕ = Nx의 x). 밤·Nyx 신화와 연결. 반짝임만 보라로 강조 가능'],
+  ['5 · Zigzag', zig, '안쪽 가장자리를 후드 지그재그로. 첫 화면 보라 띠와 같은 무늬 → 브랜드 요소가 하나로 묶임'],
+];
+const svg = (fn, size, c, accent) => `<svg width="${size}" height="${size}" viewBox="0 0 100 100" aria-hidden="true">${fn(c, accent)}</svg>`;
+const add = (rowId, html, cls = '') => document.getElementById(rowId).insertAdjacentHTML('beforeend', `<div class="cell ${cls}">${html}</div>`);
+for (const [name, fn, d] of MARKS) {
+  add('r-dark', `<div style="display:flex;gap:18px">${svg(fn, 100, '#a383ff', '#f4f3f7')}${svg(fn, 100, '#f4f3f7', '#a383ff')}</div><span class="name">${name}</span>`);
+  add('r-light', `<div style="display:flex;gap:18px">${svg(fn, 100, '#0b0a0f', '#6a24f6')}${svg(fn, 100, '#6a24f6', '#0b0a0f')}</div>`, 'light');
+  add('r-violet', `<div class="app" style="width:110px;height:110px;background:#0b0a0f">${svg(fn, 72, '#a383ff', '#f4f3f7')}</div>`, 'violet');
+  add('r-size', `<div class="sizes">${[16, 24, 32, 48].map(s => `<span>${svg(fn, s, '#f4f3f7', '#a383ff')}${s}</span>`).join('')}</div><div class="sizes" style="background:#f6f5f9;padding:6px 8px">${[16, 24, 32].map(s => `<span>${svg(fn, s, '#0b0a0f', '#6a24f6')}</span>`).join('')}</div>`);
+  add('r-desc', `<p class="desc">${d}</p>`);
+}
+// 시트 2: 추천안
+const P = MARKS[Number(new URLSearchParams(location.search).get('pick') || 0)];
+document.getElementById('pick-name').textContent = P[0];
+document.getElementById('lk1').innerHTML = svg(P[1], 30, '#a383ff', '#f4f3f7') + 'Studio Nx';
+document.getElementById('lk2').innerHTML = svg(P[1], 30, '#6a24f6', '#0b0a0f') + 'Studio Nx';
+document.getElementById('lk3').innerHTML = svg(P[1], 56, '#a383ff', '#f4f3f7') + 'Studio Nx';
+document.getElementById('icons').innerHTML = [[120, '#6a24f6', '#f4f3f7', '#0b0a0f'], [120, '#0b0a0f', '#a383ff', '#f4f3f7'], [120, '#f6f5f9', '#6a24f6', '#0b0a0f'], [64, '#6a24f6', '#f4f3f7', '#0b0a0f'], [32, '#6a24f6', '#f4f3f7', '#0b0a0f']]
+  .map(([s, bg, c, a]) => `<div class="app" style="width:${s}px;height:${s}px;background:${bg};border:1px solid rgb(244 243 247 / .12)">${svg(P[1], s * .66, c, a)}</div>`).join('');
+document.getElementById('tabs').innerHTML = `<div class="tab">${svg(MARKS[0][1], 16, '#a383ff')}Studio Nx — Make your noise</div><div class="tab" style="background:#e8e6ee;color:#46424f">${svg(MARKS[0][1], 16, '#6a24f6')}Studio Nx — Dashboard</div>`;
+document.getElementById('ld').innerHTML = svg(P[1], 110, '#a383ff', '#f4f3f7');
+document.querySelector('.meter').innerHTML = '<i></i>'.repeat(16);
+document.getElementById('pinmark').innerHTML = svg(P[1], 220, '#0b0a0f', '#6a24f6');
+document.getElementById('pinmark').style.cssText = 'background:#fff;display:block';
+document.getElementById('pinref').src = 'pin_zoom_one.png';
+</script>
+</body></html>

@@ -1,0 +1,286 @@
+<!doctype html>
+<!-- 시퀀서 UI 유사도 목업 v2 — mix.html?fl=0..100 (Ableton 100−fl : FL fl)
+     2026-10-05 v2: 두 매뉴얼의 화면 구성 용어에 맞춰 다시 그림
+       Ableton Live 12 Manual — Live Concepts(Control Bar 9구역, Status Bar, Browser sidebar+content pane, Detail View = Clip View + Device View),
+                                Arrangement View(Overview, Beat-time Ruler, Scrub Area·Locators, Loop Brace, Time Ruler, Track Headers, Return tracks)
+       FL Studio Online Manual — Toolbar panels(Menu, Title & Hint Bar, Transport PAT/SONG, Tempo, Song Position, Pattern Selector, Snap,
+                                Output, CPU & Memory, Shortcut icons), Playlist(툴바 P·B·D·T·S·C·E, Picker Panel, Track Header, Time Markers,
+                                Pattern/Audio/Automation clips), Channel Rack(LED·Pan·Vol·Mixer#·Channel button·16 steps, Swing, Filter group),
+                                Mixer(Master·Insert, 미터·페이더·팬·Mute/Solo·Arm·라우팅 케이블, 슬롯 10개·EQ)
+     화면 요소 10가지를 FL 비율 10%마다 하나씩 FL 방식으로 바꾸고, 바탕 색조는 비율만큼 섞음.
+     Studio Nx 정체성(어두운 바탕·보라 포인트·로고·떠 있는 Nyxi)은 모든 비율에서 유지 -->
+<html lang="ko"><head><meta charset="utf-8"><title>Sequencer similarity mockup v2</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&display=block">
+<style>
+  :root { --v:#6a24f6; --vi:#a383ff; --ink:#ece9f2; --soft:#a9a5b4; --faint:#6f6b7a; --org:#ffad33; --red:#ff5d5d; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1440px; height: 960px; overflow: hidden; }
+  body { font: 11.5px/1.25 "Segoe UI", "Malgun Gothic", sans-serif; color: var(--ink); background: var(--bg); position: relative; }
+  .app { position: absolute; inset: 0 0 60px 0; display: grid; grid-template-rows: var(--top-h) var(--overview-h) 1fr var(--detail-h) var(--status-h); grid-template-columns: var(--browser-w) var(--picker-w) 1fr; }
+  .chip { border: 1px solid var(--line); padding: 2px 6px; color: var(--soft); background: var(--panel2); border-radius: var(--r); white-space: nowrap; }
+  .chip.on { color: #fff; background: var(--v); border-color: var(--v); } .chip.o { color: #111; background: var(--org); border-color: var(--org); }
+  .grp { display: flex; gap: 3px; align-items: center; padding: 0 8px; border-right: 1px solid var(--line); height: 100%; }
+  .brand { display: flex; align-items: center; gap: 6px; white-space: nowrap; flex: none; font: 800 12px/1 Unbounded, sans-serif; color: #fff; padding-right: 8px; }
+  .brand svg { width: 15px; height: 15px; color: var(--vi); }
+  .tp i { width: 24px; height: 20px; display: inline-grid; place-items: center; font-style: normal; border: 1px solid var(--line); background: var(--panel2); border-radius: var(--r); color: var(--soft); }
+  .tp i.rec { color: var(--red); }
+  .top { grid-column: 1 / -1; grid-row: 1; background: var(--panel); border-bottom: 1px solid var(--line); display: flex; align-items: stretch; overflow: hidden; }
+  .top.abl { align-items: center; }
+  .top .lbl { font-size: 9px; color: var(--faint); text-transform: uppercase; letter-spacing: .06em; margin-right: 2px; }
+  .flbar { display: grid; grid-template-rows: 1fr 1fr; width: 100%; }
+  .flbar > div { display: flex; align-items: center; gap: 6px; padding: 0 8px; white-space: nowrap; }
+  .flbar > div + div { border-top: 1px solid var(--line); }
+  .menu span { color: var(--soft); font-size: 11px; letter-spacing: .04em; }
+  .lcd { font: 300 24px/1 "Segoe UI Light", "Segoe UI", sans-serif; padding: 1px 8px; background: rgb(0 0 0 / .28); border-radius: var(--r); color: #f1e9ff; }
+  .lcd small { font-size: 9px; color: var(--faint); margin-left: 3px; }
+  .hintbar { flex: 1 1 0; min-width: 0; color: var(--soft); font-size: 11px; background: rgb(0 0 0 / .18); padding: 3px 8px; border-radius: var(--r); overflow: hidden; white-space: nowrap; }
+  .hintbar b { color: #fff; font-weight: 600; }
+  .scope { width: 70px; height: 22px; background: rgb(0 0 0 / .3); border-radius: var(--r); position: relative; overflow: hidden; }
+  .scope::after { content: ""; position: absolute; inset: 50% 0 auto; height: 1px; background: #9fe0b4; box-shadow: 0 -4px 0 rgb(159 224 180 / .4), 0 4px 0 rgb(159 224 180 / .4); }
+  .sc { display: flex; gap: 3px; } .sc i { display: inline-grid; place-items: center; width: 24px; height: 22px; font-style: normal; border: 1px solid var(--line); background: var(--panel2); border-radius: var(--r); color: var(--soft); font-size: 11px; }
+  .sc i.on { color: #fff; border-color: var(--vi); }
+  .sp { flex: 1; }
+  .overview { grid-column: 3; grid-row: 2; background: var(--panel2); border-bottom: 1px solid var(--line); position: relative; overflow: hidden; }
+  .overview::before { content: ""; position: absolute; inset: 4px 0; background: repeating-linear-gradient(90deg, rgb(200 224 138 / .35) 0 6%, transparent 6% 9%, rgb(143 209 138 / .35) 9% 22%, transparent 22% 25%); }
+  .overview::after { content: ""; position: absolute; top: 2px; bottom: 2px; left: 0; width: 62%; border: 1px solid #fff; opacity: .5; }
+  .browser { grid-column: 1; grid-row: 2 / var(--browser-end); background: var(--panel); border-right: 1px solid var(--line); overflow: hidden; display: flex; flex-direction: column; }
+  .search { margin: 7px; padding: 4px 8px; border: 1px solid var(--line); color: var(--faint); border-radius: var(--r); }
+  .bcols { display: grid; grid-template-columns: 104px 1fr; flex: 1; min-height: 0; }
+  .bcols > div { overflow: hidden; } .bcols > div + div { border-left: 1px solid var(--line); }
+  .bl div { padding: 3px 8px; color: var(--soft); white-space: nowrap; } .bl div.on { background: var(--sel); color: #fff; }
+  .bl .h { color: var(--faint); font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase; padding-top: 9px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 3px; padding: 0 8px 6px; }
+  .tags span { font-size: 10px; border: 1px solid var(--line); padding: 1px 5px; color: var(--soft); }
+  .tree div { padding: 4px 8px; color: var(--soft); font-size: 12.5px; white-space: nowrap; } .tree .d1 { padding-left: 24px; } .tree .d2 { padding-left: 40px; font-size: 12px; }
+  .tree .on { background: var(--sel); color: #fff; }
+  .tagbar { margin-top: auto; border-top: 1px solid var(--line); padding: 5px 8px; color: var(--faint); font-size: 10px; letter-spacing: .1em; }
+  .picker { grid-column: 2; grid-row: 2 / 4; background: var(--panel2); border-right: 1px solid var(--line); overflow: hidden; padding: 4px; display: flex; flex-direction: column; gap: 3px; }
+  .pf { display: flex; gap: 3px; padding-bottom: 4px; border-bottom: 1px solid var(--line); margin-bottom: 2px; }
+  .pf i { flex: 1; text-align: center; font-style: normal; font-size: 11px; border: 1px solid var(--line); border-radius: var(--r); color: var(--soft); padding: 2px 0; }
+  .pf i.on { color: #fff; border-color: var(--vi); }
+  .picker .p { padding: 4px 6px; border-radius: var(--r); font-size: 11px; color: #fff; white-space: nowrap; overflow: hidden; }
+  .arr { grid-column: 3; grid-row: 3; display: grid; grid-template-columns: var(--lhead-w) 1fr var(--rhead-w); grid-template-rows: var(--pltool-h) 20px 18px 1fr var(--tr-h); background: var(--grid); min-width: 0; min-height: 0; overflow: hidden; position: relative; }
+  .pltool { grid-column: 1 / -1; grid-row: 1; display: flex; align-items: center; gap: 4px; padding: 0 8px; background: var(--panel2); border-bottom: 1px solid var(--line); color: var(--soft); white-space: nowrap; }
+  .pltool i { font-style: normal; height: 18px; padding: 0 4px; display: inline-grid; place-items: center; border: 1px solid var(--line); border-radius: var(--r); font-size: 10px; }
+  .pltool i.on { color: #fff; border-color: var(--vi); background: rgb(106 36 246 / .3); }
+  .pltool .crumb { margin-left: 8px; color: var(--soft); }
+  .ruler { grid-column: 2; grid-row: 2; display: flex; border-bottom: 1px solid var(--line); background: var(--panel2); color: var(--faint); font-size: 10px; position: relative; }
+  .ruler span { flex: 1; border-left: 1px solid var(--line); padding: 3px 3px; }
+  .brace { position: absolute; top: 0; height: 7px; background: rgb(255 255 255 / .25); border: 1px solid var(--soft); border-top: 0; }
+  .corner { background: var(--panel2); border-bottom: 1px solid var(--line); }
+  .scrub { grid-column: 2; grid-row: 3; position: relative; border-bottom: 1px solid var(--line); background: var(--panel); }
+  .scrub span { position: absolute; top: 2px; font-size: 10px; color: var(--soft); white-space: nowrap; }
+  .scrub.abl span::before { content: "▷ "; color: var(--faint); }
+  .scrub.fl span { color: #f0d9a8; } .scrub.fl span::before { content: "▾ "; color: var(--org); }
+  .lh, .rh, .lanes { grid-row: 4; overflow: hidden; }
+  .lh { grid-column: 1; background: var(--panel2); border-right: 1px solid var(--line); }
+  .rh { grid-column: 3; background: var(--panel2); border-left: 1px solid var(--line); }
+  .lanes { grid-column: 2; position: relative; background-image: repeating-linear-gradient(90deg, transparent 0 calc(var(--bar) - 1px), var(--gridline) calc(var(--bar) - 1px) var(--bar)); }
+  .trow { height: var(--th); border-bottom: 1px solid var(--line); position: relative; }
+  .trow.ret { height: 24px; }
+  .lh .trow { display: flex; align-items: center; justify-content: space-between; padding: 0 8px; color: var(--soft); font-size: 12px; }
+  .lh .trow i { width: 9px; height: 9px; border-radius: 50%; background: #7ee08a; box-shadow: 0 0 4px #7ee08a; }
+  .rh .trow { display: grid; grid-template-columns: 1fr auto; gap: 2px 3px; padding: 3px 5px; font-size: 10.5px; align-content: start; }
+  .rh .trow b { color: #0b0a0f; padding: 1px 5px; border-radius: 2px; font-weight: 600; white-space: nowrap; overflow: hidden; }
+  .rh .ctl { display: flex; gap: 2px; } .rh .ctl em { font-style: normal; border: 1px solid var(--line); padding: 0 3px; color: var(--soft); font-size: 9.5px; }
+  .rh .ctl em.n { background: var(--org); color: #111; border-color: var(--org); }
+  .rh .io { display: flex; gap: 2px; color: var(--faint); font-size: 9.5px; } .rh .io em { font-style: normal; border: 1px solid var(--line); padding: 0 3px; }
+  .rh .io em.a { color: #111; background: var(--org); }
+  .rh .vol { display: flex; gap: 3px; color: var(--soft); font-size: 9.5px; } .rh .vol em { font-style: normal; background: #2a7f8f; color: #fff; padding: 0 4px; }
+  .timeruler { grid-column: 2; grid-row: 5; display: flex; border-top: 1px solid var(--line); background: var(--panel2); color: var(--faint); font-size: 10px; }
+  .timeruler span { flex: 1; padding: 2px 3px; border-left: 1px solid var(--line); }
+  .clip { position: absolute; top: 3px; bottom: 3px; border-radius: var(--cr); overflow: hidden; display: flex; flex-direction: column; }
+  .clip b { font-weight: 600; font-size: 10.5px; padding: 1px 5px; white-space: nowrap; overflow: hidden; }
+  .clip u { flex: 1; text-decoration: none; background-image: repeating-linear-gradient(90deg, transparent 0 7px, var(--note) 7px 9px); background-size: 100% 40%; background-repeat: repeat-x; background-position: 0 60%; }
+  .clip.audio u { background: linear-gradient(transparent 20%, var(--note) 20% 80%, transparent 80%); mask: repeating-linear-gradient(90deg, #000 0 2px, transparent 2px 3px); opacity: .7; }
+  .clip .fade { position: absolute; top: 14px; bottom: 0; width: 18px; background: linear-gradient(to top right, rgb(0 0 0 / .45) 50%, transparent 50%); }
+  .auto-line { position: absolute; left: 0; right: 0; height: 2px; background: var(--red); }
+  .auto-line::after { content: ""; position: absolute; left: 38%; top: -3px; width: 7px; height: 7px; border-radius: 50%; background: var(--red); }
+  .aclip { position: absolute; top: 3px; bottom: 3px; border-radius: var(--cr); background: #5e6a32; overflow: hidden; }
+  .aclip b { font-size: 10.5px; padding: 1px 5px; display: block; background: #7d8a40; color: #10120a; white-space: nowrap; }
+  .aclip svg { position: absolute; left: 0; right: 0; bottom: 3px; width: 100%; height: 60%; }
+  .playhead { position: absolute; top: 0; bottom: 0; width: 1px; background: #fff; opacity: .7; }
+  .detail { grid-column: 2 / 4; grid-row: 4; background: var(--panel); border-top: 1px solid var(--line); display: grid; grid-template-columns: 200px 1fr; grid-template-rows: 22px 70px 1fr; min-height: 0; overflow: hidden; }
+  .dtabs { grid-column: 1 / -1; display: flex; gap: 6px; align-items: center; padding: 0 6px; background: var(--panel2); border-bottom: 1px solid var(--line); color: var(--soft); }
+  .dtabs span.on { color: #fff; background: var(--sel); padding: 1px 6px; }
+  .devices { grid-column: 1 / -1; display: flex; gap: 6px; padding: 5px 6px; border-bottom: 1px solid var(--line); overflow: hidden; }
+  .dev { border: 1px solid var(--line); background: var(--panel2); padding: 4px 6px; min-width: 140px; color: var(--soft); font-size: 10px; }
+  .dev b { display: block; color: var(--ink); font-size: 11px; margin-bottom: 4px; } .dev b::before { content: "● "; color: var(--org); }
+  .knobs { display: flex; gap: 8px; } .knobs i { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #3ab8c9; border-right-color: transparent; display: block; }
+  .dev.drop { border-style: dashed; display: grid; place-items: center; color: var(--faint); }
+  .props { border-right: 1px solid var(--line); padding: 6px; display: grid; align-content: start; gap: 5px; color: var(--soft); overflow: hidden; }
+  .props .t { color: #0b0a0f; padding: 1px 6px; font-weight: 600; }
+  .props .kv { display: flex; justify-content: space-between; border-bottom: 1px solid var(--line); padding-bottom: 2px; }
+  .roll { position: relative; display: grid; grid-template-columns: 34px 1fr; grid-template-rows: 1fr var(--vel-h); overflow: hidden; }
+  .keys { background: repeating-linear-gradient(180deg, #ddd 0 9px, #222 9px 15px, #ddd 15px 24px, #ddd 24px 33px, #222 33px 39px, #ddd 39px 48px); }
+  .notes { position: relative; background-image: repeating-linear-gradient(90deg, transparent 0 59px, var(--gridline) 59px 60px), repeating-linear-gradient(180deg, transparent 0 11px, rgb(255 255 255 / .03) 11px 12px); overflow: hidden; }
+  .notes i { position: absolute; height: 10px; border-radius: 2px; background: var(--noteBig); font-style: normal; font-size: 8px; color: #0b0a0f; padding-left: 2px; line-height: 10px; }
+  .vel { grid-column: 1 / -1; border-top: 1px solid var(--line); position: relative; background: rgb(0 0 0 / .15); }
+  .vel span { position: absolute; left: 4px; top: 3px; color: var(--faint); font-size: 10px; }
+  .vel i { position: absolute; bottom: 3px; width: 2px; background: var(--noteBig); } .vel i::after { content: ""; position: absolute; top: -3px; left: -2px; width: 6px; height: 6px; border-radius: 50%; background: var(--noteBig); }
+  .infov { grid-column: 1; grid-row: 4; background: var(--panel); border-top: 1px solid var(--line); padding: 8px; color: var(--faint); font-size: 10.5px; line-height: 1.5; overflow: hidden; }
+  .status { grid-column: 1 / -1; grid-row: 5; background: var(--panel); border-top: 1px solid var(--line); display: flex; align-items: center; gap: 10px; padding: 0 10px; color: var(--soft); font-size: 10.5px; }
+  .status .i { width: 14px; height: 14px; border-radius: 50%; background: var(--org); color: #111; display: grid; place-items: center; font-size: 9px; font-weight: 700; }
+  .win { position: absolute; background: var(--panel); border: 1px solid var(--line2); border-radius: var(--wr); box-shadow: 0 14px 40px rgb(0 0 0 / .55); overflow: hidden; z-index: 5; }
+  .win > .wt { display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: var(--panel2); color: var(--soft); font-size: 11px; border-bottom: 1px solid var(--line); }
+  .win > .wt::after { content: "— ▢ ✕"; margin-left: auto; color: var(--faint); letter-spacing: .3em; }
+  .mixer { display: flex; height: calc(100% - 25px); position: relative; }
+  .strip { width: 30px; border-right: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; padding: 3px 0; gap: 4px; font-size: 9px; color: var(--faint); }
+  .strip .meter { width: 18px; height: 34px; background: rgb(0 0 0 / .35); position: relative; } .strip .meter::after { content: ""; position: absolute; left: 3px; right: 3px; bottom: 0; height: var(--m); background: linear-gradient(#ff5d5d, #ffd166 30%, #7ee08a 50%); }
+  .strip .knob { width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--soft); }
+  .strip .fad { flex: 1; width: 5px; background: rgb(0 0 0 / .35); position: relative; } .strip .fad::after { content: ""; position: absolute; left: -7px; right: -7px; height: 9px; top: var(--y); background: #c8c3cc; border-radius: 2px; }
+  .strip.sel { background: rgb(46 204 113 / .14); }
+  .strip .led { width: 7px; height: 7px; border-radius: 50%; background: #7ee08a; }
+  .strip span { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; }
+  .cable { position: absolute; bottom: 4px; height: 14px; border: 2px solid #7ee08a; border-top: 0; border-radius: 0 0 10px 10px; z-index: 2; }
+  .dock { width: 150px; margin-left: auto; border-left: 1px solid var(--line); padding: 5px; display: grid; align-content: start; gap: 3px; }
+  .dock .io { border: 1px solid var(--line); padding: 3px 6px; color: var(--soft); font-size: 10px; }
+  .dock .sl { border: 1px solid var(--line); padding: 2px 6px; color: var(--faint); font-style: italic; font-size: 10px; display: flex; justify-content: space-between; }
+  .dock .sl.on { color: var(--ink); font-style: normal; }
+  .dock .eq { height: 36px; border: 1px solid var(--line); background: linear-gradient(transparent 49%, var(--soft) 49% 51%, transparent 51%); }
+  .rack { padding: 5px; display: grid; gap: 3px; }
+  .rack .top2 { display: flex; gap: 6px; align-items: center; color: var(--soft); font-size: 10px; padding-bottom: 3px; }
+  .rack .ch { display: grid; grid-template-columns: 10px 14px 14px 22px 86px repeat(16, 1fr); gap: 3px; align-items: center; }
+  .rack .ch .led { width: 8px; height: 8px; border-radius: 50%; background: #7ee08a; }
+  .rack .ch .kn { width: 13px; height: 13px; border-radius: 50%; border: 1px solid var(--soft); }
+  .rack .ch .mx { font-size: 9.5px; color: var(--soft); text-align: center; border: 1px solid var(--line); }
+  .rack .ch b { font-weight: 500; background: var(--panel2); padding: 2px 6px; color: var(--ink); font-size: 10.5px; border-radius: var(--r); white-space: nowrap; overflow: hidden; }
+  .rack .ch i { height: 15px; border-radius: 2px; background: #5a5560; }
+  .rack .ch i.alt { background: #7b5f6e; } .rack .ch i.on { background: var(--vi); }
+  .nyxi { position: absolute; right: calc(var(--rhead-w) + 18px); bottom: calc(var(--detail-h) + var(--status-h) + var(--tr-h) + 74px); width: 88px; height: 100px; border: 1px dashed var(--vi); border-radius: 8px; background: rgb(106 36 246 / .14); display: grid; place-items: center; color: var(--vi); font-weight: 700; font-size: 11px; text-align: center; z-index: 6; }
+  .badge { position: absolute; left: 0; right: 0; bottom: 0; height: 60px; z-index: 9; background: #0b0a0f; border-top: 2px solid var(--vi); padding: 8px 16px; display: flex; gap: 18px; align-items: center; font: 800 20px/1 Unbounded, sans-serif; color: #fff; white-space: nowrap; }
+  .badge small { font: 500 10.5px/1.45 "Malgun Gothic", sans-serif; color: var(--soft); white-space: normal; }
+</style></head><body>
+<div class="app" id="app"></div>
+<script>
+const FL = Math.max(0, Math.min(100, +(new URLSearchParams(location.search).get('fl') ?? 0)));
+const A = 100 - FL, on = t => FL >= t;
+const mix = (a, b) => { const p = FL / 100, h = s => [1, 3, 5].map(i => parseInt(s.slice(i, i + 2), 16)); const x = h(a), y = h(b); return '#' + x.map((v, i) => Math.round(v + (y[i] - v) * p).toString(16).padStart(2, '0')).join(''); };
+const R = document.documentElement.style, set = (k, v) => R.setProperty(k, v);
+// 색조: Ableton 무채색 회색 ↔ FL 자줏빛
+set('--bg', mix('#1b1b1e', '#2b1f2b')); set('--panel', mix('#242427', '#3a2a37')); set('--panel2', mix('#2c2c30', '#442f40'));
+set('--grid', mix('#1f1f22', '#33232f')); set('--gridline', mix('#2b2b2f', '#422e3c')); set('--line', mix('#36363b', '#523a4c'));
+set('--line2', mix('#4a4a50', '#6b4f63')); set('--sel', mix('#3a3a40', '#5b3d55'));
+set('--r', (FL / 100 * 3).toFixed(1) + 'px'); set('--cr', on(30) ? '3px' : '1px'); set('--wr', '6px');
+// 항목 10가지 (매뉴얼 용어)
+const STEPS = [
+  [10, 'Status Bar·Info View → Hint Bar'], [20, 'Browser(sidebar+content pane) → 폴더 트리'], [30, 'Overview·Scrub Area·Locators·파스텔 클립 → Time Markers·클립 종류 색/아이콘'],
+  [40, 'Control Bar 9구역 → 툴바 패널(Song Position·Pattern Selector·Snap·창 바로가기)'], [50, '오른쪽 Track Headers·Time Ruler → 왼쪽 Playlist Track Header + 도구 P·B·D·T·S·C·E'],
+  [60, 'Picker Panel'], [70, '트랙 안 오토메이션 → Automation clips'], [80, '트랙 머리 믹서·Return 트랙 → Mixer 창(Insert·라우팅·슬롯 10·EQ)'],
+  [90, 'Detail View(Clip View+Device View) → 떠 있는 Piano roll'], [100, 'Channel Rack(스텝 시퀀서)'],
+];
+set('--top-h', on(40) ? '62px' : '40px');
+set('--overview-h', on(30) ? '0px' : '18px');
+set('--browser-w', on(20) ? '240px' : '290px');
+set('--picker-w', on(60) ? '150px' : '0px');
+set('--detail-h', on(90) ? '0px' : '268px');
+set('--status-h', on(10) ? '0px' : '22px'); set('--browser-end', on(10) ? '5' : '4');
+set('--lhead-w', on(50) ? '106px' : '0px'); set('--rhead-w', on(50) ? '0px' : '200px');
+set('--pltool-h', on(50) ? '26px' : '0px'); set('--tr-h', on(50) ? '0px' : '18px');
+set('--th', '50px'); set('--vel-h', '38px');
+set('--note', on(30) ? '#9fe0b4' : 'rgb(0 0 0 / .35)'); set('--noteBig', on(90) ? '#9fe0b4' : '#9fb4c0');
+
+const logo = '<svg viewBox="-1 -5 98 98"><path fill="currentColor" fill-rule="evenodd" d="M73.76 16.83A42 42 0 1 0 88.14 62.36A28 28 0 1 1 73.76 16.83ZM64 -2Q66.66 14.34 83 17Q66.66 19.66 64 36Q61.34 19.66 45 17Q61.34 14.34 64 -2Z"/></svg>';
+const hint = '<span class="hintbar"><b>Draw (P)</b> — 왼쪽 클릭으로 고른 클립 추가 · 오른쪽 클릭으로 삭제</span>';
+let h = '';
+// 상단: Ableton Control Bar(9구역) / FL 툴바 패널
+if (on(40)) {
+  h += `<div class="top"><div class="flbar">
+    <div><span class="brand">${logo}Studio Nx</span><span class="menu"><span>FILE</span> <span>EDIT</span> <span>ADD</span> <span>PATTERNS</span> <span>VIEW</span> <span>OPTIONS</span> <span>TOOLS</span> <span>HELP</span></span>
+      <span class="chip">PAT</span><span class="chip on">SONG</span><span class="tp"><i>▶</i><i>■</i><i class="rec">●</i></span><span class="chip">145.000</span><span class="lcd">57:01:00<small>B:S:T</small></span>
+      <span class="scope"></span><span class="chip">CPU 18% · 412 MB</span><span class="sp"></span><span class="chip">💬</span><span class="chip">Nyxi</span></div>
+    <div>${on(10) ? hint : ''}<span class="chip">Pattern 1 ▾ ＋</span><span class="chip">Snap: Line ▾</span><span class="chip">Chord: Am</span>
+      <span class="sc"><i class="on">▤</i><i>🎹</i><i>▦</i><i>🎚</i><i>☰</i></span></div>
+  </div></div>`;
+} else {
+  h += `<div class="top abl"><span class="brand" style="padding-left:10px">${logo}Studio Nx</span>
+    <span class="grp"><span class="chip">◧</span></span>
+    <span class="grp"><span class="chip">Tap</span><span class="chip">145.00</span><span class="chip">4 / 4</span><span class="chip">●○ ▾</span><span class="chip">1 Bar ▾</span></span>
+    <span class="grp"><span class="lbl">Scale</span><span class="chip">C# ▾</span><span class="chip">Minor ▾</span></span>
+    <span class="grp"><span class="chip o">→|</span><span class="chip">57. 1. 1</span></span>
+    <span class="grp tp"><i>▶</i><i>■</i><i class="rec">●</i></span>
+    <span class="grp"><span class="chip">＋</span><span class="chip o">⊙</span><span class="chip">Capture</span></span>
+    <span class="grp"><span class="chip">1. 1. 1</span><span class="chip o">⟲</span><span class="chip">17. 0. 0</span></span>
+    ${on(10) ? hint : '<span class="sp"></span>'}
+    <span class="grp"><span class="chip">✎</span><span class="chip">Key</span><span class="chip">MIDI</span><span class="chip">CPU 18%</span></span>
+    <span class="grp"><span class="chip">Session</span><span class="chip on">Arrange</span><span class="chip">💬</span><span class="chip">Nyxi</span></span></div>`;
+}
+if (!on(30)) h += `<div class="overview"></div>`;
+// 브라우저
+h += `<div class="browser"><div class="search">⌕ Search (Ctrl+F)</div>`;
+h += on(20)
+  ? `<div class="tree"><div>📁 Current project</div><div>📁 Recent files</div><div class="on">🔌 Plugin database</div><div class="d1">🎛 Effects</div><div class="d1">🎹 Generators</div><div class="d2">Sampler</div><div class="d2">Synth classic</div><div class="d2">Drum</div><div>🎚 Plugin presets</div><div>📋 Channel presets</div><div>🎚 Mixer presets</div><div>🎵 Samples</div><div class="d1">📁 Drums</div><div class="d1">📁 Bass</div><div>☁ Cloud</div><div>📁 Backup</div></div><div class="tagbar">TAGS ⌕</div></div>`
+  : `<div class="tags"><span>Sounds ▾</span><span>Bass ›</span><span>Keys ›</span><span>Pad ›</span><span>Lead</span><span>Strings ›</span><span>Ambience & FX ›</span></div>
+     <div class="bcols"><div class="bl"><div class="h">Collections</div><div>🟥 Favorites</div><div class="h">Library</div><div>All</div><div class="on">Sounds</div><div>Drums</div><div>Instruments</div><div>Audio Effects</div><div>MIDI Effects</div><div>Modulators</div><div>Plug-ins</div><div>Clips</div><div>Samples</div><div>Grooves</div><div>Templates</div><div class="h">Places</div><div>Packs</div><div>User Library</div><div>Current Project</div></div>
+     <div class="bl"><div class="h">Name</div>${['3D Reso Perc.adg', '5ths Detuned Pad', '808 Pure.adg', 'A Soft Chord.adv', 'Abyss Keys.adg', 'Ac Piano Upright', 'Analog Bass.adv', 'Bright Pluck.adv', 'Dusk Pad.adv', 'Glass Bell.adg', 'Kick 808.adg', 'Vox Chop A.adg'].map((n, i) => `<div${i === 3 ? ' class="on"' : ''}>▤ ${n}</div>`).join('')}</div></div></div>`;
+// Picker Panel (패턴·오디오·오토메이션 클립 + 필터 스위치)
+const PAT = [['Sub Bass', '#7a2c8f'], ['Sub Bass #2', '#7a2c8f'], ['Bass', '#4a3192'], ['Pad', '#5b48b8'], ['Synth Chord', '#2c2f7a'], ['Lead', '#1f6b62'], ['808', '#8a2c4a'], ['Drums', '#3c6b3a']];
+const EXTRA = [['⇥ vox_take2.wav', '#7a5a1f'], ['⇥ drum_loop.wav', '#3c6b3a'], ['⤴ Filter Cutoff', '#5e6a32'], ['⤴ Reverb Mix', '#5e6a32']];
+if (on(60)) h += `<div class="picker"><div class="pf"><i class="on">▤</i><i class="on">⇥</i><i class="on">⤴</i></div>${PAT.map(([n, c]) => `<div class="p" style="background:${c}">▤ ${n}</div>`).join('')}${EXTRA.map(([n, c]) => `<div class="p" style="background:${c}">${n}</div>`).join('')}</div>`;
+// 트랙·클립
+const TR = [['Lead', '#c8e08a', '#1f6b62'], ['Strum', '#a8cf7a', '#4a3192'], ['Drums', '#8fd18a', '#3c6b3a', 1], ['Chords', '#c4f0d8', '#2c2f7a'], ['Pad', '#b8e8f5', '#5b48b8'], ['Bass', '#8fb0d8', '#4a3192'], ['Sub', '#b8a8e0', '#7a2c8f'], ['Vocal', '#e0a8a0', '#7a5a1f', 1]];
+const CL = { 0: [[0, 4], [8, 4], [16, 4]], 1: [[0, 12], [16, 8]], 2: [[4, 12], [20, 8]], 3: [[4, 12], [20, 8]], 4: [[12, 4]], 5: [[16, 4], [24, 6]], 6: [[8, 4], [20, 4]], 7: [[2, 10], [22, 4]] };
+const BARS = 32;
+let lanes = '', lh = '', rh = '';
+const rows = on(70) ? [...TR.slice(0, 6).map((t, i) => ({ t, i })), { auto: 'Filter Cutoff' }, ...TR.slice(6).map((t, i) => ({ t, i: i + 6 })), { auto: 'Reverb Mix' }] : TR.map((t, i) => ({ t, i }));
+rows.forEach((r, k) => {
+  if (r.auto) {
+    lanes += `<div class="trow"><div class="aclip" style="left:${(8 / BARS) * 100}%;width:${(12 / BARS) * 100}%"><b>⤴ ${r.auto}</b><svg viewBox="0 0 100 30" preserveAspectRatio="none"><path d="M0 28 C30 28 40 6 60 6 L100 2" fill="none" stroke="#e8f0c0" stroke-width="1.5"/></svg></div><div class="aclip" style="left:${(24 / BARS) * 100}%;width:${(6 / BARS) * 100}%"><b>⤴ ${r.auto}</b><svg viewBox="0 0 100 30" preserveAspectRatio="none"><path d="M0 4 L100 28" fill="none" stroke="#e8f0c0" stroke-width="1.5"/></svg></div></div>`;
+    lh += `<div class="trow">Track ${k + 1}<i></i></div>`; return;
+  }
+  const [name, pastel, patc, audio] = r.t;
+  const clips = CL[r.i].map(([s, l], j) => {
+    const fl = on(30), icon = audio ? '⇥' : '▤', label = fl ? `${icon} ${on(60) ? PAT[(r.i + j) % 8][0] : name}${j ? ' #' + (j + 1) : ''}` : name;
+    const bg = fl ? `background:${patc};` : `background:${pastel}55;`, head = fl ? `background:${patc};color:#fff;` : `background:${pastel};color:#16161a;`;
+    return `<div class="clip${audio ? ' audio' : ''}" style="left:${(s / BARS) * 100}%;width:${(l / BARS) * 100}%;${bg}"><b style="${head}">${label}</b><u></u>${audio ? '<span class="fade" style="right:0;transform:scaleX(-1)"></span>' : ''}</div>`;
+  }).join('');
+  const autoLine = !on(70) && (r.i === 0 || r.i === 5) ? `<div class="auto-line" style="top:${r.i ? 70 : 40}%"></div>` : '';
+  lanes += `<div class="trow">${clips}${autoLine}</div>`;
+  lh += `<div class="trow">${on(50) ? 'Track ' + (k + 1) : name}<i></i></div>`;
+  rh += `<div class="trow"><b style="background:${pastel}">${name}</b><span class="ctl"><em class="n">${r.i + 1}</em><em>S</em><em>●</em></span><span class="io"><em>In</em><em class="a">Auto</em><em>Off</em></span><span class="vol"><em>${(-3 - r.i * 1.7).toFixed(1)}</em><em>C</em></span></div>`;
+});
+// Return tracks + Main (Ableton)
+if (!on(50)) {
+  lanes += `<div class="trow ret"></div><div class="trow ret"></div><div class="trow ret"></div>`;
+  rh += ['A Reverb', 'B Delay'].map((n, i) => `<div class="trow ret"><b style="background:#cfcbd6">${n}</b><span class="ctl"><em>${'AB'[i]}</em><em>S</em><em>Post</em></span></div>`).join('') + `<div class="trow ret"><b style="background:#e8e5ee">Main</b><span class="ctl"><em>0</em><em>1/2</em></span></div>`;
+}
+lanes += `<div class="playhead" style="left:${(13.5 / BARS) * 100}%"></div>`;
+const marks = on(30) ? [['prechorus', 4], ['1st drop', 12], ['breakdown', 16], ['2nd drop', 20], ['outro', 28]] : [['Intro', 0], ['Verse', 4], ['Chorus', 12], ['Breakdown', 16], ['Drop', 20], ['Outro', 28]];
+const scrub = marks.map(([n, b]) => `<span style="left:${(b / BARS) * 100}%">${n}</span>`).join('');
+const tools = ['✎ P', '🖌 B', '✕ D', '∅ T', '↔ S', '✂ C', '▭ E', '🔍', '▶ Y'].map((t, i) => `<i${i === 0 ? ' class="on"' : ''}>${t}</i>`).join('');
+h += `<div class="arr" style="--bar:calc(100% / ${BARS})">
+  ${on(50) ? `<div class="pltool">${tools}<span class="crumb">Playlist — Arrangement › Pattern 1</span></div>` : ''}
+  <div class="corner" style="grid-row:2"></div><div class="ruler">${Array.from({ length: BARS / 2 }, (_, i) => `<span>${1 + i * 2}</span>`).join('')}${on(30) ? '' : `<div class="brace" style="left:${(12 / BARS) * 100}%;width:${(8 / BARS) * 100}%"></div>`}</div><div class="corner" style="grid-row:2;grid-column:3"></div>
+  <div class="corner" style="grid-row:3"></div><div class="scrub ${on(30) ? 'fl' : 'abl'}">${scrub}</div><div class="corner" style="grid-row:3;grid-column:3"></div>
+  <div class="lh">${lh}</div><div class="lanes">${lanes}</div><div class="rh">${rh}</div>
+  ${on(50) ? '' : `<div class="timeruler">${['0:00', '0:13', '0:26', '0:40', '0:53', '1:06', '1:19', '1:32'].map(t => `<span>${t}</span>`).join('')}</div>`}</div>`;
+// Detail View (Device View + Clip View) / Info View / Status Bar — Ableton
+const NOTES = [[2, 30, 160, 'C4'], [10, 54, 120, 'A3'], [170, 42, 200, 'B3'], [380, 66, 140, 'G3'], [520, 30, 220, 'C4'], [560, 78, 100, 'F3'], [700, 54, 180, 'A3']];
+const notes = NOTES.map(([x, y, w, n]) => `<i style="left:${x}px;top:${y}px;width:${w}px">${on(90) ? n : ''}</i>`).join('');
+const vel = NOTES.map(([x], i) => `<i style="left:${x + 2}px;height:${14 + (i * 7) % 18}px"></i>`).join('');
+if (!on(90)) {
+  if (!on(10)) h += `<div class="infov">${'<b style="color:var(--soft)">Info View — Main Lane</b><br>트랙의 클립을 보여 줍니다. 클릭·끌기로 시간을 고르고 편집 메뉴를 쓰세요.<br><br>[Ctrl+↑/↓] 이전·다음 테이크<br>[Ctrl+휠] 확대/축소<br>[Alt+휠] 레인 높이'}</div>`;
+  h += `<div class="detail"><div class="dtabs"><span>▾ Device View — Pad</span><span class="sp"></span><span>▾ Clip View</span><span class="on">Notes</span><span>Envelopes</span><span>MPE</span><span>1/16 ▾</span></div>
+    <div class="devices"><div class="dev"><b>Wavetable</b><div class="knobs"><i></i><i></i><i></i><i></i></div></div><div class="dev"><b>EQ Eight</b><div class="knobs"><i></i><i></i><i></i></div></div><div class="dev"><b>Reverb</b><div class="knobs"><i></i><i></i></div></div><div class="dev"><b>Utility</b><div class="knobs"><i></i><i></i></div></div><div class="dev drop">Drop Audio Effects Here</div></div>
+    <div class="props"><span class="t" style="background:#b8e8f5">Pad</span><div class="kv"><span>Start · End</span><span>1.1.1 · 17.1.1</span></div><div class="kv"><span>Loop</span><span>On</span></div><div class="kv"><span>Signature · Groove</span><span>4/4 · None</span></div><div class="kv"><span>Scale</span><span>C# Minor</span></div><div class="kv"><span>Fit to Scale · Invert</span><span></span></div></div>
+    <div class="roll"><div class="keys"></div><div class="notes">${notes}</div><div class="vel"><span>Velocity</span>${vel}</div></div></div>`;
+}
+if (!on(10)) h += `<div class="status"><span class="i">i</span>Status Bar — Insert Mark 57.1.1 (Time: 1:33:103)<span class="sp"></span><span>Pad</span></div>`;
+document.getElementById('app').innerHTML = h;
+// FL 떠 있는 창
+let wins = '';
+if (on(80)) {
+  const strips = Array.from({ length: 12 }, (_, i) => `<div class="strip${i === 6 ? ' sel' : ''}"><b style="color:${i ? 'var(--soft)' : '#fff'}">${i ? i : 'M'}</b><div class="meter" style="--m:${30 + (i * 23) % 60}%"></div><div class="knob"></div><div class="knob"></div><div class="fad" style="--y:${20 + (i * 37) % 50}%"></div><div class="led"></div><span>${i ? (i === 6 ? 'Bass' : 'Insert ' + i) : 'Master'}</span></div>`).join('');
+  wins += `<div class="win" style="left:${on(90) ? 860 : 880}px;top:${on(40) ? 118 : 96}px;width:560px;height:330px"><div class="wt">🎚 Mixer — Insert 6 (Bass)</div><div class="mixer">${strips}<div class="cable" style="left:15px;width:180px"></div>
+    <div class="dock"><div class="io">⇢ In: (none)</div>${['Pro-Q 3', 'Fruity Limiter'].map(s => `<div class="sl on">${s}<span>●</span></div>`).join('')}${Array.from({ length: 8 }, (_, i) => `<div class="sl">Slot ${i + 3}<span>○</span></div>`).join('')}<div class="eq"></div><div class="io">⇠ Out: Master</div></div></div></div>`;
+}
+if (on(90)) wins += `<div class="win" style="left:${on(60) ? 420 : 320}px;top:${on(40) ? 300 : 270}px;width:640px;height:330px"><div class="wt">🎹 Piano roll — Pad &nbsp; ✎ 🖌 ✕ ∅ ✂ ▭ 🔍</div><div class="roll" style="height:calc(100% - 25px)"><div class="keys"></div><div class="notes">${notes}</div><div class="vel"><span>Control ▸ Velocity</span>${vel}</div></div></div>`;
+if (on(100)) {
+  const ch = (n, mx, steps) => `<div class="ch"><span class="led"></span><span class="kn"></span><span class="kn"></span><span class="mx">${mx}</span><b>${n}</b>${Array.from({ length: 16 }, (_, i) => `<i class="${steps.includes(i) ? 'on' : (Math.floor(i / 4) % 2 ? 'alt' : '')}"></i>`).join('')}</div>`;
+  wins += `<div class="win" style="left:410px;top:112px;width:520px;height:182px"><div class="wt">▦ Channel rack</div><div class="rack"><div class="top2"><span class="chip">All ▾</span><span>Swing ◔</span></div>${ch('Kick', 1, [0, 4, 8, 12])}${ch('Clap', 2, [4, 12])}${ch('Hat', 3, [2, 6, 10, 14])}${ch('Snare', 4, [12, 14])}${ch('Perc', 5, [3, 7, 11, 15])}</div></div>`;
+}
+document.body.insertAdjacentHTML('beforeend', wins + `<div class="nyxi">Nyxi<br>(떠 있는 창)</div>`);
+const done = STEPS.filter(([t]) => on(t)).map(([, d]) => d);
+document.body.insertAdjacentHTML('beforeend', `<div class="badge">Ableton ${A} : FL ${FL}<small>${done.length ? 'FL 방식: ' + done.map((d, i) => (i + 1) + ') ' + d).join(' · ') : '전부 Ableton 방식 — Control Bar · Overview · Scrub Area/Locators/Loop Brace · 오른쪽 Track Headers · Return tracks · Time Ruler · Detail View(Device View+Clip View) · Info View · Status Bar'}</small></div>`);
+</script>
+</body></html>

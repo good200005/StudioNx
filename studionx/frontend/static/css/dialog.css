@@ -1,0 +1,110 @@
+/* =========================================================
+   알림 · 확인 · 입력창 (SweetAlert2 를 home.html 분위기로)
+   - 라이브러리: static/vendor/sweetalert2/ (v11.26.25, MIT) — 기본 모양은 sweetalert2.min.css
+   - 이 파일은 그 뒤에 읽어 덮어씀. 클래스는 core/dialog.js 가 customClass 로 붙임
+   - 모양 규칙: 먹색 면 · 종이색 글자 · 얇은 선 · 모서리 0 · 제목은 Unbounded(“Make your noise”, “Sign In” 글꼴)
+   - 위쪽 2px 선: 보통 보라, 오류 빨강, 되돌릴 수 없는 확인 빨강
+   ========================================================= */
+
+/* 뒤 배경 — 모달(.modal::backdrop)과 같게 */
+.swal2-container.swal2-backdrop-show { background: rgb(11 10 15 / 0.72); backdrop-filter: blur(3px); }
+
+.snx-dialog.swal2-popup {
+  width: min(26rem, calc(100vw - 2rem));
+  padding: var(--sp-8);
+  border: 1px solid var(--c-rule); border-top: 2px solid var(--c-violet-ink); border-radius: var(--radius);
+  background: var(--c-ground-raised); color: var(--c-ink);
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.55);
+  font-family: var(--font-text);
+  text-align: left;
+  grid-template-columns: 1fr;
+}
+.snx-dialog--error.swal2-popup,
+.snx-dialog--danger.swal2-popup { border-top-color: var(--c-error); }
+
+/* 큰 글씨 한 줄 (Main Message) */
+.snx-dialog__title.swal2-title {
+  margin: 0; padding: 0;
+  color: var(--c-ink); text-align: left;
+  font: 700 var(--fs-lg) / 1.3 var(--font-display);
+}
+/* 설명 */
+.snx-dialog__text.swal2-html-container {
+  margin: var(--sp-3) 0 0; padding: 0;
+  color: var(--c-ink-soft); text-align: left;
+  font: 400 var(--fs-sm) / 1.7 var(--font-text);
+}
+/* 입력칸 (prompt) — 폼의 .field__control 과 같은 밑줄 칸 */
+.snx-dialog__input.swal2-input {
+  width: 100%; height: auto; margin: var(--sp-4) 0 0; padding: var(--sp-3) 2px;
+  border: 0; border-bottom: 1px solid var(--c-rule-violet); border-radius: 0;
+  background: transparent; box-shadow: none;
+  color: var(--c-ink); caret-color: var(--c-violet-ink);
+  font: 400 var(--fs-md) / 1.5 var(--font-text);
+}
+.snx-dialog__input.swal2-input:focus { border-bottom-color: var(--c-focus); box-shadow: 0 1px 0 0 var(--c-focus); outline: none; }
+/* 입력 오류 — 라이브러리의 빨간 상자(!important) 대신 폼처럼 빨간 밑줄 */
+.snx-dialog__input.swal2-input.swal2-inputerror {
+  border-color: transparent transparent var(--c-error) !important;
+  box-shadow: 0 1px 0 0 var(--c-error) !important;
+}
+.snx-dialog .swal2-validation-message {
+  margin: var(--sp-2) 0 0; padding: 0; background: none; justify-content: flex-start;
+  color: var(--c-error); font: 400 var(--fs-xs) / 1.5 var(--font-text);
+}
+.snx-dialog .swal2-validation-message::before { display: none; }
+
+/* check 를 기다리는 동안 확인 버튼 자리의 도는 표시 (promptDialog) */
+.snx-dialog .snx-dialog__loader { width: 2.25rem; height: 2.25rem; margin: 0 var(--sp-6); border-width: 2px; border-color: var(--c-violet-ink) transparent; }
+.snx-dialog--danger .snx-dialog__loader { border-color: var(--c-error) transparent; }
+
+/* 버튼 줄 — 오른쪽 정렬, 버튼 모양은 .btn 그대로 (buttonsStyling: false) */
+.snx-dialog__actions.swal2-actions {
+  width: 100%; margin: var(--sp-6) 0 0; padding: 0;
+  justify-content: flex-end; gap: var(--sp-2);
+}
+.snx-dialog__actions .btn { margin: 0; min-width: 5.5rem; }
+
+/* 보충 한 줄 (작은 글씨) — 예: 작은 화면 안내의 "Sign in on a computer …" */
+.snx-dialog__note.swal2-footer {
+  margin: var(--sp-3) 0 0; padding: 0; border: 0;
+  justify-content: flex-start; text-align: left;
+  color: var(--c-ink-soft); font: 400 var(--fs-xs) / 1.6 var(--font-text);
+  order: 1;   /* 라이브러리는 버튼 뒤에 둠 → 설명 바로 아래, 버튼 위로 */
+}
+.snx-dialog .swal2-actions { order: 2; }
+.snx-dialog .swal2-timer-progress-bar-container { order: 3; }
+
+/* ---------- 휴대폰 (600px 이하): 아래에서 올라오는 시트 ----------
+   - 엄지가 닿는 아래쪽에, 화면 폭 가득
+   - 버튼은 한 줄에 하나씩 · 높이 48px (누르기 쉬움) · 주 버튼이 위
+   - 아이폰 아래 막대(홈 표시줄)만큼 여백 */
+@media (max-width: 600px) {
+  /* 라이브러리 화면은 위 · 가운데 · 아래 3줄 격자, 창은 가운데 줄 → 아래 줄 · 폭 전체로 옮김 */
+  .swal2-container.swal2-center > .snx-dialog.swal2-popup { grid-column: 1 / 4; grid-row: 3; align-self: end; }
+  .swal2-container:has(> .snx-dialog) { padding: 0; }
+  .snx-dialog.swal2-popup {
+    width: 100%; max-width: none;
+    padding: var(--sp-6) var(--sp-6) calc(var(--sp-6) + env(safe-area-inset-bottom));
+    border-width: 2px 0 0;
+  }
+  .snx-dialog__title.swal2-title { font-size: 1.5rem; line-height: 1.2; }
+  .snx-dialog__text.swal2-html-container { font-size: var(--fs-md); }
+  .snx-dialog__note.swal2-footer { font-size: var(--fs-sm); }
+  .snx-dialog__actions.swal2-actions { flex-direction: column-reverse; gap: var(--sp-2); }
+  .snx-dialog__actions .btn { width: 100%; min-height: 3rem; font-size: var(--fs-md); }
+}
+
+/* 나타나기 · 사라지기 — 모달(modal-in)처럼 살짝 올라오며 (SweetAlert 기본의 튀는 확대 대신) */
+@media (prefers-reduced-motion: no-preference) {
+  .snx-dialog-in { animation: snx-dialog-in 220ms var(--ease-out); }
+  .snx-dialog-out { animation: snx-dialog-out 150ms ease-in forwards; }
+}
+@keyframes snx-dialog-in { from { opacity: 0; transform: translateY(0.75rem); } }
+@keyframes snx-dialog-out { to { opacity: 0; transform: translateY(0.25rem); } }
+@media (max-width: 600px) and (prefers-reduced-motion: no-preference) {
+  .snx-dialog-in { animation: snx-sheet-in 260ms var(--ease-out); }
+  .snx-dialog-out { animation: snx-sheet-out 180ms ease-in forwards; }
+}
+@keyframes snx-sheet-in { from { transform: translateY(100%); } }
+@keyframes snx-sheet-out { to { transform: translateY(100%); } }

@@ -1,0 +1,58 @@
+/* 개인정보 처리방침 (privacy.html) — 읽기 좋은 문서형
+   PC: 왼쪽 목차(따라 내려옴) + 오른쪽 본문 / 좁은 화면: 목차 → 본문 한 줄 */
+
+/* 홈처럼 헤더를 화면 위에 띄우지 않고 문서 흐름에 둠 (join.css·error.css 와 같음) → 푸터는 맨 아래 */
+body { display: flex; flex-direction: column; }
+.site-header { position: static; }
+[data-include$="header.html"] { min-height: var(--header-h); }   /* 헤더를 받기 전 자리 확보 */
+.policy { flex: 1; }
+
+.policy {
+  display: grid; grid-template-columns: minmax(12rem, 15rem) minmax(0, 46rem);
+  grid-template-areas: ". head" "toc body";
+  gap: var(--sp-8) var(--sp-16); justify-content: center;
+  padding: var(--sp-8) var(--gutter) var(--sp-16);
+}
+.policy__head { grid-area: head; }
+.policy__kicker { color: var(--c-violet-ink); font: 700 var(--fs-xs) / 1 var(--font-text); letter-spacing: 0.2em; text-transform: uppercase; }
+.policy__title { margin-top: var(--sp-3); font: 800 var(--fs-xl) / 1.05 var(--font-display); letter-spacing: -0.01em; }
+.policy__meta { margin-top: var(--sp-3); color: var(--c-ink-faint); font-size: var(--fs-sm); }
+.policy__lead { margin-top: var(--sp-6, 1.5rem); color: var(--c-ink-soft); font-size: var(--fs-md); line-height: 1.7; }
+
+/* 목차: 스크롤해도 왼쪽에 남음 */
+.policy__toc { grid-area: toc; align-self: start; position: sticky; top: var(--sp-8); font-size: var(--fs-sm); }
+.policy__toc-title { color: var(--c-ink-faint); font-size: var(--fs-xs); letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: var(--sp-3); }
+.policy__toc ol { list-style: none; padding: 0; margin: 0; border-left: 1px solid var(--c-rule); }
+.policy__toc a {
+  display: block; padding: var(--sp-1) var(--sp-4); min-height: 24px;
+  color: var(--c-ink-soft); text-decoration: none; border-left: 2px solid transparent; margin-left: -1px;
+  transition: color var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out);
+}
+.policy__toc a:hover, .policy__toc a:focus-visible { color: var(--c-ink); border-left-color: var(--c-violet-ink); }
+
+/* 본문 */
+.policy__body { grid-area: body; color: var(--c-ink-soft); line-height: 1.75; font-size: var(--fs-md); }
+.policy__body section { padding-top: var(--sp-8); scroll-margin-top: var(--sp-8); }
+.policy__body section:first-child { padding-top: 0; }
+.policy__body h2 { color: var(--c-ink); font: 700 var(--fs-lg) / 1.3 var(--font-display); margin-bottom: var(--sp-3); }
+.policy__body p + p, .policy__body p + .policy__table, .policy__table + p, .policy__list + p { margin-top: var(--sp-3); }
+.policy__body b { color: var(--c-ink); font-weight: 700; }
+.policy__body code { font: 500 0.875em / 1 ui-monospace, Consolas, "SFMono-Regular", monospace; letter-spacing: 0; color: var(--c-ink); background: color-mix(in srgb, var(--c-ink) 8%, transparent); padding: 0.1em 0.35em; }
+.policy__note { color: var(--c-ink-faint); font-size: var(--fs-sm); }
+.policy__list { padding-left: 1.2em; margin: var(--sp-2, .5rem) 0 0; }
+.policy__list li + li { margin-top: var(--sp-2, .5rem); }
+
+/* 표: 좁은 화면에서는 가로로 밀어서 봄 (페이지 전체는 가로 스크롤 없음) */
+.policy__table { overflow-x: auto; margin-top: var(--sp-4); border: 1px solid var(--c-rule); }
+.policy__table:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 2px; }
+.policy__table table { width: 100%; min-width: 36rem; border-collapse: collapse; font-size: var(--fs-sm); line-height: 1.55; }
+.policy__table :is(th, td) { padding: var(--sp-3) var(--sp-4); text-align: left; vertical-align: top; border-top: 1px solid var(--c-rule); }
+.policy__table thead th { border-top: 0; color: var(--c-ink-faint); font: 700 var(--fs-xs) / 1.4 var(--font-text); letter-spacing: 0.12em; text-transform: uppercase; background: color-mix(in srgb, var(--c-ink) 4%, transparent); }
+.policy__table tbody th { color: var(--c-ink); font-weight: 700; }
+
+@media (max-width: 960px) {
+  .policy { grid-template-columns: minmax(0, 1fr); grid-template-areas: "head" "toc" "body"; gap: var(--sp-8); padding-top: var(--sp-4); }
+  .policy__toc { position: static; }
+  .policy__toc ol { columns: 2; column-gap: var(--sp-6, 1.5rem); }
+}
+@media (max-width: 520px) { .policy__toc ol { columns: 1; } }

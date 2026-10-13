@@ -7,7 +7,7 @@
   <meta name="description" content="Your Studio Nx dashboard: storage, AI usage and recent projects.">
   <meta name="robots" content="noindex">
   <meta name="theme-color" content="#0b0a0f">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23a383ff' d='M20.6 3.2A13 13 0 1 0 28.8 22 10.5 10.5 0 1 1 20.6 3.2Z'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="static/assets/logo/favicon.svg">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,6 +16,9 @@
 
   <link rel="stylesheet" href="static/css/tokens.css">
   <link rel="stylesheet" href="static/css/base.css">
+  <link rel="stylesheet" href="static/vendor/sweetalert2/sweetalert2.min.css">
+  <link rel="stylesheet" href="static/css/dialog.css">  <!-- 알림 · 확인 · 입력창 (core/dialog.js) -->
+  <link rel="stylesheet" href="static/css/cursor.css">
   <link rel="stylesheet" href="static/css/auth.css">
   <link rel="stylesheet" href="static/css/account.css">
   <link rel="stylesheet" href="static/css/pages/mypage.css">
@@ -84,7 +87,7 @@
       <section class="mp-card console" aria-labelledby="usage-title">
         <div class="mp-card__head">
           <h2 class="mp-card__title" id="usage-title">Usage</h2>
-          <p class="mp-card__value">Storage <span id="usage-storage">1.86 / 5 GB</span> · AI resets 00:00</p>
+          <p class="mp-card__value">Storage <span id="usage-storage">1.86 / 5 GB</span> · AI resets <span id="usage-reset">00:00</span></p>
         </div>
         <div class="console__strips" id="usage-strips">
           <div class="strip strip--samples" data-usage="samples">

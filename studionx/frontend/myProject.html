@@ -7,7 +7,7 @@
   <meta name="description" content="Your Studio Nx projects: search, create, edit and delete.">
   <meta name="robots" content="noindex">
   <meta name="theme-color" content="#0b0a0f">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23a383ff' d='M20.6 3.2A13 13 0 1 0 28.8 22 10.5 10.5 0 1 1 20.6 3.2Z'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="static/assets/logo/favicon.svg">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,6 +16,9 @@
 
   <link rel="stylesheet" href="static/css/tokens.css">
   <link rel="stylesheet" href="static/css/base.css">
+  <link rel="stylesheet" href="static/vendor/sweetalert2/sweetalert2.min.css">
+  <link rel="stylesheet" href="static/css/dialog.css">  <!-- 알림 · 확인 · 입력창 (core/dialog.js) -->
+  <link rel="stylesheet" href="static/css/cursor.css">
   <link rel="stylesheet" href="static/css/forms.css">
   <link rel="stylesheet" href="static/css/auth.css">
   <link rel="stylesheet" href="static/css/account.css">
@@ -81,7 +84,7 @@
                 <summary class="pj-more" aria-label="More actions for Summer Loop">···</summary>
                 <div class="pj-pop">
                   <button type="button" data-action="edit" command="show-modal" commandfor="edit-project-modal">Edit details</button>
-                  <button type="button" data-action="delete" class="pj-pop__danger" command="show-modal" commandfor="delete-project-modal">Delete</button>
+                  <button type="button" data-action="delete" class="pj-pop__danger">Delete</button>
                 </div>
               </details>
             </span>
@@ -99,7 +102,7 @@
                 <summary class="pj-more" aria-label="More actions for Midnight Drive">···</summary>
                 <div class="pj-pop">
                   <button type="button" data-action="edit" command="show-modal" commandfor="edit-project-modal">Edit details</button>
-                  <button type="button" data-action="delete" class="pj-pop__danger" command="show-modal" commandfor="delete-project-modal">Delete</button>
+                  <button type="button" data-action="delete" class="pj-pop__danger">Delete</button>
                 </div>
               </details>
             </span>
@@ -117,7 +120,7 @@
                 <summary class="pj-more" aria-label="More actions for Neon Rain (demo)">···</summary>
                 <div class="pj-pop">
                   <button type="button" data-action="edit" command="show-modal" commandfor="edit-project-modal">Edit details</button>
-                  <button type="button" data-action="delete" class="pj-pop__danger" command="show-modal" commandfor="delete-project-modal">Delete</button>
+                  <button type="button" data-action="delete" class="pj-pop__danger">Delete</button>
                 </div>
               </details>
             </span>
@@ -135,7 +138,7 @@
                 <summary class="pj-more" aria-label="More actions for Lo-fi Sketch 03">···</summary>
                 <div class="pj-pop">
                   <button type="button" data-action="edit" command="show-modal" commandfor="edit-project-modal">Edit details</button>
-                  <button type="button" data-action="delete" class="pj-pop__danger" command="show-modal" commandfor="delete-project-modal">Delete</button>
+                  <button type="button" data-action="delete" class="pj-pop__danger">Delete</button>
                 </div>
               </details>
             </span>
@@ -172,7 +175,7 @@
                 <summary class="pj-more" aria-label="More actions for Untitled 12">···</summary>
                 <div class="pj-pop">
                   <button type="button" data-action="edit" command="show-modal" commandfor="edit-project-modal">Edit details</button>
-                  <button type="button" data-action="delete" class="pj-pop__danger" command="show-modal" commandfor="delete-project-modal">Delete</button>
+                  <button type="button" data-action="delete" class="pj-pop__danger">Delete</button>
                 </div>
               </details>
             </span>
@@ -190,7 +193,7 @@
                 <summary class="pj-more" aria-label="More actions for Drum Study">···</summary>
                 <div class="pj-pop">
                   <button type="button" data-action="edit" command="show-modal" commandfor="edit-project-modal">Edit details</button>
-                  <button type="button" data-action="delete" class="pj-pop__danger" command="show-modal" commandfor="delete-project-modal">Delete</button>
+                  <button type="button" data-action="delete" class="pj-pop__danger">Delete</button>
                 </div>
               </details>
             </span>
@@ -228,7 +231,7 @@
           <summary class="pj-more" aria-label="More actions">···</summary>
           <div class="pj-pop">
             <button type="button" data-action="edit" command="show-modal" commandfor="edit-project-modal">Edit details</button>
-            <button type="button" data-action="delete" class="pj-pop__danger" command="show-modal" commandfor="delete-project-modal">Delete</button>
+            <button type="button" data-action="delete" class="pj-pop__danger">Delete</button>
           </div>
         </details>
       </span>
@@ -301,22 +304,7 @@
     </div>
   </dialog>
 
-  <!-- 삭제 확인 (FR-125): DELETE /api/v1/projects/{id} — 소프트 삭제, OWNER만 -->
-  <dialog class="modal modal--narrow" id="delete-project-modal" aria-labelledby="delete-project-title">
-    <div class="modal__head">
-      <h2 class="modal__title" id="delete-project-title">Delete project?</h2>
-      <button type="button" class="btn btn--ghost modal__close" command="close" commandfor="delete-project-modal">Close</button>
-    </div>
-    <div class="modal__body">
-      <p class="modal__lead"><b id="delete-project-name">Neon Rain (demo)</b> will be removed from your projects. Collaborators will lose access too.</p>
-      <p class="modal__note">Only the owner can delete a project.</p>
-      <p class="form-error" id="delete-project-error" role="alert" hidden></p>
-      <div class="modal__actions">
-        <button type="button" class="btn btn--ghost" command="close" commandfor="delete-project-modal">Cancel</button>
-        <button type="button" class="btn btn--danger" id="delete-project-confirm">Delete project</button>
-      </div>
-    </div>
-  </dialog>
+  <!-- 삭제 확인 (FR-125): 확인창은 core/dialog.js confirmDialog (myproject.js initDeleteProject, 2026-10-07 결정) -->
 
   <!-- 작은 화면 안내 모달: static/partials/desktop-only-modal.html (FR-129) -->
   <div data-include="static/partials/desktop-only-modal.html"></div>

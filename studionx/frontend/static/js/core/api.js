@@ -46,18 +46,39 @@ export function clearAccessToken() {
 }
 
 /**
- * 리프레시 쿠키로 Access Token 재발급
+ * 리프레시 쿠키로 Access Token 재발급 (구현: AI — 2026-10-06, 함수 하나씩 검토)
  * @returns {Promise<boolean>} 성공하면 true
- * TODO:
- * - 이미 진행 중이면 그 Promise 를 그대로 돌려줌 (refreshing)
- * - fetch(`${API_BASE}/auth/refresh`, { method: 'POST', credentials: 'same-origin' })
- * - 성공: 응답의 access_token 을 setAccessToken, true
- * - 실패(401 등): clearAccessToken, false
- * - 끝나면 refreshing = null
+ * - 이미 진행 중이면 그 Promise 를 그대로 돌려줌 (refreshing) → 동시에 여러 요청이 401 이어도 /auth/refresh 는 한 번
+ * - POST /auth/refresh — 리프레시 토큰은 HttpOnly 쿠키라 JS 가 넣지 않아도 credentials 로 자동으로 실림
+ * - 성공(200 + access_token): setAccessToken, true
+ * - 실패(401 · 네트워크 오류 · 응답에 토큰 없음): clearAccessToken, false — 던지지 않음 (호출한 쪽은 true/false 로만 판단)
+ * - 끝나면 성공·실패와 상관없이 refreshing = null
  */
 export async function refreshAccessToken() {
-  // TODO
-  return false;
+  if (refreshing) return refreshing;
+  refreshing = (async () => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' },
+      });
+      const data = res.ok ? await res.json().catch(() => null) : null;
+      if (!(data && data.access_token)) {
+        clearAccessToken();
+        return false;
+      }
+      setAccessToken(data.access_token);
+      return true;
+    } catch {
+      // 네트워크 오류 — 로그인 안 된 것으로 봄 (화면은 requireLogin 흐름으로)
+      clearAccessToken();
+      return false;
+    } finally {
+      refreshing = null;
+    }
+  })();
+  return refreshing;
 }
 
 /**
@@ -81,10 +102,62 @@ export async function refreshAccessToken() {
  * 6. 그 외 실패: 응답 JSON 의 error.{code, message, details} 로 throw new ApiError(...)
  *    (JSON 이 아니면 code 'INTERNAL_ERROR')
  * 7. 성공: 204 면 null, 아니면 res.json()
+ * (구현: AI — 2026-10-06, 함수 하나씩 검토)
  */
 export async function apiFetch(path, options = {}) {
-  // TODO
-  throw new ApiError(0, 'NOT_IMPLEMENTED', `apiFetch(${path}) is not implemented yet.`);
+  const { method = 'GET', body, auth = true } = options;
+
+  // 1. 본문 — FormData 는 그대로(브라우저가 boundary 를 포함한 Content-Type 을 붙임), 객체는 JSON
+  const headers = { Accept: 'application/json' };
+  let payload;
+  if (body instanceof FormData) {
+    payload = body;
+  } else if (body !== undefined && body !== null) {
+    headers['Content-Type'] = 'application/json';
+    payload = JSON.stringify(body);
+  }
+
+  // 2. 토큰이 아직 없으면(페이지를 막 열었을 때) 먼저 재발급
+  if (auth && !accessToken) await refreshAccessToken();
+
+  // 3·4. 보내기 — 재시도 때 새 토큰을 쓰도록 매번 헤더를 새로 만듦
+  const send = async () => {
+    const h = auth && accessToken ? { ...headers, Authorization: `Bearer ${accessToken}` } : headers;
+    try {
+      return await fetch(API_BASE + path, { method, headers: h, body: payload, credentials: 'same-origin' });
+    } catch {
+      throw new ApiError(0, 'NETWORK_ERROR', 'Network error. Please try again.');
+    }
+  };
+
+  let res = await send();
+
+  // 5. 토큰 만료(401 UNAUTHORIZED) → 재발급 성공하면 같은 요청을 한 번만 다시
+  if (res.status === 401 && auth) {
+    const err = await toApiError(res);
+    if (err.code !== 'UNAUTHORIZED' || !(await refreshAccessToken())) throw err;
+    res = await send();
+  }
+
+  // 6. 그 밖의 실패
+  if (!res.ok) throw await toApiError(res);
+
+  // 7. 성공 — 204 · 빈 본문이면 null
+  if (res.status === 204) return null;
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+/** 실패 응답 → ApiError (서버 형식 { error: { code, message, details } }, 아니면 INTERNAL_ERROR) */
+async function toApiError(res) {
+  const data = await res.json().catch(() => null);
+  const e = data && data.error;
+  if (e && e.code) {
+    const message = e.message == null ? '' : e.message;
+    const details = e.details == null ? null : e.details;
+    return new ApiError(res.status, e.code, message, details);
+  }
+  return new ApiError(res.status, 'INTERNAL_ERROR', 'Something went wrong. Please try again.');
 }
 
 /** 짧게 쓰는 함수들 — 예: const me = await api.get('/users/me') */
