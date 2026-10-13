@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mock home anchor</title>
+<link rel="stylesheet" href="file:///C:/Users/USER/Desktop/myProject/StudioNx/studionx/frontend/static/css/tokens.css">
+<link rel="stylesheet" href="file:///C:/Users/USER/Desktop/myProject/StudioNx/studionx/frontend/static/css/base.css">
+<link rel="stylesheet" href="file:///C:/Users/USER/Desktop/myProject/StudioNx/studionx/frontend/static/css/pages/home.css">
+<style>
+  body { background: #0b0a0f; min-height: 100vh; padding: 2rem; }
+  .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; max-width: 1100px; margin: 0 auto; }
+  .panel { position: relative; height: 520px; border: 1px solid var(--c-rule); background: #100f16; }
+  .panel h3 { position: absolute; top: .8rem; left: 1rem; font: 700 .8rem/1 sans-serif; color: #a78bfa; letter-spacing: .08em; }
+  .panel p.cap { position: absolute; bottom: .8rem; left: 1rem; right: 1rem; color: var(--c-ink-soft); font-size: var(--fs-xs); line-height: 1.6; }
+  .panel .side-nav { position: absolute; right: 1.2rem; top: 50%; animation: none; opacity: 1; visibility: visible; }
+  /* 위쪽 구분선: 홈 아이콘과 S 사이 */
+  .home-link { display: block; padding: var(--sp-1) var(--sp-2); color: var(--c-ink-soft); position: relative; }
+  .home-link svg { display: block; width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: square; }
+  .home-link:hover, .home-link.is-hover { color: var(--c-violet-ink); }
+  .home-link .side-nav__full { opacity: 0; }
+  .is-hover .side-nav__full { opacity: 1; transform: translate(0, -50%); }
+  .side-nav__list .gap::before { content: ""; display: block; width: 1px; height: 1.25rem; margin: var(--sp-2) auto; background: var(--c-rule); }
+  /* 안 C: 맨 위 화살표를 위로 */
+  .arrow-link { font: 700 var(--fs-xs) / 1 var(--font-display); }
+</style>
+</head>
+<body>
+<div class="row">
+
+  <!-- 안 A: 글자 H -->
+  <section class="panel">
+    <h3>A. 글자 H</h3>
+    <nav class="side-nav"><ul class="side-nav__list">
+      <li><a class="side-nav__link is-hover" href="#"><span style="color:var(--c-violet-ink)">H</span><span class="side-nav__full" style="opacity:1;transform:translate(0,-50%)">Home</span></a></li>
+      <li><a class="side-nav__link" href="#">S<span class="side-nav__full">Service</span></a></li>
+      <li><a class="side-nav__link" href="#">Ch<span class="side-nav__full">Character</span></a></li>
+      <li><a class="side-nav__link" href="#">F<span class="side-nav__full">Feature</span></a></li>
+      <li><a class="side-nav__link" href="#" aria-current="true">D<span class="side-nav__full">Development</span></a></li>
+      <li><a class="side-nav__link" href="#">Co<span class="side-nav__full">Contact</span></a></li>
+    </ul></nav>
+    <p class="cap">다른 항목(S, Ch, F…)과 같은 글자 모양입니다. 가장 단순하고 일관됩니다. 마우스를 올리면 "Home"이 펼쳐집니다.</p>
+  </section>
+
+  <!-- 안 B: 집 모양 -->
+  <section class="panel">
+    <h3>B. 집 모양</h3>
+    <nav class="side-nav"><ul class="side-nav__list">
+      <li><a class="side-nav__link home-link is-hover" href="#" aria-label="Home"><svg viewBox="0 0 16 16"><path d="M2 7.5 8 2l6 5.5M3.5 6.8V14h9V6.8M6.5 14V9.5h3V14"/></svg><span class="side-nav__full" style="opacity:1;transform:translate(0,-50%)">Home</span></a></li>
+      <li><a class="side-nav__link" href="#">S<span class="side-nav__full">Service</span></a></li>
+      <li><a class="side-nav__link" href="#">Ch<span class="side-nav__full">Character</span></a></li>
+      <li><a class="side-nav__link" href="#">F<span class="side-nav__full">Feature</span></a></li>
+      <li><a class="side-nav__link" href="#" aria-current="true">D<span class="side-nav__full">Development</span></a></li>
+      <li><a class="side-nav__link" href="#">Co<span class="side-nav__full">Contact</span></a></li>
+    </ul></nav>
+    <p class="cap">글자 사이에서 "첫 화면으로 돌아가기"가 한눈에 구분됩니다. 다른 항목은 글자, 이것만 그림이라 역할이 다르다는 점이 드러납니다.</p>
+  </section>
+
+  <!-- 안 C: 위 화살표 -->
+  <section class="panel">
+    <h3>C. 위 화살표 (Top)</h3>
+    <nav class="side-nav"><ul class="side-nav__list">
+      <li><a class="side-nav__link home-link is-hover" href="#" aria-label="Back to top"><svg viewBox="0 0 16 16"><path d="M8 13V3M3.5 7.5 8 3l4.5 4.5"/></svg><span class="side-nav__full" style="opacity:1;transform:translate(0,-50%)">Top</span></a></li>
+      <li><a class="side-nav__link" href="#">S<span class="side-nav__full">Service</span></a></li>
+      <li><a class="side-nav__link" href="#">Ch<span class="side-nav__full">Character</span></a></li>
+      <li><a class="side-nav__link" href="#">F<span class="side-nav__full">Feature</span></a></li>
+      <li><a class="side-nav__link" href="#" aria-current="true">D<span class="side-nav__full">Development</span></a></li>
+      <li><a class="side-nav__link" href="#">Co<span class="side-nav__full">Contact</span></a></li>
+    </ul></nav>
+    <p class="cap">"맨 위로"라는 뜻이 가장 정확합니다. 집은 첫 화면(홈)을 뜻하지만 화살표는 위치 이동을 뜻합니다.</p>
+  </section>
+
+</div>
+</body>
+</html>
