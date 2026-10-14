@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Studio Nx — 오디오 엔진 데모 (S1-05)</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 24px; background: #1b1b20; color: #e8e8ee; }
+  h1 { font-size: 18px; }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 12px 0; }
+  button { padding: 8px 14px; border: 1px solid #555; border-radius: 6px; background: #2c2c34; color: #e8e8ee; cursor: pointer; }
+  button[aria-pressed="true"] { background: #3f6bd8; border-color: #3f6bd8; }
+  input { width: 80px; padding: 6px; background: #2c2c34; color: #e8e8ee; border: 1px solid #555; border-radius: 6px; }
+  .track { position: relative; height: 26px; background: #26262e; border-radius: 6px; margin-top: 16px; overflow: hidden; }
+  .playhead { position: absolute; top: 0; bottom: 0; width: 2px; background: #ff5a5a; left: 0; }
+  .readout { font-variant-numeric: tabular-nums; font-size: 14px; color: #b9b9c6; }
+  .status { margin-top: 12px; font-size: 13px; color: #8fd18f; }
+  .err { color: #ff8f8f; }
+</style>
+</head>
+<body>
+<h1>Studio Nx — 오디오 엔진 데모 (S1-05)</h1>
+<p class="readout" id="status">준비 중…</p>
+
+<div class="row">
+  <button id="btn-play">재생 (카운트인)</button>
+  <button id="btn-stop">정지</button>
+  <button id="btn-pause">일시정지</button>
+  <button id="btn-metro" aria-pressed="true">메트로놈</button>
+  <button id="btn-loop" aria-pressed="false">루프</button>
+</div>
+<div class="row">
+  <label>BPM <input id="bpm" type="number" min="20" max="300" value="120"></label>
+  <label>박자 <input id="tsnum" type="number" min="1" max="32" value="4"></label> / <input id="tsden" type="number" min="1" max="32" value="4">
+  <button id="btn-tempo">템포 적용</button>
+</div>
+
+<div class="row readout">
+  <span>위치: <b id="pos">0</b> tick</span>
+  <span>· 마디 <b id="bar">1</b>.박 <b id="beat">1</b>.틱 <b id="tik">0</b></span>
+</div>
+<div class="track"><div class="playhead" id="ph"></div></div>
+<p class="readout" id="hint">마디 길이(4/4) = 3840 tick, 재생선은 4마디(15360 tick) 기준으로 표시합니다.</p>
+
+<script type="module">
+import { AudioEngine } from './static/js/audio/engine.js';
+
+var statusEl = document.getElementById('status');
+var posEl = document.getElementById('pos');
+var barEl = document.getElementById('bar');
+var beatEl = document.getElementById('beat');
+var tikEl = document.getElementById('tik');
+var phEl = document.getElementById('ph');
+var btnMetro = document.getElementById('btn-metro');
+var btnLoop = document.getElementById('btn-loop');
+
+var WINDOW_TICKS = 15360; // 4마디(4/4)
+var engine = null;
+
+try {
+  engine = new AudioEngine({ metronomeEnabled: true, baseBpm: 120 });
+  statusEl.textContent = '오디오 엔진 준비됨 (재생 버튼을 누르세요)';
+  document.documentElement.setAttribute('data-engine', 'ready');
+} catch (e) {
+  statusEl.textContent = '엔진 생성 실패: ' + e.message;
+  statusEl.className = 'status err';
+  document.documentElement.setAttribute('data-engine', 'error');
+}
+
+function setPressed(btn, on) { btn.setAttribute('aria-pressed', on ? 'true' : 'false'); }
+
+function barBeatTick(tick) {
+  var barTicks = 3840, beatTicks = 960;
+  var t = tick < 0 ? 0 : tick;
+  var bar = Math.floor(t / barTicks) + 1;
+  var beat = Math.floor((t % barTicks) / beatTicks) + 1;
+  var tik = Math.floor(t % beatTicks);
+  return { bar: bar, beat: beat, tik: tik };
+}
+
+function draw() {
+  if (engine) {
+    var t = engine.positionTick();
+    var info = barBeatTick(t);
+    posEl.textContent = Math.round(t);
+    barEl.textContent = info.bar;
+    beatEl.textContent = info.beat;
+    tikEl.textContent = info.tik;
+    var frac = ((t % WINDOW_TICKS) + WINDOW_TICKS) % WINDOW_TICKS / WINDOW_TICKS;
+    phEl.style.left = (frac * 100) + '%';
+  }
+  requestAnimationFrame(draw);
+}
+
+document.getElementById('btn-play').addEventListener('click', function () {
+  if (!engine) return;
+  engine.setLoop(0, 3840, btnLoop.getAttribute('aria-pressed') === 'true');
+  engine.start({ countIn: true, fromTick: 0 });
+  statusEl.textContent = '재생 중…';
+});
+document.getElementById('btn-stop').addEventListener('click', function () {
+  if (!engine) return;
+  engine.stop();
+  statusEl.textContent = '정지됨';
+});
+document.getElementById('btn-pause').addEventListener('click', function () {
+  if (!engine) return;
+  if (engine.transport.playing) { engine.pause(); statusEl.textContent = '일시정지'; }
+  else { engine.resume(); statusEl.textContent = '재생 중…'; }
+});
+btnMetro.addEventListener('click', function () {
+  if (!engine) return;
+  var on = btnMetro.getAttribute('aria-pressed') !== 'true';
+  engine.setMetronome(on);
+  setPressed(btnMetro, on);
+});
+btnLoop.addEventListener('click', function () {
+  if (!engine) return;
+  var on = btnLoop.getAttribute('aria-pressed') !== 'true';
+  engine.setLoop(0, 3840, on);
+  setPressed(btnLoop, on);
+});
+document.getElementById('btn-tempo').addEventListener('click', function () {
+  if (!engine) return;
+  var bpm = Number(document.getElementById('bpm').value);
+  var num = Number(document.getElementById('tsnum').value);
+  var den = Number(document.getElementById('tsden').value);
+  engine.setTempo(bpm, []);
+  engine.setTimeSignature(num, den);
+  statusEl.textContent = bpm + ' BPM, ' + num + '/' + den + ' 적용됨';
+});
+
+draw();
+</script>
+</body>
+</html>
