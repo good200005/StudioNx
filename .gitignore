@@ -27,3 +27,6 @@ docs/googlesheetAPI.txt
 docs/sentry dsn.txt
 docs/studionx-*.json
 *-service-account*.json
+
+# S1-05 메트로놈 시험 산출물 (docs/ai-notes/67 참고): 저장소에 올리지 않음
+/audio/
