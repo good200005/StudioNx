@@ -1,3 +1,5 @@
+import { PPQ } from '../audio/timing.js';
+
 // 시퀀서 편곡 영역 드래그 · 재생선 (구현: AI — 사용자 요청 2026-10-06 "수정 사항.pdf", "수정 사항2.pdf")
 // 설명: docs/ai-notes/30_sequencer_arrange_drag.md
 // 1) 마디 줄 · 마커 줄 · 트랙의 빈 칸을 끌면 편곡이 왼쪽/오른쪽으로 움직임 (가운데 버튼은 어디서나)
@@ -24,6 +26,9 @@ export const SNAP = 0.25;
 /** 이만큼(px) 움직여야 클릭이 아니라 끌기로 봄 */
 const DRAG_THRESHOLD = 4;
 
+/** 클립 끝에서 이만큼(px) 안쪽을 잡으면 옮기기가 아니라 길이 조절로 봄 (FR-208) */
+const EDGE_PX = 6;
+
 /** 끄는 동안 편곡 영역 가장자리에서 자동으로 스크롤하는 폭(px)과 속도 */
 const EDGE = 40;
 const EDGE_SPEED = 14;
@@ -47,6 +52,7 @@ export function initArrange({ onChange = () => {} } = {}) {
   initBrowserLists();
   initPlayhead(ctx);
   initZoom(ctx);
+  initWaveforms(ctx);
   initMarkerDrag(ctx);
   initTools();
   initMarquee(ctx);
@@ -55,6 +61,7 @@ export function initArrange({ onChange = () => {} } = {}) {
   initTrackHeight(ctx);
   initDeleteClips(ctx);
   initToolActions(ctx);
+  initTrackReorder(ctx);
   initTrackButtons(ctx);
   initMarkers(ctx);
   initRecord(ctx);
@@ -76,11 +83,605 @@ function totalBars(lanes) {
 /** 1틱 (마디) — 스냅을 끄면 이 단위로만 맞춤. PPQ 960 · 4/4 → 1마디 = 3840틱 */
 export const TICK = 1 / (960 * 4);
 
-/** 스냅 방식: 'line' = 보이는 격자선에 붙음 · 'off' = 격자 무시 (상단 Snap ▾) */
+/** 4/4 한 마디의 틱 수 — PPQ(960) × 4 = 3840. 박자표가 다른 곡(FR-202a)은 나중에 인자로 받습니다 */
+export const TICKS_PER_BAR = PPQ * 4;
+
+/**
+ * tick 을 마디로 바꿉니다 (S1-06 타임라인 첫 함수, FR-209 좌표 기준).
+ * - 엔진·DB 는 tick(1박 = 960) 단위이고, 편곡 화면은 마디 단위라서 이 변환이 필요합니다
+ *   (예: S1-05 재생선 위치 `Transport.positionTick()` 을 마디로 바꿔 `setPlayheadBar()` 에 넘길 때)
+ * - 템포(BPM)는 쓰지 않습니다. 여기서는 위치만 바꾸고, tick ↔ 초 변환은 `audio/timing.js` 가 맡습니다
+ * - 나눗셈이라 소수가 나올 수 있습니다 (예: 480 tick = 0.125마디). 반올림은 부르는 쪽에서 합니다
+ * - tick 이 숫자가 아니거나 NaN·Infinity 면 오류를 던집니다 (조용히 NaN 을 넘기면 재생선이 엉뚱한 곳에 섭니다)
+ * @param {number} tick  위치 (tick)
+ * @param {number} [ticksPerBar]  한 마디의 틱 수 (기본 4/4 = 3840)
+ * @returns {number} 마디 (소수 가능)
+ */
+export function ticksToBars(tick, ticksPerBar = TICKS_PER_BAR) {
+  if (typeof tick !== 'number' || !isFinite(tick)) throw new RangeError('tick 은 유한한 숫자여야 합니다: ' + tick);
+  if (typeof ticksPerBar !== 'number' || !isFinite(ticksPerBar) || ticksPerBar <= 0) throw new RangeError('ticksPerBar 는 0 보다 큰 숫자여야 합니다: ' + ticksPerBar);
+  return tick / ticksPerBar;
+}
+
+/**
+ * 마디를 tick 으로 바꿉니다 (`ticksToBars` 의 역방향, S1-06 FR-208 클립 위치).
+ * - 클립을 끌어 옮긴 마디를 저장·엔진용 tick 으로 돌려놓을 때 씁니다 (`clip.start_tick`, `clip.length_tick`)
+ * - 곱셈이라 `ticksToBars(barsToTicks(b))` 는 다시 `b` 가 됩니다 (단, 부동소수 오차는 있을 수 있습니다)
+ * - bar 가 숫자가 아니거나 NaN·Infinity 면 오류를 던집니다 (엉뚱한 tick 이 저장되는 것을 막습니다)
+ * @param {number} bar  마디 (소수 가능)
+ * @param {number} [ticksPerBar]  한 마디의 틱 수 (기본 4/4 = 3840)
+ * @returns {number} tick (소수 가능)
+ */
+export function barsToTicks(bar, ticksPerBar = TICKS_PER_BAR) {
+  if (typeof bar !== 'number' || !isFinite(bar)) throw new RangeError('bar 는 유한한 숫자여야 합니다: ' + bar);
+  if (typeof ticksPerBar !== 'number' || !isFinite(ticksPerBar) || ticksPerBar <= 0) throw new RangeError('ticksPerBar 는 0 보다 큰 숫자여야 합니다: ' + ticksPerBar);
+  return bar * ticksPerBar;
+}
+
+/** FR-206 스냅 칸 — 이름(1/n) → 분모 n. 화면 Snap 메뉴에 넣을 값들입니다 (박자표와 무관한 음표 길이) */
+const DIVISION_DEN = { '1/1': 1, '1/2': 2, '1/4': 4, '1/8': 8, '1/16': 16, '1/32': 32 };
+
+/**
+ * 스냅 칸 이름을 tick 길이로 바꿉니다 (S1-06 FR-206 그리드 스냅의 첫 조각).
+ * - 화면 Snap 메뉴에서 "1/4" 같은 칸을 고르면, 그 칸 하나가 몇 tick 인지 알려줍니다
+ * - 음표 길이는 박자표와 무관합니다. 1/n 음표 = PPQ × 4 ÷ n  (1/4 음표 = 1박 = 960, 4/4·3/4 모두 같음)
+ *   한 마디 tick 수는 박자표에 따라 달라지므로, 마디로 바꿀 때는 `ticksToBars()` 를 씁니다
+ * - 셋잇단(1/n 을 3등분)은 다음 함수에서 다룹니다
+ * - 이름이 목록에 없으면(오타·'1/3' 등) 오류를 던집니다
+ * @param {string} division  '1/1' | '1/2' | '1/4' | '1/8' | '1/16' | '1/32'
+ * @returns {number} 한 칸의 tick 수
+ */
+export function divisionTicks(division) {
+  const den = DIVISION_DEN[division];
+  if (typeof den !== 'number') throw new RangeError('알 수 없는 스냅 칸입니다: ' + division);
+  return (PPQ * 4) / den;
+}
+
+/**
+ * 셋잇단 칸의 tick 길이를 돌려줍니다 (S1-06 FR-206 셋잇단 포함).
+ * - 2026-10-14 사용자 결정: 셋잇단 = 한 칸을 3등분 (원래 칸 ÷ 3). 그림 (나) 방식
+ *   예: 1/4 칸(960) → 320, 1/8 칸(480) → 160, 1/16 칸(240) → 80
+ * - 화면 ³ Triplet 을 켜면 스냅 단위가 `divisionTicks()` 대신 이 값이 됩니다
+ * - 이름이 틀리면 `divisionTicks()` 가 오류를 던져 그대로 전해집니다
+ * @param {string} division  '1/1' | '1/2' | '1/4' | '1/8' | '1/16' | '1/32'
+ * @returns {number} 셋잇단 한 칸의 tick 수
+ */
+export function tripletTicks(division) {
+  return divisionTicks(division) / 3;
+}
+
+/**
+ * 스냅 한 칸의 tick 길이를 돌려줍니다 (S1-06 FR-206 — 칸 + 셋잇단을 한 값으로).
+ * - Snap 메뉴에서 칸(예: '1/16')을 고르고 ³ Triplet 을 켰는지에 따라 한 칸 길이가 달라집니다
+ *   (켜짐 = `tripletTicks()`, 꺼짐 = `divisionTicks()`)
+ * - 끌기 코드는 이 값을 스냅 단위로 씁니다. 마디로 바꿀 때는 `ticksToBars()` 를 씁니다
+ * - 이름이 틀리면 아래 두 함수 중 하나가 던진 오류가 그대로 전해집니다
+ * @param {string} division  '1/1' | '1/2' | '1/4' | '1/8' | '1/16' | '1/32'
+ * @param {boolean} [triplet]  셋잇단 여부 (기본 false)
+ * @returns {number} 한 칸의 tick 수
+ */
+export function snapStepTicks(division, triplet = false) {
+  return triplet ? tripletTicks(division) : divisionTicks(division);
+}
+
+/**
+ * tick 을 가장 가까운 격자 칸으로 맞춥니다 (S1-06 FR-206 그리드 스냅 동작).
+ * - 격자 칸 = stepTicks 의 배수. tick ÷ step 을 반올림한 뒤 다시 step 을 곱합니다
+ *   예: step 960 일 때 1,450 → 1,920 (가까운 칸), 400 → 0, 480 은 정확히 반이라 위(960)
+ * - 스냅 Off 나 Alt(격자 무시)는 이 함수를 부르지 않고, 부르는 쪽이 1틱 단위로 처리합니다
+ * - `snapTick(barsToTicks(bar), snapStepTicks('1/16'))` 처럼 위치·단위와 함께 씁니다
+ * @param {number} tick  맞출 위치 (tick)
+ * @param {number} stepTicks  한 칸의 tick 수 (`snapStepTicks()` 결과)
+ * @returns {number} 맞춘 tick
+ */
+export function snapTick(tick, stepTicks) {
+  if (typeof tick !== 'number' || !isFinite(tick)) throw new RangeError('tick 은 유한한 숫자여야 합니다: ' + tick);
+  if (typeof stepTicks !== 'number' || !isFinite(stepTicks) || stepTicks <= 0) throw new RangeError('stepTicks 는 0 보다 큰 숫자여야 합니다: ' + stepTicks);
+  return Math.round(tick / stepTicks) * stepTicks;
+}
+
+/**
+ * 클립을 좌우로 끌었을 때의 새 시작 tick 을 돌려줍니다 (S1-06 FR-208 이동).
+ * - 끈 거리(`deltaTicks`)를 더한 뒤 격자에 맞추고(`snapTick`), 마디 0 왼쪽으로는 못 갑니다
+ *   예: 960 에서 +1,000 → 1,920,  960 에서 -5,000 → 0 (0 아래로 안 내려감)
+ * - 오른쪽 끝(트랙 총 길이) 제한은 클립 여러 개를 함께 옮길 때 달라지므로 부르는 쪽에서 맡습니다
+ * - Alt 로 격자를 무시할 때는 이 함수를 부르지 않고 부르는 쪽이 `Math.max(0, start + delta)` 로 처리합니다
+ * @param {number} startTick  지금 시작 tick
+ * @param {number} deltaTicks  끈 거리 (tick, 음수 가능)
+ * @param {number} stepTicks  한 칸 tick (`snapStepTicks()` 결과, 격자를 무시할 땐 1)
+ * @returns {number} 새 시작 tick (0 이상)
+ */
+export function moveClipStart(startTick, deltaTicks, stepTicks) {
+  return Math.max(0, snapTick(startTick + deltaTicks, stepTicks));
+}
+
+/**
+ * 클립 오른쪽 끝을 끌었을 때의 새 길이를 돌려줍니다 (S1-06 FR-208 길이 조절).
+ * - 2026-10-14 사용자 결정: 최소 길이 = 한 칸(`stepTicks`). Alt 로 격자를 무시하면 `stepTicks` 가 1 이라 1틱까지 줄어듭니다
+ *   예: 길이 1,920 에서 -700 → 960 (한 칸),  더 줄여도 960 에서 멈춤
+ * - 격자에 맞춘 뒤 최소 칸보다 작으면 최소 칸으로 올립니다. 0 이나 음수 길이가 되지 않습니다
+ * - 최소보다 더 끌어도 클립은 지워지지 않고 그 자리에서 멈춥니다. 삭제는 Delete 키가 맡습니다
+ * @param {number} lengthTick  지금 길이 (tick)
+ * @param {number} deltaTicks  끈 거리 (tick, 오른쪽이 양수)
+ * @param {number} stepTicks  한 칸 tick (`snapStepTicks()` 결과, Alt 는 1)
+ * @returns {number} 새 길이 (최소 `stepTicks`)
+ */
+export function resizeClipLength(lengthTick, deltaTicks, stepTicks) {
+  return Math.max(stepTicks, snapTick(lengthTick + deltaTicks, stepTicks));
+}
+
+/**
+ * 클립 왼쪽 끝을 끌었을 때의 새 시작·길이·오프셋을 돌려줍니다 (S1-06 FR-208 오디오 트리밍).
+ * - 2026-10-14 사용자 결정
+ *   줄이기: 오른쪽 끝과 같은 규칙. 최소 한 칸(`stepTicks`)이고, Alt 면 `stepTicks` 가 1 이라 1틱까지 줄어듭니다
+ *   늘리기: 원본 처음(`sourceStartTick`)과 마디 0 에 닿을 때까지. 그보다 더 왼쪽으로는 못 갑니다
+ * - `sourceStartTick` = 원본 소스의 시작이 타임라인 어디에 놓이는지(틱). 오디오 클립은 `startTick - offsetTick`, MIDI 처럼 원본이 없으면 `null` 입니다
+ *   원본이 없으면(`null`) 늘리기 한계는 마디 0 뿐이고 오프셋은 늘 0 입니다
+ * - 격자에 맞춘 뒤 한계 안으로 당깁니다. 세 값은 `start - startTick` 만큼 함께 움직여 오디오가 제자리에 고정됩니다
+ * @param {number} startTick  지금 시작 tick
+ * @param {number} lengthTick  지금 길이 (tick)
+ * @param {number} deltaTicks  끈 거리 (tick, 왼쪽이 음수)
+ * @param {number} stepTicks  한 칸 tick (`snapStepTicks()` 결과, Alt 는 1)
+ * @param {number|null} sourceStartTick  원본 처음의 타임라인 위치 (없으면 null)
+ * @returns {{start: number, length: number, offset: number}} 새 값
+ */
+export function trimClipLeft(startTick, lengthTick, deltaTicks, stepTicks, sourceStartTick) {
+  const minLength = stepTicks;
+  const minStart = sourceStartTick == null ? 0 : Math.max(0, sourceStartTick);
+  const maxStart = startTick + lengthTick - minLength;
+  let start = snapTick(startTick + deltaTicks, stepTicks);
+  if (start < minStart) start = minStart;
+  if (start > maxStart) start = maxStart;
+  return {
+    start: start,
+    length: lengthTick - (start - startTick),
+    offset: sourceStartTick == null ? 0 : start - sourceStartTick,
+  };
+}
+
+/**
+ * 클립을 클릭 지점(`atTick`)에서 둘로 가릅니다 (S1-06 FR-208 분할).
+ * - 자른 지점은 격자(`snapTick`)에 맞춘 뒤, 양쪽이 각각 한 칸(`stepTicks`) 이상일 때만 가릅니다
+ *   두 토막 중 하나라도 한 칸보다 짧으면 가르지 않고 `null` 을 돌려줍니다(부르는 쪽은 그냥 무시)
+ * - 오디오는 오른쪽 토막의 `offset` 이 왼쪽 길이만큼 커집니다(원본에서 더 건너뜀). `sourceStartTick` 규칙은 `trimClipLeft()` 와 같습니다
+ * - 왼쪽 토막은 원본 시작·오프셋 그대로, 오른쪽 토막은 자른 지점부터 이어집니다
+ * @param {number} startTick  클립 시작 tick
+ * @param {number} lengthTick  클립 길이 (tick)
+ * @param {number} atTick  자를 위치 (tick)
+ * @param {number} stepTicks  한 칸 tick (`snapStepTicks()` 결과, Alt 는 1)
+ * @param {number|null} sourceStartTick  원본 처음의 타임라인 위치 (없으면 null)
+ * @returns {{left: {start: number, length: number, offset: number}, right: {start: number, length: number, offset: number}}|null}
+ */
+export function splitClip(startTick, lengthTick, atTick, stepTicks, sourceStartTick) {
+  const at = snapTick(atTick, stepTicks);
+  const leftLength = at - startTick;
+  const rightLength = startTick + lengthTick - at;
+  if (leftLength < stepTicks || rightLength < stepTicks) return null;
+  const offset = (t) => (sourceStartTick == null ? 0 : t - sourceStartTick);
+  return {
+    left: { start: startTick, length: leftLength, offset: offset(startTick) },
+    right: { start: at, length: rightLength, offset: offset(at) },
+  };
+}
+
+/**
+ * 클립을 복제할 때 복제본의 시작 tick 을 돌려줍니다 (S1-06 FR-208 복제, Ctrl+D).
+ * - 복제본은 원본 **바로 뒤**에 붙습니다: 원본 시작 + 원본 길이
+ *   예: 시작 960 · 길이 1,920 → 복제본 시작 2,880
+ * - 둘 다 격자 위 값이라 결과도 격자 위에 놓입니다(따로 스냅하지 않습니다)
+ * - 길이·오프셋은 원본과 같으므로 시작만 돌려줍니다. 부르는 쪽이 이 위치에 클립을 하나 더 만듭니다
+ * @param {number} startTick  원본 시작 tick
+ * @param {number} lengthTick  원본 길이 (tick)
+ * @returns {number} 복제본 시작 tick
+ */
+export function duplicateClipStart(startTick, lengthTick) {
+  if (typeof startTick !== 'number' || !isFinite(startTick)) throw new RangeError('startTick 은 유한한 숫자여야 합니다: ' + startTick);
+  if (typeof lengthTick !== 'number' || !isFinite(lengthTick) || lengthTick <= 0) throw new RangeError('lengthTick 은 0 보다 큰 숫자여야 합니다: ' + lengthTick);
+  return startTick + lengthTick;
+}
+
+/**
+ * 가로 줌 배율을 한계 안으로 맞춥니다 (S1-06 FR-209 가로 줌).
+ * - 배율 1 = 1마디 28.8px. 클수록 마디가 넓어집니다(확대), 작을수록 좁아집니다(축소)
+ * - 최소는 `ZOOM_MIN`(0.25) 과 **화면 맞춤 배율**(`fitZoom`) 중 큰 쪽입니다. 화면보다 더 축소하면 빈 공간만 늘어납니다
+ * - 최대는 `ZOOM_MAX`(12) 입니다. `fitZoom` 이 이보다 크면(곡이 아주 짧아 화면에 다 들어옴) 12 로 눌러 씁니다
+ * - `fitZoom` 을 안 주면 최소는 `ZOOM_MIN` 입니다
+ * @param {number} zoom  요청한 배율
+ * @param {number} [fitZoom]  화면 맞춤 배율 (곡 전체가 화면에 들어오는 배율)
+ * @returns {number} 한계 안으로 맞춘 배율
+ */
+export function clampZoom(zoom, fitZoom) {
+  if (typeof zoom !== 'number' || !isFinite(zoom)) throw new RangeError('zoom 은 유한한 숫자여야 합니다: ' + zoom);
+  const fit = (typeof fitZoom === 'number' && isFinite(fitZoom)) ? fitZoom : ZOOM_MIN;
+  const lo = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, fit));
+  return Math.min(Math.max(zoom, lo), ZOOM_MAX);
+}
+
+/**
+ * 가로 줌으로 마디 폭이 바뀔 때, 마우스 아래 지점이 화면에서 안 움직이게 할 스크롤 위치를 돌려줍니다 (S1-06 FR-209).
+ * - 마우스 아래에 있던 마디 위치를 먼저 구하고(`barAtAnchor`), 폭이 바뀐 뒤 같은 화면 x 에 오도록 스크롤을 옮깁니다
+ *   예: 헤드 200, 스크롤 0, 마우스 300, 폭 100→200 → 새 스크롤 100
+ * - 왼쪽 헤드(트랙 이름칸) 폭(`headWidth`)은 줌과 무관하게 고정이라 빼고 계산합니다
+ * - 결과가 음수여도 그대로 돌려줍니다. 보이는 범위로 자르는 일은 스크롤 영역(`scrollLeft`)이 맡습니다
+ * @param {number} scrollLeft  지금 가로 스크롤 위치 (px)
+ * @param {number} anchorX  마우스 x (스크롤 영역 왼쪽 기준, px)
+ * @param {number} headWidth  왼쪽 헤드 폭 (px)
+ * @param {number} oldBarWidth  줌 전 한 마디 폭 (px)
+ * @param {number} newBarWidth  줌 후 한 마디 폭 (px)
+ * @returns {number} 새 가로 스크롤 위치 (px)
+ */
+export function zoomScrollLeft(scrollLeft, anchorX, headWidth, oldBarWidth, newBarWidth) {
+  const nums = [scrollLeft, anchorX, headWidth, newBarWidth];
+  if (nums.some((n) => typeof n !== 'number' || !isFinite(n))) throw new RangeError('줌 스크롤 인자는 유한한 숫자여야 합니다');
+  if (typeof oldBarWidth !== 'number' || !isFinite(oldBarWidth) || oldBarWidth <= 0) throw new RangeError('oldBarWidth 는 0 보다 큰 숫자여야 합니다: ' + oldBarWidth);
+  const barAtAnchor = (scrollLeft + anchorX - headWidth) / oldBarWidth;
+  return headWidth + barAtAnchor * newBarWidth - anchorX;
+}
+
+/**
+ * 세로 줌: 트랙 높이를 한 단계 키우거나 줄인 다음 높이를 돌려줍니다 (S1-06 FR-209 세로 줌).
+ * - 단계는 프로토타입 그대로 `TRACK_H_STEPS`(28·36·44·56·72·96·128·160·200 px)입니다. 44px 이 기본입니다
+ * - `dir` 이 0보다 크면 한 단계 크게, 아니면 한 단계 작게. 더 갈 곳이 없으면 `null` 입니다
+ *   예: 44 에서 +1 → 56, -1 → 36,  28 에서 -1 → null,  200 에서 +1 → null
+ * - 지금 높이가 단계 사이(예: 50)여도 0.5px 여유를 두어 가까운 단계로 갑니다
+ * @param {number} currentPx  지금 트랙 높이 (px)
+ * @param {number} dir  방향 (양수 = 크게, 그 외 = 작게)
+ * @returns {number|null} 다음 트랙 높이 (px) 또는 없으면 null
+ */
+export function stepTrackHeight(currentPx, dir) {
+  if (typeof currentPx !== 'number' || !isFinite(currentPx)) throw new RangeError('currentPx 는 유한한 숫자여야 합니다: ' + currentPx);
+  const up = dir > 0;
+  const next = up
+    ? TRACK_H_STEPS.find((h) => h > currentPx + 0.5)
+    : TRACK_H_STEPS.slice().reverse().find((h) => h < currentPx - 0.5);
+  return next == null ? null : next;
+}
+
+/**
+ * 새 트랙에 붙일 번호를 돌려줍니다 (S1-06 FR-207 트랙 추가).
+ * - 번호 = 지금 트랙 번호 중 **가장 큰 값 + 1**. 트랙이 없으면 1 입니다
+ *   예: [1, 2, 3] → 4,  [1, 3] → 4,  [] → 1
+ * - 그룹 트랙처럼 번호가 없는 줄은 세지 않습니다(숫자가 아니면 건너뜀)
+ * - 프로토타입 `createTrack()` 이 쓰던 규칙 그대로입니다 (`Math.max(0, …) + 1`)
+ * @param {number[]} numbers  지금 트랙들의 번호 (번호 없는 줄은 아무 값이나 무시됨)
+ * @returns {number} 새 트랙 번호
+ */
+export function nextTrackNumber(numbers) {
+  if (!Array.isArray(numbers)) throw new RangeError('numbers 는 배열이어야 합니다');
+  let max = 0;
+  for (const n of numbers) {
+    if (typeof n === 'number' && isFinite(n) && n > max) max = n;
+  }
+  return max + 1;
+}
+
+/**
+ * 트랙을 지운 뒤 번호를 다시 매긴 표(옛 번호 → 새 번호)를 돌려줍니다 (S1-06 FR-207 트랙 삭제).
+ * - 남은 트랙을 **위에서부터 차례로 1, 2, 3 …** 으로 다시 매깁니다(번호 = 위치).
+ *   예: [1, 3, 4] (2번 삭제됨) → 1→1, 3→2, 4→3
+ * - 그룹 트랙처럼 번호가 없는 줄(숫자가 아닌 값)은 건너뜁니다. 그 줄은 번호를 세지 않고 다음 줄 번호도 밀리지 않습니다
+ *   예: [1, null, 3] → 1→1, 3→2
+ * - 이미 차례대로면 옛 번호 = 새 번호인 표가 나옵니다(1→1, 2→2 …)
+ * - 번호는 서로 다르다고 봅니다(화면에 보이는 트랙 번호). 같은 번호가 두 번 오면 뒤 값이 앞 값을 덮습니다
+ * @param {number[]} numbers  지금 트랙들의 번호 (위에서 아래 순서, 번호 없는 줄은 아무 값이나)
+ * @returns {Map<number, number>} 옛 번호 → 새 번호
+ */
+export function renumberMap(numbers) {
+  if (!Array.isArray(numbers)) throw new RangeError('numbers 는 배열이어야 합니다');
+  const map = new Map();
+  let n = 0;
+  for (const old of numbers) {
+    if (typeof old !== 'number' || !isFinite(old) || old <= 0) continue;
+    n += 1;
+    map.set(old, n);
+  }
+  return map;
+}
+
+/**
+ * 목록에서 항목 하나를 다른 자리로 옮긴 새 목록을 돌려줍니다 (S1-06 FR-207 트랙 순서 드래그).
+ * - `from` 자리 항목을 빼서 `to` 자리에 끼워 넣습니다. 원래 목록은 그대로 두고 새 목록을 만듭니다
+ *   예: [Kick, Bass, Lead] 에서 0번을 2번으로 → [Bass, Lead, Kick]
+ * - `to` 는 **옮긴 뒤 자리**(0부터) 입니다. 빼고 나서 끼우므로 헷갈리지 않습니다
+ * - 트랙 번호는 자리에서 나오므로, 옮긴 뒤 `renumberMap()` 으로 번호를 다시 매깁니다
+ * - `from` 과 `to` 는 0 이상 목록 길이 미만의 정수여야 합니다
+ * @param {Array} items  원래 목록
+ * @param {number} from  옮길 항목의 지금 자리 (0부터)
+ * @param {number} to  옮긴 뒤 자리 (0부터)
+ * @returns {Array} 새 목록
+ */
+export function reorderItems(items, from, to) {
+  if (!Array.isArray(items)) throw new RangeError('items 는 배열이어야 합니다');
+  const n = items.length;
+  if (!Number.isInteger(from) || from < 0 || from >= n) throw new RangeError('from 자리가 범위 밖입니다: ' + from);
+  if (!Number.isInteger(to) || to < 0 || to >= n) throw new RangeError('to 자리가 범위 밖입니다: ' + to);
+  const out = items.slice();
+  const moved = out.splice(from, 1)[0];
+  out.splice(to, 0, moved);
+  return out;
+}
+
+/**
+ * 트랙에 붙일 색 이름을 돌려줍니다 (S1-06 FR-207 트랙 색상).
+ * - 오디오 트랙은 늘 `'audio'`(파형 색 한 가지)입니다
+ * - MIDI 트랙은 고른 색(`color`)이 있으면 그것, 없으면 **번호로 다섯 색을 돌려 씁니다**: 1→'1', 2→'2', …, 5→'5', 6→'1', 7→'2' …
+ *   `((번호 − 1) % 5) + 1` — 프로토타입 `createTrack()` 규칙 그대로입니다
+ * - 돌려주는 값은 색 번호 문자열(`'1'`~`'5'`) 또는 `'audio'` 입니다. 실제 색값은 CSS(`--tc-1`~`--tc-5`)가 정합니다
+ * @param {'audio'|'midi'} kind  트랙 종류
+ * @param {number} num  트랙 번호 (MIDI일 때 1 이상)
+ * @param {string} [color]  고른 색 (있으면 그것을 씀, MIDI)
+ * @returns {string} 색 이름 (`'1'`~`'5'` 또는 `'audio'`)
+ */
+export function trackColor(kind, num, color) {
+  if (kind === 'audio') return 'audio';
+  if (typeof num !== 'number' || !isFinite(num) || num < 1) throw new RangeError('트랙 번호는 1 이상이어야 합니다: ' + num);
+  return color || String(((num - 1) % 5) + 1);
+}
+
+/**
+ * 오디오 클립 파형을 클립 폭(칸)에 맞게 접어 한 칸마다 진폭을 돌려줍니다 (S1-06 FR-210 오디오 클립 파형).
+ * - `peaks` 는 원본 소스 전체를 같은 간격으로 담은 진폭 배열(0~1)입니다. 소스 길이(`sourceLengthTick`)에 걸쳐 있습니다
+ * - 클립은 소스의 `offsetTick` 부터 `lengthTick` 만큼을 보여 줍니다(트리밍 반영). 이것을 가로 `columns` 칸으로 나눕니다
+ * - 한 칸이 덮는 소스 구간의 진폭 중 **가장 큰 값**(절댓값)을 그 칸 값으로 씁니다
+ *   예: peaks [0.1, 0.5, 0.9, 0.3], 소스 4틱·offset 0·길이 4 → 4칸 [0.1, 0.5, 0.9, 0.3], 2칸 [0.5, 0.9]
+ * - peaks 가 비면 0으로 채운 칸 배열을 돌려줍니다(파형 자리만 남김)
+ * @param {number[]} peaks  소스 전체 진폭 (0~1), 앞에서부터 고르게 분포
+ * @param {number} offsetTick  클립이 보여 주는 소스 시작 (tick)
+ * @param {number} lengthTick  클립이 보여 주는 소스 길이 (tick)
+ * @param {number} sourceLengthTick  소스 전체 길이 (tick)
+ * @param {number} columns  클립 폭 (칸 수, 1 이상 정수)
+ * @returns {number[]} 칸마다의 진폭 (길이 `columns`)
+ */
+export function waveformColumns(peaks, offsetTick, lengthTick, sourceLengthTick, columns) {
+  if (!Array.isArray(peaks)) throw new RangeError('peaks 는 배열이어야 합니다');
+  if (!Number.isInteger(columns) || columns < 1) throw new RangeError('columns 는 1 이상의 정수여야 합니다: ' + columns);
+  if (typeof sourceLengthTick !== 'number' || !isFinite(sourceLengthTick) || sourceLengthTick <= 0) throw new RangeError('sourceLengthTick 는 0 보다 큰 숫자여야 합니다: ' + sourceLengthTick);
+  const out = new Array(columns).fill(0);
+  const n = peaks.length;
+  if (n === 0) return out;
+  const peaksPerTick = n / sourceLengthTick;
+  for (let c = 0; c < columns; c++) {
+    const t0 = (offsetTick + (c / columns) * lengthTick) * peaksPerTick;
+    const t1 = (offsetTick + ((c + 1) / columns) * lengthTick) * peaksPerTick;
+    let i0 = Math.floor(t0);
+    let i1 = Math.ceil(t1);
+    if (i1 <= i0) i1 = i0 + 1;
+    i0 = Math.max(0, Math.min(n - 1, i0));
+    i1 = Math.max(i0 + 1, Math.min(n, i1));
+    let max = 0;
+    for (let i = i0; i < i1; i++) {
+      const v = Math.abs(peaks[i]);
+      if (v > max) max = v;
+    }
+    out[c] = max;
+  }
+  return out;
+}
+
+/**
+ * 파형 칸(진폭 0~1)을 가운데를 기준으로 위·아래 좌표로 펼칩니다 (S1-06 FR-210 오디오 클립 파형).
+ * - 각 칸을 세로 막대 하나로 봅니다. 가운데(`height / 2`)에서 진폭만큼 위·아래로 뻗습니다
+ * - 캔버스에 세로 선으로 그립니다: `x = 칸 번호 × 칸 너비`, `moveTo(x, top)`, `lineTo(x, bottom)`
+ *   예: 칸 [1, 0, 0.5], 높이 10 → [[0, 10], [5, 5], [2.5, 7.5]]  (가운데 5)
+ * - 진폭은 0~1로 잘라 씁니다(넘으면 1, 음수·숫자 아님은 0). 소리 없는 칸은 가운데 한 줄이 됩니다
+ * @param {number[]} columns  칸마다의 진폭 (0~1), `waveformColumns()` 결과
+ * @param {number} height  파형 그릴 높이 (px, 0 보다 큼)
+ * @returns {number[][]} 칸마다 `[top, bottom]` 좌표 (top ≤ bottom)
+ */
+export function waveformBars(columns, height) {
+  if (!Array.isArray(columns)) throw new RangeError('columns 는 배열이어야 합니다');
+  if (typeof height !== 'number' || !isFinite(height) || height <= 0) throw new RangeError('height 는 0 보다 큰 숫자여야 합니다: ' + height);
+  const midY = height / 2;
+  const out = new Array(columns.length);
+  for (let i = 0; i < columns.length; i++) {
+    let amp = columns[i];
+    if (typeof amp !== 'number' || !isFinite(amp) || amp < 0) amp = 0;
+    if (amp > 1) amp = 1;
+    out[i] = [midY - amp * midY, midY + amp * midY];
+  }
+  return out;
+}
+
+/**
+ * 파형 막대 좌표를 캔버스에 세로 선으로 그립니다 (S1-06 FR-210 오디오 클립 파형).
+ * - `waveformBars()` 가 만든 `[top, bottom]` 배열을 받아 칸마다 `moveTo` → `lineTo` 로 잇습니다
+ * - 칸의 x 는 **칸 가운데**(`칸 번호 × 칸 너비 + 칸 너비 / 2`)로 잡습니다. 막대가 칸 한가운데 서게 합니다
+ * - 색·굵기(`strokeStyle`·`lineWidth`)는 부르는 쪽이 미리 정합니다. 이 함수는 모양만 그립니다
+ *   예: bars [[0,10],[5,5]], 칸 너비 4 → x=2 와 x=6 에 세로 선
+ * @param {CanvasRenderingContext2D} ctx  캔버스 2D 컨텍스트
+ * @param {number[][]} bars  칸마다 `[top, bottom]` 좌표, `waveformBars()` 결과
+ * @param {number} colWidth  칸 너비 (px, 0 보다 큼)
+ */
+export function drawWaveform(ctx, bars, colWidth) {
+  if (!ctx || typeof ctx.beginPath !== 'function') throw new RangeError('ctx 는 캔버스 2D 컨텍스트여야 합니다');
+  if (!Array.isArray(bars)) throw new RangeError('bars 는 배열이어야 합니다');
+  if (typeof colWidth !== 'number' || !isFinite(colWidth) || colWidth <= 0) throw new RangeError('colWidth 는 0 보다 큰 숫자여야 합니다: ' + colWidth);
+  ctx.beginPath();
+  for (let i = 0; i < bars.length; i++) {
+    const x = i * colWidth + colWidth / 2;
+    const bar = bars[i];
+    ctx.moveTo(x, bar[0]);
+    ctx.lineTo(x, bar[1]);
+  }
+  ctx.stroke();
+}
+
+/* ───────────── 오디오 클립 파형 (FR-210) ───────────── */
+
+/** 자리표시 파형 진폭 수 (소스 하나를 몇 칸으로 볼지) — S1-10 에서 실제 peaks 로 교체됩니다 */
+const PEAK_COUNT = 512;
+
+/** 샘플 이름별 자리표시 peaks — 같은 이름은 늘 같은 모양이 되도록 담아 둡니다 */
+const peaksCache = new Map();
+
+/** 이름을 32비트 정수로 (FNV-1a) — 파형 모양의 씨앗 */
+function hashName(name) {
+  let h = 2166136261;
+  for (let i = 0; i < name.length; i++) { h ^= name.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+
+/**
+ * 실제 샘플이 없을 때 쓰는 **자리표시 파형**을 이름으로 만듭니다 (S1-06 FR-210 배선용).
+ * - 이름을 씨앗으로 한 난수라 같은 샘플은 늘 같은 모양입니다(새로 그려도 흔들리지 않음)
+ * - 큰 흐름(사인)에 잔결을 섞고, 가끔 강한 타격을 넣어 파형처럼 보이게 합니다. 앞뒤는 살짝 페이드
+ * - S1-10 에서 진짜 peaks(디코딩 결과)가 오면 이 함수 대신 그 값을 넘깁니다
+ * @param {string} name  샘플 이름
+ * @returns {number[]} 소스 전체 진폭 (0~1), 길이 `PEAK_COUNT`
+ */
+function placeholderPeaks(name) {
+  const hit = peaksCache.get(name);
+  if (hit) return hit;
+  let seed = hashName(name) || 1;
+  const rand = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
+  const peaks = new Array(PEAK_COUNT);
+  for (let i = 0; i < PEAK_COUNT; i++) {
+    const p = i / PEAK_COUNT;
+    const body = 0.30 + 0.35 * Math.sin(p * Math.PI * 6) * Math.sin(p * Math.PI * 1.7);
+    let v = Math.abs(body) * (0.55 + 0.9 * rand());
+    if (rand() > 0.86) v = 1;                                     // 가끔 강한 타격
+    const fade = Math.min(1, p * 20) * Math.min(1, (1 - p) * 20); // 앞뒤 페이드
+    peaks[i] = Math.max(0.02, Math.min(1, v * fade));
+  }
+  peaksCache.set(name, peaks);
+  return peaks;
+}
+
+/**
+ * 오디오 클립 하나의 파형을 그 미리보기 캔버스에 그립니다 (S1-06 FR-210).
+ * - 클립 폭(`--l`)·오프셋(`--o`)을 tick 으로 바꿔 `waveformColumns` → `waveformBars` → `drawWaveform` 순으로 넘깁니다
+ * - 자리표시라 소스 전체 길이는 "지금 보이는 구간 + 앞에서 건너뛴 만큼"으로 봅니다(트리밍하면 파형이 밀림)
+ * - 칸 수는 캔버스 CSS 폭만큼(1칸 ≈ 1px). 캔버스는 화면 배율(dpr)에 맞춰 늘려 선명하게 그립니다
+ * @param {HTMLElement} clip  오디오 클립 (`.sq-clip--audio`)
+ * @param {number} dpr  화면 배율 (window.devicePixelRatio)
+ */
+function drawClipWaveform(clip, dpr) {
+  const canvas = clip.querySelector('.sq-clip__preview');
+  if (!canvas) return;
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  if (w < 2 || h < 2) return;
+  const pw = Math.max(1, Math.round(w * dpr)), ph = Math.max(1, Math.round(h * dpr));
+  if (canvas.width !== pw || canvas.height !== ph) { canvas.width = pw; canvas.height = ph; }
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, pw, ph);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const nameEl = clip.querySelector('.sq-clip__name');
+  const name = (nameEl ? nameEl.textContent : '').replace(/^[▤⇥]\s*/, '').trim();
+  const lengthTick = barsToTicks(parseFloat(clip.style.getPropertyValue('--l')) || 1);
+  const offsetTick = barsToTicks(parseFloat(clip.style.getPropertyValue('--o')) || 0);
+  const sourceLengthTick = offsetTick + lengthTick;
+  const columns = Math.max(1, Math.min(4000, Math.round(w)));
+  const cols = waveformColumns(placeholderPeaks(name), offsetTick, lengthTick, sourceLengthTick, columns);
+  const bars = waveformBars(cols, h);
+  ctx.strokeStyle = getComputedStyle(clip).getPropertyValue('--tc').trim() || 'currentColor';
+  ctx.lineWidth = 1;
+  drawWaveform(ctx, bars, w / columns);
+}
+
+/** 편곡의 모든 오디오 클립 파형을 다시 그림 */
+function drawWaveforms() {
+  const c = zoomCtx;
+  if (!c) return;
+  const dpr = window.devicePixelRatio || 1;
+  c.lanes.querySelectorAll('.sq-clip--audio').forEach((clip) => drawClipWaveform(clip, dpr));
+}
+
+/**
+ * 오디오 클립 파형 배선 (S1-06 FR-210).
+ * - 처음 한 번 그리고, 클립이 생기거나 지워지거나 `--s`·`--l`·`--o` 가 바뀌면 다시 그립니다(MutationObserver)
+ * - 확대·스크롤로 격자를 다시 그릴 때(`requestGrid`)에도 함께 그립니다(클립 폭이 바뀌므로)
+ * @param {{lanes: HTMLElement}} param0
+ */
+function initWaveforms({ lanes }) {
+  new MutationObserver(requestGrid).observe(lanes, { subtree: true, childList: true, attributes: true, attributeFilter: ['style'] });
+  requestGrid();
+}
+
+/**
+ * 스냅 메뉴에 넣을 분할 목록을 돌려줍니다 (S1-06 FR-206 그리드 스냅: 1/1~1/32 · 셋잇단 포함).
+ * - `DIVISION_DEN` 의 분할(1/1 · 1/2 · 1/4 · 1/8 · 1/16 · 1/32)마다 **보통**과 **셋잇단** 두 줄을 만듭니다
+ * - 셋잇단 이름은 뒤에 `T` 를 붙입니다(`'1/16T'`). 값(`ticks`)은 `snapStepTicks()` 로 구합니다
+ * - 화면 순서는 큰 분할(1/1)부터 작은 분할(1/32)까지, 각 분할은 보통 다음 셋잇단 순서입니다
+ *   예: 1/1(3840) · 1/1T(1280) · 1/2(1920) · 1/2T(640) · … · 1/32(120) · 1/32T(40)
+ * @returns {{division: string, triplet: boolean, label: string, ticks: number}[]} 메뉴 줄 목록
+ */
+export function snapOptions() {
+  const out = [];
+  for (const division of Object.keys(DIVISION_DEN)) {
+    out.push({ division, triplet: false, label: division, ticks: snapStepTicks(division, false) });
+    out.push({ division, triplet: true, label: division + 'T', ticks: snapStepTicks(division, true) });
+  }
+  return out;
+}
+
+/** 지금 고른 스냅 분할 — Snap 메뉴에서 명시적으로 고른 값. 기본은 1/16 (보통) */
+let snapDivision = '1/16';
+let snapTriplet = false;
+
+/**
+ * 스냅 분할 선택을 담아 둡니다 (S1-06 FR-206 그리드 스냅 메뉴에서 고른 값 저장).
+ * - Snap 메뉴에서 "1/16" 같은 분할과 ³ Triplet 여부를 고르면 이 함수로 담습니다
+ * - 담기 전에 이름을 `divisionTicks()` 로 확인합니다. 목록에 없는 이름이면 오류를 던지고 **담지 않습니다**(이전 값 유지)
+ * - 돌려주는 값은 담은 뒤의 `{division, triplet}` 입니다
+ * @param {string} division  '1/1' | '1/2' | '1/4' | '1/8' | '1/16' | '1/32'
+ * @param {boolean} [triplet]  셋잇단 여부 (기본 false)
+ * @returns {{division: string, triplet: boolean}} 담은 값
+ */
+export function setSnapDivision(division, triplet = false) {
+  divisionTicks(division);
+  snapDivision = division;
+  snapTriplet = triplet ? true : false;
+  snapMode = 'division';
+  updateSnapButton();
+  refreshSnapMenu();
+  notifyGridSettings();
+  return { division: snapDivision, triplet: snapTriplet };
+}
+
+/**
+ * 지금 고른 스냅 분할을 돌려줍니다 (S1-06 FR-206 — 저장한 값 조회).
+ * - `setSnapDivision()` 으로 담은 값(또는 기본값)을 그대로 돌려줍니다
+ * @returns {{division: string, triplet: boolean}} 지금 값
+ */
+export function getSnapDivision() {
+  return { division: snapDivision, triplet: snapTriplet };
+}
+
+/**
+ * 고른 스냅 분할을 **마디 단위**로 돌려줍니다 (S1-06 FR-206 — 끌기 코드에 넘길 값).
+ * - 끌기 코드(`snap`·`snapUnit`)는 마디 단위를 씁니다. 이 함수가 고른 분할을 그 단위로 바꿔 줍니다
+ * - `divisionTicks()`(tick 길이) 를 `TICKS_PER_BAR` 로 나눕니다. 4/4 에서 1/n 음표 = 1/n 마디입니다
+ *   예: '1/16' → 240 tick ÷ 3840 = 0.0625 마디, '1/4' → 960 ÷ 3840 = 0.25 마디, '1/1' → 1 마디
+ * - 셋잇단이면 `tripletTicks()`(÷3) 를 나눠 마디 단위로 씁니다
+ * - 이름이 틀리면 `divisionTicks()` 가 던진 오류가 그대로 전해집니다
+ * @param {string} division  '1/1' | '1/2' | '1/4' | '1/8' | '1/16' | '1/32'
+ * @param {boolean} [triplet]  셋잇단 여부 (기본 false)
+ * @returns {number} 스냅 한 칸 (마디 단위)
+ */
+export function divisionBars(division, triplet = false) {
+  return snapStepTicks(division, triplet) / TICKS_PER_BAR;
+}
+
+/** 스냅 방식: 'line' = 보이는 격자선에 붙음 · 'off' = 격자 무시 · 'division' = 고른 분할 (상단 Snap ▾) */
 let snapMode = 'line';
 
+/**
+ * 지금 붙을 스냅 한 칸(마디 단위)을 돌려줍니다 (S1-06 FR-206 — 방식을 한 값으로 모음).
+ * - Alt(free) 를 누른 채 끌거나 Snaps Off 이면 1틱입니다
+ * - 분할을 직접 골랐으면(`'division'`) 고른 분할(`divisionBars()`)을 씁니다
+ * - 그 밖에는 확대에 따라 자동(`getSnap()`)입니다
+ * @param {boolean} [free]  Alt 를 누른 채 끄는 중 (기본 false)
+ * @returns {number} 스냅 한 칸 (마디 단위)
+ */
+export function snapUnitNow(free = false) {
+  if (free || snapMode === 'off') return TICK;
+  if (snapMode === 'division') return divisionBars(snapDivision, snapTriplet);
+  return getSnap();
+}
+
 /** 지금 붙는 단위 — free(끄는 중 Alt) 이거나 스냅 Off 이면 1틱 */
-const snapUnit = (free) => (free || snapMode === 'off' ? TICK : getSnap());
+const snapUnit = (free) => snapUnitNow(free);
 
 /** 가장 가까운 격자선으로 (free = Alt 를 누른 채 끄는 중) */
 const snap = (bar, free = false) => { const u = snapUnit(free); return round(Math.round(bar / u) * u); };
@@ -184,8 +785,12 @@ function initClipDrag({ scroll, lanes, onChange }) {
       if (!multi) clearSelection(lanes);
       clip.classList.add('is-selected');
     }
+    const rect = clip.getBoundingClientRect();
+    const onLeft = e.clientX - rect.left <= EDGE_PX;    // 왼쪽 끝 손잡이 = 트리밍
+    const onRight = rect.right - e.clientX <= EDGE_PX;  // 오른쪽 끝 손잡이 = 길이 조절
     drag = {
       clip, multi, wasSelected,
+      mode: onRight ? 'resize' : onLeft ? 'trim' : 'move',
       id: e.pointerId,
       x: e.clientX,
       scrollLeft: scroll.scrollLeft,
@@ -193,10 +798,15 @@ function initClipDrag({ scroll, lanes, onChange }) {
         clip: c,
         start: parseFloat(c.style.getPropertyValue('--s')) || 0,
         length: parseFloat(c.style.getPropertyValue('--l')) || 1,
+        offset: parseFloat(c.style.getPropertyValue('--o')) || 0,
       })),
       moved: false,
     };
     drag.primary = drag.group.find((g) => g.clip === clip);
+    // 오디오는 원본 처음이 타임라인 어디인지(start − offset)를 알아야 늘리기 한계를 지킴. MIDI 는 원본이 없어 null
+    drag.sourceStartTick = clip.classList.contains('sq-clip--audio')
+      ? barsToTicks(drag.primary.start) - barsToTicks(drag.primary.offset)
+      : null;
   });
 
   lanes.addEventListener('pointermove', (e) => {
@@ -206,7 +816,28 @@ function initClipDrag({ scroll, lanes, onChange }) {
     if (!drag.moved) {
       drag.moved = true;
       drag.clip.setPointerCapture(e.pointerId);
-      drag.group.forEach((g) => g.clip.classList.add('is-dragging'));
+      if (drag.mode === 'move') drag.group.forEach((g) => g.clip.classList.add('is-dragging'));
+      else drag.clip.classList.add('is-resizing');
+    }
+    // 오른쪽 끝 = 길이 조절 (S1-06 FR-208). 최소 한 칸까지 줄고, 스냅에 맞춰 늘고 줆
+    if (drag.mode === 'resize') {
+      const stepTicks = barsToTicks(snapUnit(e.altKey));            // Alt = 격자 무시(1틱)
+      const deltaTicks = barsToTicks(dx / barWidth(lanes));
+      const lenTick = resizeClipLength(barsToTicks(drag.primary.length), deltaTicks, stepTicks);
+      drag.primary.clip.style.setProperty('--l', round(ticksToBars(lenTick)));
+      edgeScroll(scroll, e.clientX);
+      return;
+    }
+    // 왼쪽 끝 = 트리밍 (S1-06 FR-208). 시작·길이·오프셋이 함께 움직여 오디오가 제자리에 고정됨
+    if (drag.mode === 'trim') {
+      const stepTicks = barsToTicks(snapUnit(e.altKey));
+      const deltaTicks = barsToTicks(dx / barWidth(lanes));
+      const res = trimClipLeft(barsToTicks(drag.primary.start), barsToTicks(drag.primary.length), deltaTicks, stepTicks, drag.sourceStartTick);
+      drag.primary.clip.style.setProperty('--s', round(ticksToBars(res.start)));
+      drag.primary.clip.style.setProperty('--l', round(ticksToBars(res.length)));
+      drag.primary.clip.style.setProperty('--o', round(ticksToBars(res.offset)));
+      edgeScroll(scroll, e.clientX);
+      return;
     }
     // 잡은 클립을 스냅에 맞춘 만큼(delta) 모두 같이 옮김 → 클립끼리 간격 유지
     // 맨 앞 클립이 0 아래로, 맨 뒤 클립이 곡 끝 너머로 가지 않게 delta 를 제한
@@ -221,14 +852,26 @@ function initClipDrag({ scroll, lanes, onChange }) {
 
   const end = (e) => {
     if (!drag || e.pointerId !== drag.id) return;
-    const { clip, moved } = drag;
+    const { clip, moved, mode } = drag;
     if (moved) {
       clip.releasePointerCapture(e.pointerId);
-      drag.group.forEach((g) => {
-        g.clip.classList.remove('is-dragging');
-        const start = parseFloat(g.clip.style.getPropertyValue('--s'));
-        if (start !== g.start) onChange({ type: 'move', clip: g.clip, trackId: g.clip.closest('.sq-track').dataset.trackId, start, length: g.length });
-      });
+      if (mode === 'resize') {
+        clip.classList.remove('is-resizing');
+        const length = parseFloat(clip.style.getPropertyValue('--l'));
+        if (length !== drag.primary.length) onChange({ type: 'resize', clip, trackId: clip.closest('.sq-track').dataset.trackId, start: drag.primary.start, length });
+      } else if (mode === 'trim') {
+        clip.classList.remove('is-resizing');
+        const start = parseFloat(clip.style.getPropertyValue('--s'));
+        const length = parseFloat(clip.style.getPropertyValue('--l'));
+        const offset = parseFloat(clip.style.getPropertyValue('--o')) || 0;
+        if (start !== drag.primary.start || length !== drag.primary.length) onChange({ type: 'trim', clip, trackId: clip.closest('.sq-track').dataset.trackId, start, length, offset });
+      } else {
+        drag.group.forEach((g) => {
+          g.clip.classList.remove('is-dragging');
+          const start = parseFloat(g.clip.style.getPropertyValue('--s'));
+          if (start !== g.start) onChange({ type: 'move', clip: g.clip, trackId: g.clip.closest('.sq-track').dataset.trackId, start, length: g.length });
+        });
+      }
       // 끈 뒤 따라오는 click 은 무시 (선택이 바뀌지 않게)
       clip.addEventListener('click', (ev) => ev.stopPropagation(), { capture: true, once: true });
     } else if (drag.multi) {
@@ -249,6 +892,30 @@ function initClipDrag({ scroll, lanes, onChange }) {
     if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 'a' || e.target.closest?.('input, textarea, select, [contenteditable]')) return;
     e.preventDefault();
     lanes.querySelectorAll('.sq-clip:not(.is-ghost)').forEach((c) => c.classList.add('is-selected'));
+  });
+
+  // Ctrl+D → 선택한 클립을 바로 오른쪽에 복제 (FR-208 복제). 새 복제본이 선택됨
+  document.addEventListener('keydown', (e) => {
+    if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 'd' || e.target.closest?.('input, textarea, select, [contenteditable]') || document.querySelector('dialog[open]')) return;
+    const clips = [...lanes.querySelectorAll('.sq-clip.is-selected:not(.is-ghost)')];
+    if (!clips.length) return;
+    e.preventDefault();
+    const copies = clips.map((c) => {
+      const track = c.closest('.sq-track');
+      const start = parseFloat(c.style.getPropertyValue('--s')) || 0;
+      const length = parseFloat(c.style.getPropertyValue('--l')) || 1;
+      const offset = parseFloat(c.style.getPropertyValue('--o')) || 0;
+      const kind = c.classList.contains('sq-clip--audio') ? 'audio' : 'midi';
+      const name = c.querySelector('.sq-clip__name').textContent.replace(/^[▤⇥]\s*/, '').trim();
+      const newStart = clamp(ticksToBars(duplicateClipStart(barsToTicks(start), barsToTicks(length))), 0, totalBars(lanes) - length);
+      const clip = createClip({ kind, name, start: newStart, length });
+      if (offset) clip.style.setProperty('--o', offset);
+      track.querySelector('.sq-track__lane').append(clip);
+      onChange({ type: 'duplicate', clip, trackId: track.dataset.trackId, start: newStart, length, offset });
+      return clip;
+    });
+    clearSelection(lanes);
+    copies.forEach((c) => c.classList.add('is-selected'));
   });
 }
 
@@ -436,6 +1103,45 @@ export function renumberTracks(notify = () => {}) {
 let trackSeq = 0;
 
 /**
+ * 트랙 한 줄을 지웁니다 (S1-06 FR-207 트랙 삭제) — 머리의 × 버튼이 부릅니다.
+ * - 트랙 줄을 없애고 `renumberTracks()` 로 남은 번호를 다시 매깁니다
+ * - MASTER 는 지우지 않습니다(맨 아래 고정 줄). 그 밖의 트랙(MIDI · 오디오 · 리턴 · 그룹)은 지웁니다
+ * - 지운 뒤 `{type:'delete', trackId}` 를 알립니다(저장용). 번호정리 알림은 `renumberTracks()` 가 냅니다
+ * @param {HTMLElement} track  지울 트랙 줄
+ * @param {(change: object) => void} [notify]  바뀜 알림
+ * @returns {string|null} 지운 트랙 id (못 지우면 null)
+ */
+export function deleteTrack(track, notify = () => {}) {
+  if (!track || track.classList.contains('sq-track--master')) return null;
+  const trackId = track.dataset.trackId;
+  track.remove();
+  renumberTracks(notify);
+  notify({ type: 'delete', trackId });
+  return trackId;
+}
+
+/** 트랙 머리에 삭제 × 버튼이 없으면 붙입니다 (이미 있으면 건너뜀). MASTER 는 빼고 */
+function ensureTrackDelete(root) {
+  root.querySelectorAll('.sq-track').forEach((track) => {
+    if (track.classList.contains('sq-track--master')) return;
+    const head = track.querySelector('.sq-track__head');
+    if (!head || head.querySelector('.sq-track__del')) return;
+    head.append(trackDeleteButton());
+  });
+}
+
+/** 삭제 × 버튼 하나 (createTrack · addTrack · ensureTrackDelete 가 함께 씀) */
+function trackDeleteButton() {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'sq-track__del';
+  b.setAttribute('aria-label', 'Delete track');
+  b.setAttribute('title', 'Delete track');
+  b.textContent = '×';
+  return b;
+}
+
+/**
  * 새 트랙 한 줄 (studioNx.html 의 트랙과 같은 모양) — 번호는 지금 가장 큰 번호 + 1
  * @param {{ kind: 'audio'|'midi', name: string, color?: string }} opt
  * @returns {HTMLLIElement}
@@ -451,10 +1157,12 @@ export function createTrack({ kind, name, color }) {
   const sub = kind === 'audio' ? `🎵 ${esc(name)}.wav` : '🎹 No instrument';
   li.innerHTML = `
             <div class="sq-track__head">
+              <button type="button" class="sq-grip" aria-label="Reorder track" title="Drag to reorder">⠿</button>
               <button type="button" class="sq-power" aria-pressed="true" aria-label="Track on/off"></button>
               <button type="button" class="sq-expand" aria-expanded="false" aria-label="Open track">V</button>
               <span class="sq-track__name"><b>${num}. ${esc(name)}</b><small>${sub}</small></span>
               <span class="sq-msr"><button type="button" class="is-mute" aria-pressed="false" aria-label="Mute">M</button><button type="button" class="is-solo" aria-pressed="false" aria-label="Solo">S</button><button type="button" class="is-arm" aria-pressed="false" aria-label="Record arm">●</button></span>
+              <button type="button" class="sq-track__del" aria-label="Delete track" title="Delete track">×</button>
             </div>
             <div class="sq-track__lane"></div>`;
   return li;
@@ -744,11 +1452,11 @@ export function setZoom(zoom, anchorX) {
   if (!c) return;
   const head = c.scroll.querySelector('.sq-track__head')?.getBoundingClientRect().width ?? 0;
   const x = anchorX ?? head + (c.scroll.clientWidth - head) / 2;
-  const barAtAnchor = (c.scroll.scrollLeft + x - head) / barWidth(c.lanes);
-  c.zoom = clamp(zoom, Math.max(ZOOM_MIN, fitZoom(c)), ZOOM_MAX);
+  const oldBarWidth = barWidth(c.lanes);
+  c.zoom = clampZoom(zoom, fitZoom(c));
   applyBarWidth(c);
   updateGrid(c);
-  c.scroll.scrollLeft = head + barAtAnchor * barWidth(c.lanes) - x;
+  c.scroll.scrollLeft = zoomScrollLeft(c.scroll.scrollLeft, x, head, oldBarWidth, barWidth(c.lanes));
 }
 
 /**
@@ -808,7 +1516,7 @@ let gridFrame = 0;
 /** 다음 화면 갱신 때 격자를 한 번 그림 (스크롤 · 확대 · 크기 변화가 한꺼번에 와도 한 번만) */
 function requestGrid() {
   if (gridFrame) return;
-  gridFrame = requestAnimationFrame(() => { gridFrame = 0; drawGrid(); });
+  gridFrame = requestAnimationFrame(() => { gridFrame = 0; drawGrid(); drawWaveforms(); });
 }
 
 /**
@@ -1091,9 +1799,8 @@ function initMarquee({ scroll, lanes }) {
 /** 스냅 방식 바꾸기 — 'line' | 'off' */
 export function setSnapMode(mode) {
   snapMode = mode === 'off' ? 'off' : 'line';
-  const btn = document.getElementById('snap');
-  if (btn) btn.textContent = `Snap: ${snapMode === 'off' ? 'Off' : 'Line'} ▾`;
-  document.querySelectorAll('#menu-snap [data-snap]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.snap === snapMode)));
+  updateSnapButton();
+  refreshSnapMenu();
   notifyGridSettings();
 }
 
@@ -1102,10 +1809,54 @@ export function getSnapMode() {
   return snapMode;
 }
 
+/** 스냅 버튼 글자 — 방식에 맞춰 다시 씁니다 (고른 분할은 'Snap: 1/16T ▾', 자동은 'Snap: Line ▾') */
+function updateSnapButton() {
+  const btn = document.getElementById('snap');
+  if (!btn) return;
+  if (snapMode === 'off') btn.textContent = 'Snap: Off ▾';
+  else if (snapMode === 'division') btn.textContent = `Snap: ${snapDivision}${snapTriplet ? 'T' : ''} ▾`;
+  else btn.textContent = 'Snap: Line ▾';
+}
+
+/** 스냅 메뉴 체크 표시 — 지금 방식에 맞춰 aria-checked 를 다시 씁니다 */
+function refreshSnapMenu() {
+  const menu = document.getElementById('menu-snap');
+  if (!menu) return;
+  menu.querySelectorAll('[data-snap]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.snap === snapMode)));
+  menu.querySelectorAll('[data-division]').forEach((b) => {
+    const on = snapMode === 'division' && b.dataset.division === snapDivision && (b.dataset.triplet === 'true') === snapTriplet;
+    b.setAttribute('aria-checked', String(on));
+  });
+}
+
+/** 스냅 메뉴에 분할 목록(1/1~1/32 · 셋잇단)을 만듭니다 — `snapOptions()` 목록 그대로 */
+function buildSnapDivisions(menu) {
+  if (menu.querySelector('[data-division]')) return;
+  const note = menu.querySelector('#snap-note');
+  const frag = document.createDocumentFragment();
+  for (const opt of snapOptions()) {
+    const li = document.createElement('li');
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('role', 'menuitemradio');
+    b.setAttribute('aria-checked', 'false');
+    b.dataset.division = opt.division;
+    b.dataset.triplet = String(opt.triplet);
+    b.textContent = opt.label;
+    li.appendChild(b);
+    frag.appendChild(li);
+  }
+  if (note) menu.insertBefore(frag, note);
+  else menu.appendChild(frag);
+}
+
 function initSnapMenu() {
   const btn = document.getElementById('snap');
   const menu = document.getElementById('menu-snap');
   if (!btn || !menu) return;
+  buildSnapDivisions(menu);
+  updateSnapButton();
+  refreshSnapMenu();
   const close = () => { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); };
   btn.addEventListener('click', () => {
     if (!menu.hidden) { close(); return; }
@@ -1117,9 +1868,10 @@ function initSnapMenu() {
     btn.setAttribute('aria-expanded', 'true');
   });
   menu.addEventListener('click', (e) => {
-    const item = e.target.closest('[data-snap]');
+    const item = e.target.closest('[data-snap],[data-division]');
     if (!item) return;
-    setSnapMode(item.dataset.snap);
+    if (item.dataset.division) setSnapDivision(item.dataset.division, item.dataset.triplet === 'true');
+    else setSnapMode(item.dataset.snap);
     close();
   });
   document.addEventListener('pointerdown', (e) => { if (!menu.hidden && !menu.contains(e.target) && e.target !== btn) close(); });
@@ -1244,8 +1996,7 @@ export function setAllTrackHeights(px) {
 
 /** 전체 높이를 한 단계 크게(+1) · 작게(-1) */
 function stepAllTrackHeights(dir) {
-  const cur = baseTrackHeight(heightCtx.lanes);
-  const next = dir > 0 ? TRACK_H_STEPS.find((h) => h > cur + 0.5) : [...TRACK_H_STEPS].reverse().find((h) => h < cur - 0.5);
+  const next = stepTrackHeight(baseTrackHeight(heightCtx.lanes), dir);
   if (next != null) setAllTrackHeights(next);
   return next;
 }
@@ -1526,20 +2277,25 @@ function initToolActions({ scroll, lanes, onChange }) {
     a.lane.append(clip);
     onChange({ type: 'create', clip, trackId: a.lane.closest('.sq-track').dataset.trackId, start, length: a.t.length });
   }
-  /** Slice: 누른 자리(격자)에서 둘로 — 뒤쪽 클립은 내용이 이어지도록 --o 를 당김 */
+  /** Slice: 누른 자리(격자)에서 둘로 — 두 토막이 각각 한 칸 이상일 때만 가름 (S1-06 FR-208) */
   function sliceClip(clip, bar, free) {
     const s = parseFloat(clip.style.getPropertyValue('--s')) || 0;
     const l = parseFloat(clip.style.getPropertyValue('--l')) || 1;
+    const offset = parseFloat(clip.style.getPropertyValue('--o')) || 0;
+    const stepTicks = barsToTicks(snapUnit(free));   // Alt = 격자 무시(1틱)
+    // 오디오는 원본 처음(start − offset)을 넘겨야 오른쪽 토막 오프셋이 이어짐. MIDI 는 null
+    const source = clip.classList.contains('sq-clip--audio') ? barsToTicks(s) - barsToTicks(offset) : null;
     const at = snap(bar, free);
-    if (at <= s + 1e-6 || at >= s + l - 1e-6) return;
-    const o = parseFloat(clip.style.getPropertyValue('--o')) || 0;
-    clip.style.setProperty('--l', round(at - s));
-    const t = templateOf(clip);
-    const right = createClip({ ...t, start: at, length: round(s + l - at) });
-    right.style.setProperty('--o', round(o - (at - s)));
+    const res = splitClip(barsToTicks(s), barsToTicks(l), barsToTicks(at), stepTicks, source);
+    if (!res) return;
+    clip.style.setProperty('--s', round(ticksToBars(res.left.start)));
+    clip.style.setProperty('--l', round(ticksToBars(res.left.length)));
+    clip.style.setProperty('--o', round(ticksToBars(res.left.offset)));
+    const right = createClip({ ...templateOf(clip), start: round(ticksToBars(res.right.start)), length: round(ticksToBars(res.right.length)) });
+    right.style.setProperty('--o', round(ticksToBars(res.right.offset)));
     if (clip.classList.contains('is-muted')) right.classList.add('is-muted');
     clip.after(right);
-    onChange({ type: 'slice', clip, right, trackId: clip.closest('.sq-track').dataset.trackId, at });
+    onChange({ type: 'slice', clip, right, trackId: clip.closest('.sq-track').dataset.trackId, at: round(ticksToBars(res.right.start)), offset: round(ticksToBars(res.right.offset)) });
   }
 }
 
@@ -1641,10 +2397,12 @@ export function addTrack(type) {
     div.dataset.trackId = `r${letter.toLowerCase()}${++trackSeq}`;
     div.innerHTML = `
           <div class="sq-track__head">
+            <button type="button" class="sq-grip" aria-label="Reorder track" title="Drag to reorder">⠿</button>
             <button type="button" class="sq-power" aria-pressed="true" aria-label="Track on/off"></button>
             <button type="button" class="sq-expand" aria-expanded="false" aria-label="Open return track">V</button>
             <span class="sq-track__name"><b>${letter} Return <span class="sq-badge is-return">RETURN</span></b><small>No effect</small></span>
             <span class="sq-msr"><button type="button" class="is-mute" aria-pressed="false" aria-label="Mute">M</button><button type="button" class="is-solo" aria-pressed="false" aria-label="Solo">S</button></span>
+            <button type="button" class="sq-track__del" aria-label="Delete track" title="Delete track">×</button>
           </div>
           <div class="sq-track__lane"><span class="sq-track__note">Receives sends from 0 tracks</span></div>`;
     lanes.querySelector('.sq-track--master').before(div);
@@ -1660,12 +2418,73 @@ export function addTrack(type) {
   return track;
 }
 
+/** 트랙 순서 드래그 (S1-06 FR-207) — 머리의 ⠿ 그립을 위아래로 끌어 순서를 바꿈 */
+function initTrackReorder({ lanes, onChange }) {
+  const tracksEl = lanes.querySelector('#tracks');
+  if (!tracksEl) return;
+  let drag = null;
+  const items = () => Array.from(tracksEl.children).filter((el) => el.classList.contains('sq-track'));
+  const clearMarks = () => items().forEach((el) => el.classList.remove('is-reorder-target'));
+
+  const onMove = (e) => {
+    if (!drag) return;
+    const list = items();
+    let at = 0;
+    for (const el of list) { const r = el.getBoundingClientRect(); if (e.clientY > r.top + r.height / 2) at += 1; }
+    const to = Math.max(0, Math.min(list.length - 1, drag.from < at ? at - 1 : at));
+    drag.to = to;
+    clearMarks();
+    const target = list[to];
+    if (target && target !== drag.track) target.classList.add('is-reorder-target');
+  };
+  const cleanup = () => {
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
+    document.removeEventListener('pointercancel', onCancel);
+  };
+  const onUp = () => end(true);
+  const onCancel = () => end(false);
+
+  function end(commit) {
+    if (!drag) return;
+    const d = drag;
+    drag = null;
+    cleanup();
+    d.track.classList.remove('is-reorder-dragging');
+    clearMarks();
+    if (!commit) return;
+    const list = items();
+    const next = reorderItems(list, d.from, d.to);
+    let changed = false;
+    for (let i = 0; i < next.length; i++) { if (next[i] !== list[i]) { changed = true; break; } }
+    if (!changed) return;
+    next.forEach((el) => tracksEl.append(el));
+    renumberTracks(onChange);
+    onChange({ type: 'reorder', trackId: d.track.dataset.trackId, from: d.from, to: d.to });
+  }
+
+  lanes.addEventListener('pointerdown', (e) => {
+    const grip = e.target.closest('.sq-grip');
+    if (!grip || e.button !== 0) return;
+    const track = grip.closest('.sq-track');
+    if (!track || !tracksEl.contains(track)) return;
+    e.preventDefault();
+    const list = items();
+    drag = { track, from: list.indexOf(track), to: list.indexOf(track) };
+    track.classList.add('is-reorder-dragging');
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+    document.addEventListener('pointercancel', onCancel);
+  });
+}
+
 function initTrackButtons({ lanes, onChange }) {
   lanes.addEventListener('click', (e) => {
     const b = e.target.closest('button');
     const track = b?.closest('.sq-track');
     if (!b || !track || !b.closest('.sq-track__head')) return;
     const id = track.dataset.trackId;
+    if (b.matches('.sq-track__del')) { deleteTrack(track, onChange); return; }
     if (b.matches('.sq-power, .is-mute, .is-solo, .is-arm')) {
       const on = b.getAttribute('aria-pressed') !== 'true';
       if (b.matches('.is-solo') && (e.ctrlKey || e.metaKey)) {
@@ -1712,6 +2531,7 @@ function initTrackButtons({ lanes, onChange }) {
     if (t.querySelector('.sq-track__head .sq-power[aria-pressed="false"]')) t.classList.add('is-off');
     if (t.querySelector('.sq-track__head .is-mute[aria-pressed="true"]')) t.classList.add('is-muted');
   });
+  ensureTrackDelete(lanes);
   applySolo(lanes);
 }
 
