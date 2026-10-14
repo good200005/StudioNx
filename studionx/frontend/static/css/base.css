@@ -212,3 +212,6 @@ a {
   color: var(--c-ink-faint); font-size: var(--fs-xs); letter-spacing: 0.04em;
 }
 .site-footer .brand__name { font-size: var(--fs-sm); }
+
+/* Nyxi 일러스트: 끌어서 저장, 선택, 길게 눌러 저장(모바일)을 막음 (P1-27, core/protect-images.js 와 함께) */
+img[src*="characters/nyxi/"] { -webkit-user-drag: none; user-select: none; -webkit-touch-callout: none; }

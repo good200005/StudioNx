@@ -1,4 +1,4 @@
-# AI 구현 설명 색인 — Phase 1 (P1-01 ~ P1-26), Phase 2 (S1-05 ~)
+# AI 구현 설명 색인 — Phase 1 (P1-01 ~ P1-27), Phase 2 (S1-05 ~)
 
 | 항목 | 내용 |
 |---|---|
@@ -51,6 +51,7 @@
 | P1-24 | 홈 화면 수정(Service, Feature 세 칸 폭, Development 공지 없음 화면)과 개인정보 처리방침 한국어, 일본어판 | [64](64_p1-24_ui_fixes_privacy_i18n.md) | [JS 102](<javascript/P1-24 - 화면 수정과 처리방침 번역/>) | [65](65_p1-24_site_test.md) |
 | P1-25 | 처리방침 링크의 언어 연결, 일본 감독기관 안내, 목차 표시 오류 수정 | [66](66_p1-25_privacy_links.md) | [JS 103](<javascript/P1-25 - 처리방침 링크 언어 연결/>) | 66 §4 |
 | P1-26 | Nyxi 일러스트 삽입 (오류 페이지 7개, 홈 공지 없음 화면) | [69](69_p1-26_illustrations.md) | (CSS, HTML 작업) | 69 §3 |
+| P1-27 | Nyxi 일러스트 저장 방지 (오른쪽 클릭, 끌기) | (개요는 함수 문서에 포함) | [JS 149](<javascript/P1-27 - 일러스트 저장 방지/>) | JS 149 §5 |
 | (기타) | 개인정보 처리방침 페이지와 가입 동의, 개발 환경 | [27](27_privacy_policy.md), [01](01_dev_environment.md) | — | — |
 
 P1-19는 이 색인과 `develop`으로의 PR입니다. P1-15의 시퀀서 JS는 Phase 2에서 만듭니다.

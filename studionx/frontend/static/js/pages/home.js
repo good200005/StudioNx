@@ -4,6 +4,7 @@
 
 import { initAuthState, initLoginForm, initPasswordToggles, initOAuthPlaceholders } from '../core/auth-ui.js';
 import { initModalFallback } from '../core/modal.js';
+import { initImageProtection } from '../core/protect-images.js';
 import { includePartials } from '../core/include.js';
 import { parseLoginHash, isLoggedIn } from '../core/auth.js';
 import { initFormAlerts, showAlert } from '../core/dialog.js';
@@ -434,6 +435,7 @@ initSideNavActiveState();
 initMobileMenuClose();
 initContactForm();
 initModalFallback();
+initImageProtection();   // Nyxi 일러스트 저장 방지 (P1-27)
 initFormAlerts();   // 19 — 로그인 모달 · 문의 폼의 기본 말풍선 대신 알림창
 loadDevNotes();
 initDevNotesModal();
