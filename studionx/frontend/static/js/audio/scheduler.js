@@ -85,8 +85,8 @@ export class Transport {
     this.lookahead = options.lookahead != null ? options.lookahead : DEFAULT_LOOKAHEAD_SECONDS;
     this.intervalMs = options.intervalMs != null ? options.intervalMs : DEFAULT_INTERVAL_MS;
     this.startDelay = options.startDelay != null ? options.startDelay : DEFAULT_START_DELAY_SECONDS;
-    this.setTimer = options.setTimer != null ? options.setTimer : setInterval;
-    this.clearTimer = options.clearTimer != null ? options.clearTimer : clearInterval;
+    this.setTimer = options.setTimer != null ? options.setTimer : function (fn, ms) { return setInterval(fn, ms); };
+    this.clearTimer = options.clearTimer != null ? options.clearTimer : function (id) { clearInterval(id); };
 
     this.playing = false;
     this.timerId = null;
