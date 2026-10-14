@@ -47,6 +47,7 @@ class User(Base):
     role: Mapped[UserRole] = mapped_column(Enum(UserRole), server_default=UserRole.USER)
     status: Mapped[UserStatus] = mapped_column(Enum(UserStatus), server_default=UserStatus.ACTIVE)
     last_login_at: Mapped[datetime | None] = mapped_column(DATETIME(fsp=3))
+    password_changed_at: Mapped[datetime | None] = mapped_column(DATETIME(fsp=3))  # P1-28
     privacy_agreed_at: Mapped[datetime] = mapped_column(DATETIME(fsp=3))
     privacy_version: Mapped[str] = mapped_column(String(20))
     storage_quota_bytes: Mapped[int] = mapped_column(BigInteger, server_default=text("5368709120"))

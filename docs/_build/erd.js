@@ -5,6 +5,7 @@ const groups = [
   { id: 'account', label: '계정 · 사이트 운영', color: '#E8F1FF', head: '#3B6FD8', tables: {
     users:         [['PK', 'user_id'], ['UQ', 'email'], ['UQ', 'nickname']],
     user_settings: [['PK FK', 'user_id']],
+    password_reset_tokens: [['PK', 'token_id'], ['FK', 'user_id'], ['UQ', 'token_hash']],
     inquiries:     [['PK', 'inquiry_id'], ['FK', 'user_id (null)']],
     dev_notes:     [['PK', 'note_id'], ['FK', 'author_id']],
   }},
@@ -60,7 +61,7 @@ const groups = [
 // [부모, 자식, 종류]  kind: 'N' = 1:N(FK 필수), 'N?' = 0..1:N(FK NULL 허용), '1' = 1:1
 // "→ users"로 표시된 행위자 FK(요청자·작성자)는 선이 너무 많아져 선을 생략하고 박스 안에만 표기
 const relations = [
-  ['users', 'projects', 'N'], ['users', 'user_settings', '1'], ['users', 'inquiries', 'N?'], ['users', 'dev_notes', 'N'],
+  ['users', 'projects', 'N'], ['users', 'user_settings', '1'], ['users', 'password_reset_tokens', 'N'], ['users', 'inquiries', 'N?'], ['users', 'dev_notes', 'N'],
   ['users', 'samples', 'N'], ['users', 'plugin_presets', 'N?'], ['users', 'project_members', 'N'],
   ['users', 'reference_tracks', 'N'], ['users', 'assistant_messages', 'N'],
   ['projects', 'project_members', 'N'], ['projects', 'project_sessions', 'N'], ['projects', 'invitations', 'N'], ['projects', 'project_change_logs', 'N'],

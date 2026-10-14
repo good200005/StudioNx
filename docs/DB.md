@@ -106,6 +106,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | 39 | `track_connections` | Connect to Another (다른 트랙의 플러그인·악기 단계로 연결) | 2 |
 | 40 | `midi_cc_events` | 패턴의 CC · 피치벤드 · 페달 이벤트 | 2 |
 | 41 | `markers` | 타임라인 마커 (Intro · Drop …) | 2 |
+| 42 | `password_reset_tokens` | 비밀번호 재설정 링크 토큰 (해시, 30분, 1회용) | 1 |
 
 ---
 
@@ -126,6 +127,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | role | ENUM('USER','ADMIN') | N | 'USER' | | 권한 |
 | status | ENUM('ACTIVE','SUSPENDED','DELETED') | N | 'ACTIVE' | | 계정 상태 |
 | last_login_at | DATETIME(3) | Y | NULL | | 마지막 로그인 |
+| password_changed_at | DATETIME(3) | Y | NULL | | 비밀번호를 재설정한 시각 (2026-10-14). 이 시각보다 먼저 발급된 로그인(액세스, 리프레시 토큰의 `iat`)은 무효 |
 | privacy_agreed_at | DATETIME(3) | N | | | 가입 때 개인정보 처리방침 동의(+만 16세 이상 확인) 시각 — 동의 없이는 가입 불가 |
 | privacy_version | VARCHAR(20) | N | | | 동의한 처리방침 버전(시행일, 예: `2026-10-05`) — 처리방침이 바뀌면 어느 판에 동의했는지 확인 |
 | storage_quota_bytes | BIGINT UNSIGNED | N | 5368709120 | | 저장 한도 (기본 5GB) |
@@ -133,6 +135,18 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | created_at | DATETIME(3) | N | CURRENT | | 가입일 |
 | updated_at | DATETIME(3) | N | CURRENT (ON UPDATE) | | 수정일 |
 | deleted_at | DATETIME(3) | Y | NULL | | 탈퇴일(소프트 삭제) |
+
+#### `password_reset_tokens` — 비밀번호 재설정 토큰 (FR-118)
+| 컬럼 | 타입 | NULL | 기본값 | 키 | 설명 |
+|---|---|---|---|---|---|
+| token_id | BIGINT UNSIGNED | N | AUTO_INCREMENT | PK | |
+| user_id | BIGINT UNSIGNED | N | | FK → users, IDX | 재설정할 회원 |
+| token_hash | CHAR(64) | N | | UQ | 링크에 넣은 토큰의 SHA-256 해시 (**원문은 저장하지 않음**, 메일 링크에만 있음) |
+| expires_at | DATETIME(3) | N | | IDX | 만료 시각 (발급 + 30분) |
+| used_at | DATETIME(3) | Y | NULL | | 사용한 시각 (NULL이 아니면 다시 쓸 수 없음) |
+| created_at | DATETIME(3) | N | CURRENT | | 발급 시각 |
+
+> 같은 회원이 다시 요청하면 이전 토큰은 사용 처리합니다. 만료되었거나 사용한 행은 정리 작업(`retention`)에서 지웁니다.
 
 #### `inquiries` — 문의 (home.html 문의 창)
 | 컬럼 | 타입 | NULL | 기본값 | 키 | 설명 |
@@ -730,6 +744,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 ## 4. 삭제(ON DELETE) 정책
 | 관계 | 정책 | 이유 |
 |---|---|---|
+| users → password_reset_tokens | CASCADE | 회원이 사라지면 재설정 토큰도 의미가 없음 |
 | projects → tracks → clips | CASCADE | 프로젝트 구성요소는 프로젝트와 생명주기가 같음 |
 | projects → patterns → midi_notes | CASCADE | |
 | patterns → clips | RESTRICT | 클립이 쓰는 패턴은 지울 수 없음 (마지막 클립이 지워지면 애플리케이션이 패턴 정리) |
@@ -1506,6 +1521,7 @@ CREATE TABLE project_snapshots (
 | 2026-10-02 | `dev_notes`(메인 페이지 Development 공지, 관리자만 작성) 추가 · `inquiries.name` NULL 허용, `inquiries.privacy_agreed_at` 추가 (총 34개 테이블). 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-02_contact_devnotes.sql` · §2.1에 남아 있던 옛 테이블 목록 삭제 |
 | 2026-10-03 | `project_sessions`(프로젝트 작업 세션) 추가 — 마이페이지 Recent Projects의 최근 7일 작업 시간 (P1-17). 총 35개 테이블. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-03_project_sessions.sql` |
 | 2026-10-06 | **클립 런처 제거** (사용자 결정 — 런치패드 공연용 기능): `launcher_scenes` 표, `clips.scene_id`·`uq_clips_launcher_slot`·`fk_clips_scene` 삭제. 총 41개 테이블. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-06_remove_clip_launcher.sql` |
+| 2026-10-14 | 비밀번호 찾기(P1-28, FR-118~119): `password_reset_tokens` 추가, `users.password_changed_at` 추가 (테이블 42개) |
 | 2026-10-06 | **시퀀서 기능 보강** ([Sequencer_Feature_Gaps.md](Sequencer_Feature_Gaps.md) A·B + PRD 02 §4.17): 새 표 `track_instruments`(레이어 악기 — `tracks.instrument_plugin_id`·`instrument_params` 삭제), `track_sends`(센드), `track_connections`(Connect to Another), `midi_cc_events`(CC·피치벤드·페달), `markers` / `tracks`: `GROUP`·`RETURN` 종류, `is_enabled`, `parent_track_id`, `frozen_sample_id` / `clips`: 페이드·Warp·음정·거꾸로 / `midi_notes`: `release_velocity`·`is_muted`·`probability`·`velocity_deviation` / `patterns.swing` / `plugins` `MIDI_EFFECT` / `samples` `BOUNCE`·`RESAMPLE` / `export_jobs.export_mode`. 총 42개 테이블. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-06_sequencer_feature_gaps.sql` |
 | 2026-10-05 | `tempo_changes`·`meter_changes` 추가 — 곡 중간 BPM 변속·박자 변경(템포·박자 지도). `projects.bpm`·`time_sig_*`는 시작 값. 총 37개 테이블. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-05_tempo_meter_changes.sql` |
 | 2026-10-05 | `users.privacy_agreed_at`, `users.privacy_version` 추가 — 가입 때 개인정보 처리방침 동의 기록 (GDPR·개인정보 보호법 동의 증빙, [Privacy_Policy_Draft.md](Privacy_Policy_Draft.md) D3). 테이블 수 그대로 35개. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-05_users_privacy_consent.sql` |

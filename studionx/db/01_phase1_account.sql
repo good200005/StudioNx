@@ -1,7 +1,7 @@
 -- Studio Nx DDL: Phase 1 — 계정 · 기본 (회원, 문의, 프로젝트, 프로젝트 멤버)
 -- 원본: docs/DB.md §5 (DB.md를 고치면 이 파일도 함께 갱신)
 -- 실행 순서: 00 → 01 → 02 → 03 → 04 → 05 → 06 (앞 파일의 테이블을 FK로 참조)
--- 테이블: users, inquiries, dev_notes, projects, project_members, project_sessions
+-- 테이블: users, password_reset_tokens, inquiries, dev_notes, projects, project_members, project_sessions
 
 USE studionx;
 
@@ -14,6 +14,7 @@ CREATE TABLE users (
   role               ENUM('USER','ADMIN') NOT NULL DEFAULT 'USER',
   status             ENUM('ACTIVE','SUSPENDED','DELETED') NOT NULL DEFAULT 'ACTIVE',
   last_login_at      DATETIME(3)     NULL,
+  password_changed_at DATETIME(3)    NULL,       -- 비밀번호 재설정 시각 (2026-10-14, 이전 로그인 무효화)
   privacy_agreed_at  DATETIME(3)     NOT NULL,   -- 가입 때 처리방침 동의 시각 (2026-10-05)
   privacy_version    VARCHAR(20)     NOT NULL,   -- 동의한 처리방침 버전 (시행일)
   storage_quota_bytes BIGINT UNSIGNED NOT NULL DEFAULT 5368709120,
@@ -24,6 +25,20 @@ CREATE TABLE users (
   PRIMARY KEY (user_id),
   UNIQUE KEY uq_users_email (email),
   UNIQUE KEY uq_users_nickname (nickname)
+) ENGINE=InnoDB;
+
+CREATE TABLE password_reset_tokens (
+  token_id    BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id     BIGINT UNSIGNED NOT NULL,
+  token_hash  CHAR(64)        NOT NULL,
+  expires_at  DATETIME(3)     NOT NULL,
+  used_at     DATETIME(3)     NULL,
+  created_at  DATETIME(3)     NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (token_id),
+  UNIQUE KEY uq_password_reset_tokens_hash (token_hash),
+  KEY idx_password_reset_tokens_user (user_id),
+  KEY idx_password_reset_tokens_expires (expires_at),
+  CONSTRAINT fk_password_reset_tokens_user FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE inquiries (

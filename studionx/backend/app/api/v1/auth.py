@@ -25,23 +25,33 @@ P1-05: login, refresh, logout (이 파일에 이어서 추가)
 
 from typing import Annotated
 
-from fastapi import APIRouter, Cookie, Query, Response, status
+from fastapi import APIRouter, Cookie, Query, Request, Response, status
 from pydantic import EmailStr
 
 from app.api.deps import Db
+from app.api.v1.inquiries import client_ip
 from app.core.config import get_settings
-from app.core.errors import AppError, ErrorCode
-from app.core.security import create_access_token, create_refresh_token, decode_refresh_token
+from app.core.errors import AppError, ErrorCode, error_json
+from app.core.security import (
+    create_access_token,
+    create_refresh_token,
+    decode_token_with_iat,
+    issued_before_password_change,
+)
 from app.schemas.auth import (
+    PASSWORD_RESET_REQUEST_MESSAGE,
     AvailabilityResponse,
     LoginRequest,
     Nickname,
+    PasswordResetConfirm,
+    PasswordResetRequest,
+    PasswordResetRequestResponse,
     SignupRequest,
     SignupResponse,
     TokenResponse,
 )
 from app.schemas.common import ErrorResponse
-from app.services import auth_service
+from app.services import auth_service, password_reset_service
 
 router = APIRouter()
 
@@ -184,11 +194,18 @@ def refresh(
          알 수 없으므로 토큰 payload 에 "remember": true/false 를 함께 넣어 두면 됨
     - Cookie(alias=REFRESH_COOKIE): 쿠키 이름 snx_refresh 를 refresh_token 으로 받음
     - (구현: AI — 2026-10-07) 리프레시 토큰 교체(rotation)는 하지 않음 — 로그인 후 3일이면 끝
+    - (P1-28) 비밀번호 재설정 이전에 발급된 토큰이면 401 + 쿠키 삭제 (이전 기기의 재발급을 막음)
     """
     if refresh_token is None:
         raise AppError(ErrorCode.UNAUTHORIZED, 401, "Please sign in.")
-    user_id = decode_refresh_token(refresh_token)
+    user_id, issued_at = decode_token_with_iat(refresh_token, "refresh")
     user = auth_service.get_active_user(db, user_id)
+    # 비밀번호를 재설정하기 전에 발급된 로그인은 재발급도 거부 (P1-28, FR-118)
+    # AppError 를 던지면 응답 헤더(쿠키 삭제)가 버려져서 같은 모양의 401 응답을 직접 돌려준다
+    if issued_before_password_change(issued_at, user.password_changed_at):
+        stale = error_json(401, ErrorCode.UNAUTHORIZED, "Please sign in again.")
+        clear_refresh_cookie(stale)  # 무효가 된 쿠키를 브라우저가 매번 보내지 않게 지움
+        return stale
     return TokenResponse(
         access_token=create_access_token(user.user_id),
         expires_in=get_settings().jwt_access_minutes * 60,
@@ -207,3 +224,45 @@ def logout(response: Response) -> None:
     - (구현: AI — 2026-10-07) 권장대로 로그인 확인 없이 받음
     """
     clear_refresh_cookie(response)
+
+
+@router.post(
+    "/password-reset/request",
+    response_model=PasswordResetRequestResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    responses={422: {"model": ErrorResponse}, 429: {"model": ErrorResponse}},
+)
+def password_reset_request(
+    data: PasswordResetRequest, request: Request, db: Db
+) -> PasswordResetRequestResponse:
+    """비밀번호 재설정 메일 요청 (FR-118). 로그인 없이 부른다.
+
+    - **가입 여부와 관계없이 항상 같은 202 와 같은 본문**: 응답으로 가입된 주소를 알아낼 수 없다
+      (없는 주소, 탈퇴, 정지 계정도 같다. 메일은 가입된 ACTIVE 계정에만 간다)
+    - 오류는 두 가지뿐이다: 이메일 형식이 틀리면 422, 요청이 잦으면 429 (가입 여부와 무관하게 센다)
+    - 서비스: `password_reset_service.request_password_reset` (횟수 제한, 토큰, 메일)
+    """
+    password_reset_service.request_password_reset(db, data.email, client_ip(request))
+    return PasswordResetRequestResponse(message=PASSWORD_RESET_REQUEST_MESSAGE)
+
+
+@router.post(
+    "/password-reset/confirm",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        400: {"model": ErrorResponse},
+        422: {"model": ErrorResponse},
+    },
+)
+def password_reset_confirm(data: PasswordResetConfirm, db: Db) -> None:
+    """메일 링크의 토큰과 새 비밀번호로 비밀번호를 바꾼다 (FR-118). 로그인 없이 부른다.
+
+    - 성공하면 204 (본문 없음). **자동 로그인은 하지 않는다**: 재설정한 사람이 새 비밀번호로
+      직접 로그인한다 (메일 링크만 가진 사람이 곧바로 로그인되는 일을 막음, 2026-10-15 결정)
+    - 링크가 틀렸거나 만료됐거나 이미 썼으면 400 INVALID_RESET_LINK (이유를 알려 주지 않는 같은
+      문구), 새 비밀번호가 규칙에 맞지 않으면 422 + details.new_password (링크는 그대로 쓸 수 있음)
+    - 이 API 에는 횟수 제한을 두지 않는다: 토큰이 256비트 무작위라 추측할 수 없고(요청 API 가
+      막는 것은 메일 폭탄), 틀린 토큰은 DB 조회 한 번으로 끝난다
+    - 서비스: `password_reset_service.reset_password`
+    """
+    password_reset_service.reset_password(db, data.token, data.new_password)

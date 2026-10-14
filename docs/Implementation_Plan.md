@@ -72,6 +72,7 @@ PRD의 Phase는 **기능 묶음**이고, 이 문서의 단계는 **구현 순서
 | P1-20 | 홈 · 문의 | `home.html` 첫 접속 로딩(인트로) 애니메이션 약 1초 → 첫 화면 전환, 건너뛰기 없음 — 로딩 C "Crescent" + 로고 S2 (2026-10-03, [ai-notes 25](ai-notes/25_intro_logo.md)) | FR-111 | AI(화면) / 직접(첫 접속만 JS) | 0.5일 | `feature/phase1/p1-20-intro-loader` |
 | P1-21 | 홈 · 문의 | Development 공지 API(`GET /dev-notes`) + **SQLAdmin 관리자 화면**(`/admin`, ADMIN만) — 공지 작성·문의 답변 | FR-114~115 | 직접 (요청 시 AI) | 2일 | `feature/phase1/p1-21-dev-notes-admin` |
 | P1-22 | 공통 기반 | **오류 페이지** 7종(404·500·403·503·429·400·504, F-2 "숫자 자체가 신호" 디자인) + 페이지 요청 오류 시 HTML·API 요청 오류 시 JSON 응답 | FR-116 | AI(화면) / 직접(백엔드 연결) | 1일 | `feature/phase1/p1-22-error-pages` |
+| P1-28 | 계정 | **비밀번호 찾기**: 재설정 요청·새 비밀번호 API 2개, `password_reset_tokens`, 로그인 모달 Forgot 링크, 요청 화면과 `resetPassword.html`, 이메일을 잊은 경우 안내(메일 + Contact 문의). 개발 중 메일은 서버 로그 출력, SMTP는 추후 (2026-10-14) | FR-118~119 | AI(함수 하나씩) | 3일 | `feature/phase1/p1-28-account-recovery` |
 
 **권장 순서**: A(P1-01~03) → B(P1-04~07) → C·D·E 병행(P1-08~15) → F(P1-16~17) → G(P1-18~19)
 

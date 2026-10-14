@@ -98,3 +98,35 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     expires_in: int  # 초 단위 (jwt_access_minutes * 60) — 화면에서 미리 재발급할 때 참고
+
+
+class PasswordResetRequest(BaseModel):
+    """POST /auth/password-reset/request  — 복구 화면이 보내는 JSON { email } (P1-28, FR-118)
+
+    - 형식만 검사한다(EmailStr, 앞뒤 공백 제거). 가입된 주소인지는 여기서도 응답에서도 알리지 않는다
+    - 소문자 통일은 서비스(request_password_reset)에서 — 로그인, 가입과 같은 기준
+    """
+
+    email: EmailStr = Field(max_length=255)
+
+
+class PasswordResetRequestResponse(BaseModel):
+    """재설정 요청 응답 (202) — 가입 여부와 관계없이 **항상 같은 본문** (FR-118)."""
+
+    message: str
+
+
+class PasswordResetConfirm(BaseModel):
+    """POST /auth/password-reset/confirm  — 재설정 화면의 JSON { token, new_password } (P1-28)
+
+    - `token`: 메일 링크(`#token=`)의 원문. 길이만 제한하고 내용은 서비스가 해시로 확인한다
+      (형식이 틀린 값과 없는 값을 구분하지 않고 같은 400 으로 답하려고 여기서 형식은 보지 않음)
+    - `new_password`: 8~20자 등 정확한 규칙은 서비스에서 (check_password_rules, 조건별 실패 목록)
+    """
+
+    token: str = Field(min_length=1, max_length=200)
+    new_password: str = Field(min_length=1, max_length=100)
+
+
+# 재설정 요청에 항상 돌려주는 문구 (가입된 주소든 아니든 같다)
+PASSWORD_RESET_REQUEST_MESSAGE = "If an account exists for that email, we've sent a message."

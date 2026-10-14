@@ -90,3 +90,4 @@
 .modal__body .divider { margin-block: var(--sp-6); color: var(--c-ink-soft); font-size: var(--fs-xs); }
 .modal__body .form-error { color: var(--c-error); }
 .modal__body .auth-foot { margin-top: var(--sp-6); }
+.modal__body .auth-foot--sub { margin-top: var(--sp-3); }   /* 'New here?' 바로 아래 줄 */
