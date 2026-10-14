@@ -348,7 +348,7 @@ const PDFS = [
   { out: 'ai-notes/59_p1-21_dev_notes_admin.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 59 — P1-21 공지 API와 관리자 화면', files: ['ai-notes/59_p1-21_dev_notes_admin.md'], base: 'ai-notes' },
   { out: 'ai-notes/60_p1-21_site_test.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 60 — P1-21 실제 화면 시험', files: ['ai-notes/60_p1-21_site_test.md'], base: 'ai-notes' },
   { out: 'ai-notes/61_p1-18_acceptance_tests.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 61 — P1-18 Phase 1 완료 기준 시험', files: ['ai-notes/61_p1-18_acceptance_tests.md'], base: 'ai-notes' },
-  { out: 'ai-notes/00_index.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 색인 — Phase 1 (P1-01 ~ P1-22)', files: ['ai-notes/00_index.md'], base: 'ai-notes' },
+  { out: 'ai-notes/00_index.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 색인 — Phase 1 (P1-01 ~ P1-25), Phase 2 (S1-05 ~)', files: ['ai-notes/00_index.md'], base: 'ai-notes' },
   { out: 'ai-notes/javascript/P1-23 - 화면 마무리/96_error_initErrorActions.pdf', title: 'Studio Nx', subtitle: 'JS 96 — initErrorActions()', files: ['ai-notes/javascript/P1-23 - 화면 마무리/96_error_initErrorActions.md'], base: 'ai-notes/javascript/P1-23 - 화면 마무리' },
   { out: 'ai-notes/javascript/P1-23 - 화면 마무리/97_home_loadDevNotes.pdf', title: 'Studio Nx', subtitle: 'JS 97 — loadDevNotes(), formatNoteDate()', files: ['ai-notes/javascript/P1-23 - 화면 마무리/97_home_loadDevNotes.md'], base: 'ai-notes/javascript/P1-23 - 화면 마무리' },
   { out: 'ai-notes/javascript/P1-23 - 화면 마무리/99_markdown_markdownToFragment.pdf', title: 'Studio Nx', subtitle: 'JS 99 — markdownToFragment()', files: ['ai-notes/javascript/P1-23 - 화면 마무리/99_markdown_markdownToFragment.md'], base: 'ai-notes/javascript/P1-23 - 화면 마무리' },
