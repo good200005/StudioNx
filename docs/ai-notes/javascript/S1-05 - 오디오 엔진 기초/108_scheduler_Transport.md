@@ -36,8 +36,8 @@ export class Transport {
     this.lookahead = options.lookahead != null ? options.lookahead : DEFAULT_LOOKAHEAD_SECONDS;
     this.intervalMs = options.intervalMs != null ? options.intervalMs : DEFAULT_INTERVAL_MS;
     this.startDelay = options.startDelay != null ? options.startDelay : DEFAULT_START_DELAY_SECONDS;
-    this.setTimer = options.setTimer != null ? options.setTimer : setInterval;
-    this.clearTimer = options.clearTimer != null ? options.clearTimer : clearInterval;
+    this.setTimer = options.setTimer != null ? options.setTimer : function (fn, ms) { return setInterval(fn, ms); };
+    this.clearTimer = options.clearTimer != null ? options.clearTimer : function (id) { clearInterval(id); };
 
     this.playing = false;
     this.timerId = null;
@@ -105,6 +105,7 @@ this.timerId = this.setTimer(() => this.pump(), this.intervalMs);
 |---|---|
 | `clock` 을 주입받음 | 브라우저에서는 `AudioContext`(그 `currentTime`)를 그대로 넘기고, 시험에서는 가짜 시계를 넘겨 소리 없이 확인합니다. 나중에 오프라인 렌더(`OfflineAudioContext`, S1-11)도 같은 방식으로 씁니다 |
 | `setTimer`·`clearTimer` 도 주입 | Node 시험에서 진짜 타이머를 기다리지 않고 손으로 `pump()` 를 불러 1초를 한 번에 시뮬레이션합니다 |
+| 기본 타이머를 함수로 감쌈 | `this.setTimer(...)` 로 전역 `setInterval` 을 그대로 부르면 `this` 가 `window` 가 아니게 되어 브라우저에서 "Illegal invocation" 이 납니다. `function (fn, ms) { return setInterval(fn, ms); }` 로 감싸 `this` 와 무관하게 부릅니다 |
 | `start` 에서 곧바로 한 번 `pump()` | 첫 소리도 lookahead 안에 미리 걸려 늦지 않습니다. 타이머 첫 회(25ms 뒤)만 기다리면 시작 직후가 빕니다 |
 | `startDelay` | 커서를 `now` 가 아니라 `now + 0.05` 에서 시작해, 이미 지난 시각에 예약하는 일을 막습니다 |
 | `start` 가 먼저 `stop()` | 두 번 눌러도 타이머가 겹치지 않습니다 |
