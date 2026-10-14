@@ -334,11 +334,20 @@ body { timeline-scope: --hero; }
   padding: var(--sp-8) 0 var(--sp-12);
 }
 .dev-blank__stage { display: flex; justify-content: center; width: 100%; }
-.dev-blank__art {   /* 일러스트 자리 — 지금은 영역 표시만 (PixAI 에서 만들 예정). 그림이 오면 이 안에 <img> */
-  width: min(30rem, 100%); aspect-ratio: 4 / 3;
-  border: 1px dashed var(--c-rule);
+.dev-blank__art {   /* 일러스트 자리: Nyxi idk 포즈 (일러스트삽입1). 임시 점선 상자는 지웠다 */
+  position: relative; width: min(26rem, 100%);
 }
-.dev-blank__art img { display: block; width: 100%; height: 100%; object-fit: contain; }
+/* 윗몸만 정사각형으로 보이고(일러스트삽입1), 아래쪽은 서서히 흐려져 사라짐 */
+.dev-blank__art img {
+  position: relative; z-index: 1; display: block; width: 100%; aspect-ratio: 1 / 1; object-fit: cover; object-position: top;
+  -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 100%); mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+}
+.dev-blank__art::after {   /* 그림 아래를 흐릿하게 (일러스트삽입1) */
+  content: ""; position: absolute; left: 50%; bottom: 0; z-index: 0;
+  width: 76%; height: 16%; transform: translateX(-50%);
+  background: radial-gradient(closest-side, var(--c-violet), transparent 72%);
+  filter: blur(26px); opacity: .55; pointer-events: none;
+}
 .dev-blank__text { color: var(--c-ink-soft); font-size: var(--fs-md); text-align: center; }
 .dev-blank[data-state="error"] .dev-blank__stage { display: none; }   /* 불러오기 실패: 일러스트 없이 문구만 */
 @media (max-width: 760px) { .dev-blank__stage { display: none; } }   /* 모바일: 일러스트 자리 없음 (Service, Feature 와 같게) */

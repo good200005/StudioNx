@@ -10,9 +10,21 @@ body { display: flex; flex-direction: column; min-height: 100svh; }
 .err {
   flex: 1;
   display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: start; gap: var(--sp-12);
-  padding: var(--sp-12) var(--gutter) var(--sp-16);
+  padding: var(--sp-12) var(--gutter) 0;   /* 아래 여백은 왼쪽 글 칸이 가짐: 일러스트 아래가 푸터 맨 위에 닿도록 */
 }
-.err__art { height: min(62svh, 34rem); border: 1px dashed var(--c-rule-violet); }   /* Nyxi 일러스트가 오면 <img> 로 교체 */
+.err > div:first-child { padding-bottom: var(--sp-16); }
+/* Nyxi error 포즈 (일러스트삽입1): 임시 점선 상자는 지우고, 그림 왼쪽(깨진 조각이 흩어지는 쪽)을 흐릿하게 */
+/* 일러스트 아래 끝이 푸터 맨 위에 닿음 (칸을 아래까지 늘리고 그림은 아래 기준) */
+.err__art { position: relative; align-self: stretch; min-height: min(62svh, 34rem); display: flex; justify-content: flex-end; align-items: flex-end; }
+.err__art img { position: relative; z-index: 1; display: block; height: 100%; width: auto; max-width: 100%; object-fit: contain; object-position: right bottom;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, rgb(0 0 0 / .35) 14%, #000 40%); mask-image: linear-gradient(to right, transparent 0%, rgb(0 0 0 / .35) 14%, #000 40%);   /* 왼쪽 가장자리가 서서히 흐려짐 */
+}
+.err__art::before {
+  content: ""; position: absolute; left: 0; top: 50%; z-index: 0;
+  width: 60%; height: 88%; transform: translateY(-50%);
+  background: radial-gradient(closest-side, var(--c-violet), transparent 72%);
+  filter: blur(48px); opacity: .6; pointer-events: none;
+}
 
 /* ---------- 숫자 무대: 높이 1em 고정 → 모든 숫자가 같은 기준 ---------- */
 .err__num {

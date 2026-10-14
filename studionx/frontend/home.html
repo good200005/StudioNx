@@ -184,10 +184,11 @@
                각 칸 모양: <li class="dev-note"><time datetime="2026-10-02">2026.10.02</time>
                <h3 class="dev-note__title">…</h3><p class="dev-note__excerpt">…</p></li> -->
           <ol class="dev-notes" id="dev-notes" aria-live="polite"></ol>
-          <!-- 공지가 없을 때(레퍼런스및수정사항5): 가운데에 일러스트 자리 + 문구. 일러스트는 PixAI 에서 만들어 오면
-               .dev-blank__art 안에 <img> 로 교체 (지금은 점선 상자). 불러오기에 실패했을 때는 일러스트 없이 문구만 -->
+          <!-- 공지가 없을 때(레퍼런스및수정사항5): 가운데에 일러스트 + 문구. 일러스트는 Nyxi idk 포즈
+               (static/characters/nyxi/poses/idk.png) 를 넣고, 그림 아래를 흐릿하게 처리했다 (일러스트삽입1).
+               불러오기에 실패했을 때는 일러스트 없이 문구만 -->
           <div class="dev-blank" id="dev-notes-empty" hidden>
-            <div class="dev-blank__stage" aria-hidden="true"><div class="dev-blank__art"></div></div>
+            <div class="dev-blank__stage" aria-hidden="true"><div class="dev-blank__art"><img src="static/characters/nyxi/poses/idk.png" alt=""></div></div>
             <p class="dev-blank__text" id="dev-notes-empty-text"></p>
           </div>
           <p class="dev-more" id="dev-notes-more" hidden>
