@@ -2,6 +2,7 @@
 // 공통 헤더·푸터는 core/include.js (구현 완료), 버튼 동작은 템플릿 — 구현은 직접 (P1-22)
 import { includePartials } from '../core/include.js';
 import { initModalFallback } from '../core/modal.js';
+import { initImageProtection } from '../core/protect-images.js';
 
 /**
  * 오류 페이지 버튼
@@ -42,3 +43,4 @@ export function initErrorActions() {
 await includePartials();
 initModalFallback();
 initErrorActions();
+initImageProtection();
