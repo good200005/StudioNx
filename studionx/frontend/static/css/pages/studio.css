@@ -268,6 +268,24 @@ body.sq {
 .sq-msr .is-solo[aria-pressed="true"] { background: var(--sq-accent); border-color: var(--sq-accent); color: var(--sq-bg); }
 .sq-msr .is-arm { color: var(--sq-rec); }
 .sq-msr .is-arm[aria-pressed="true"] { background: var(--sq-rec); border-color: var(--sq-rec); color: var(--sq-bg); }
+/* 트랙 순서 드래그 손잡이 (FR-207) — 머리 왼쪽 ⠿ 를 끌면 트랙 순서를 바꿈 (JS: S1-06 함수 단계) */
+.sq-grip { flex: none; width: 0.7rem; height: 1.1rem; display: grid; place-items: center; color: var(--c-ink-faint); cursor: grab; font-size: 0.8rem; letter-spacing: -1px; }
+.sq-grip:hover { color: var(--c-ink); }
+
+/* 트랙 삭제 × — 머리에 마우스를 올리거나 포커스가 닿으면 나타남. MASTER 에는 없음 */
+.sq-track__del {
+  flex: none; width: 1.1rem; height: 1.1rem; display: grid; place-items: center;
+  border: 1px solid var(--sq-line-2); font: 700 0.7rem/1 var(--font-text);
+  color: var(--c-ink-soft); background: rgb(0 0 0 / 0.15); opacity: 0;
+  transition: opacity 0.12s;
+}
+.sq-track__head:hover .sq-track__del,
+.sq-track__del:focus-visible { opacity: 1; }
+.sq-track__del:hover { color: var(--sq-rec); border-color: var(--sq-rec); }
+.sq-track--master .sq-track__del { display: none; }
+.sq-track.is-reorder-dragging { opacity: 0.85; }
+.sq-track.is-reorder-dragging .sq-track__head { outline: 1px dashed var(--sq-accent); outline-offset: -1px; }
+.sq-track.is-reorder-target .sq-track__head { box-shadow: inset 0 2px 0 var(--sq-accent); }
 .sq-track__lane { position: relative; }   /* 격자는 sequencer-arrange.js 가 canvas(.sq-grid-canvas)에 그림 */
 
 /* 클립 — 어두운 면 + 트랙 색 테두리·이름·노트 (C Signal) */
@@ -284,9 +302,18 @@ body.sq {
 .sq-clip__preview { flex: 1; width: 100%; min-height: 0; display: block; }
 /* JS 가 canvas 에 그리기 전 자리 표시 무늬: MIDI = 노트 막대, 오디오 = 파형 */
 .sq-clip--midi .sq-clip__preview { background: repeating-linear-gradient(90deg, transparent 0 0.45rem, color-mix(in srgb, var(--tc) 70%, transparent) 0.45rem 0.6rem) 0 55% / 100% 30% no-repeat; }
-.sq-clip--audio .sq-clip__preview { background: linear-gradient(transparent 15%, color-mix(in srgb, var(--tc) 70%, transparent) 15% 85%, transparent 85%); mask: repeating-linear-gradient(90deg, #000 0 2px, transparent 2px 3px), linear-gradient(90deg, #000 0 2%, rgb(0 0 0 / 0.55) 2% 30%, #000 30% 60%, rgb(0 0 0 / 0.6) 60% 100%); mask-composite: intersect; }
+.sq-clip--audio .sq-clip__preview { background: none; mask: none; }   /* 파형은 JS 가 캔버스에 그림 (FR-210) */
 .sq-clip.is-selected { outline: 2px solid var(--c-ink); outline-offset: -1px; }
 .sq-clip.is-frozen { filter: saturate(0.2) brightness(0.85); }
+/* 클립 좌우 끝 크기조절 손잡이 (FR-208) — 끝 6px 에 닿으면 길이조절 커서.
+   끌면 시작(--s)·길이(--l)가 바뀌고, 오디오 클립은 안쪽 내용을 밀어 트리밍(offset_tick)합니다.
+   JS 는 클립 왼쪽 끝 6px / 오른쪽 끝 6px 를 좌·우 판정에 씁니다 (아직 미구현, S1-06 함수 단계) */
+.sq-clip::before, .sq-clip::after { content: ""; position: absolute; top: 0; bottom: 0; width: 6px; z-index: 2; cursor: ew-resize; }
+.sq-clip::before { left: 0; }
+.sq-clip::after { right: 0; }
+.sq-clip:hover::before, .sq-clip:hover::after,
+.sq-clip.is-resizing::before, .sq-clip.is-resizing::after { background: color-mix(in srgb, var(--tc) 60%, transparent); }
+.sq-clip.is-resizing { outline: 2px solid var(--c-ink); outline-offset: -1px; cursor: ew-resize; }
 
 /* 트랙 추가 · MASTER (맨 아래 고정, FR-252) */
 .sq-addrow { display: grid; grid-template-columns: var(--sq-head-w) 1fr; height: var(--sq-row-h); border-bottom: 1px solid var(--sq-line); }
@@ -643,6 +670,9 @@ body.sq {
 .sq-track.is-compact .sq-clip__name { font-size: 0.58rem; padding-top: 0; }
 .sq-heightctl { display: inline-flex; margin-left: 0.25rem; }
 .sq-heightctl button + button { border-left: 0; }
+/* 가로 줌 (FR-209) — Ctrl+휠 · View 메뉴 · 🔍 Zoom 도구와 같은 값 (JS: S1-06 함수 단계) */
+.sq-zoomctl { display: inline-flex; margin-left: 0.25rem; }
+.sq-zoomctl button + button { border-left: 0; }
 .sq-track.is-compact .sq-track__note { top: 0.3rem; }
 /* ───────── 오토메이션 편집 (2026-10-06, sequencer-automation.js) ─────────
    점 = 흰 테두리 동그라미 · 점 사이 가운데 ↕ = 곡선 손잡이 (위아래로 끌기) */

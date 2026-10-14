@@ -238,7 +238,8 @@
     <ul class="sq-dropdown" id="menu-snap" role="menu" hidden style="min-width:12rem">
       <li><button type="button" role="menuitemradio" aria-checked="true" data-snap="line">Line <kbd>grid</kbd></button></li>
       <li><button type="button" role="menuitemradio" aria-checked="false" data-snap="off">Off <kbd>free</kbd></button></li>
-      <li class="sq-dropdown__note">Hold Alt while dragging to ignore the grid</li>
+      <li class="sq-dropdown__note" role="separator">Division</li>
+      <li class="sq-dropdown__note" id="snap-note">Hold Alt while dragging to ignore the grid</li>
     </ul>
     <ul class="sq-dropdown" id="menu-lang" role="menu" hidden style="right:4.6rem; top:1.9rem; min-width:9rem">
       <li><button type="button" role="menuitemradio" aria-checked="true" data-lang="en">English</button></li>
@@ -347,6 +348,12 @@
         <button type="button" data-height="-1" title="All tracks shorter (or Alt+drag a track edge)">↕−</button>
         <button type="button" data-height="1" title="All tracks taller (or Alt+drag a track edge)">↕+</button>
       </span>
+      <!-- 가로 줌 (FR-209) — Ctrl+휠 · View 메뉴 · 🔍 Zoom 도구와 같은 값 -->
+      <span class="sq-zoomctl" role="group" aria-label="Horizontal zoom">
+        <button type="button" data-zoom="-1" title="Zoom out — shorter bars (Ctrl+Wheel)">↔−</button>
+        <button type="button" data-zoom="1" title="Zoom in — longer bars (Ctrl+Wheel)">↔+</button>
+        <button type="button" data-zoom="fit" title="Zoom to fit the window (Z)">⤢ Fit</button>
+      </span>
       <span class="sq-tools__crumb">Playlist — Arrangement<b class="sq-tools__mode"> › Automation mode: patterns dimmed, edit curves only</b></span>
     </div>
 
@@ -403,6 +410,7 @@
         <ol class="sq-tracks" id="tracks">
           <li class="sq-track" data-track-id="1" data-color="1">
             <div class="sq-track__head">
+              <button type="button" class="sq-grip" aria-label="Reorder track" title="Drag to reorder">⠿</button>
               <button type="button" class="sq-power" aria-pressed="true" aria-label="Track on/off"></button>
               <button type="button" class="sq-expand" aria-expanded="false" aria-controls="acc-1" aria-label="Open track">V</button>
               <span class="sq-track__name"><b>1. Lead</b><small><span class="sq-link" title="1 more instrument · layer from Track 10">+1·⇠10</span>🎹 Wavetable</small></span>
@@ -469,6 +477,7 @@
           </li>
           <li class="sq-track" data-track-id="2" data-color="2">
             <div class="sq-track__head">
+              <button type="button" class="sq-grip" aria-label="Reorder track" title="Drag to reorder">⠿</button>
               <button type="button" class="sq-power" aria-pressed="true" aria-label="Track on/off"></button>
               <button type="button" class="sq-expand" aria-expanded="false" aria-controls="acc-2" aria-label="Open track">V</button>
               <span class="sq-track__name"><b>2. Strum</b><small>🎹 Wavetable</small></span>
@@ -535,6 +544,7 @@
 
           <li class="sq-track" data-track-id="3" data-color="3">
             <div class="sq-track__head">
+              <button type="button" class="sq-grip" aria-label="Reorder track" title="Drag to reorder">⠿</button>
               <button type="button" class="sq-power" aria-pressed="true" aria-label="Track on/off"></button>
               <button type="button" class="sq-expand" aria-expanded="false" aria-label="Open track">V</button>
               <span class="sq-track__name"><b>3. Drums</b><small>🎹 Drum Rack</small></span>
@@ -547,6 +557,7 @@
           </li>
           <li class="sq-track" data-track-id="4" data-color="4">
             <div class="sq-track__head">
+              <button type="button" class="sq-grip" aria-label="Reorder track" title="Drag to reorder">⠿</button>
               <button type="button" class="sq-power" aria-pressed="true" aria-label="Track on/off"></button>
               <button type="button" class="sq-expand" aria-expanded="false" aria-label="Open track">V</button>
               <span class="sq-track__name"><b>4. Chords</b><small>🎹 Electric Piano</small></span>
@@ -560,6 +571,7 @@
           </li>
           <li class="sq-track" data-track-id="5" data-color="5">
             <div class="sq-track__head">
+              <button type="button" class="sq-grip" aria-label="Reorder track" title="Drag to reorder">⠿</button>
               <button type="button" class="sq-power" aria-pressed="false" aria-label="Track on/off"></button>
               <button type="button" class="sq-expand" aria-expanded="false" aria-label="Open track">V</button>
               <span class="sq-track__name"><b>5. Pad</b><small>🎹 Wavetable</small></span>
@@ -572,6 +584,7 @@
           <!-- 그룹(폴더) 트랙 (FR-2211 · 목업 15) — ▾ 로 접으면 안쪽 트랙(data-parent="g1")이 숨음. 레인에는 안쪽 클립 위치만 막대로 -->
           <li class="sq-track sq-track--group" data-track-id="g1">
             <div class="sq-track__head">
+              <button type="button" class="sq-grip" aria-label="Reorder track" title="Drag to reorder">⠿</button>
               <button type="button" class="sq-power" aria-pressed="true" aria-label="Track on/off"></button>
               <button type="button" class="sq-fold" aria-expanded="true" aria-label="Fold group">▾</button>
               <span class="sq-track__name"><b>Low End <span class="sq-badge is-group">GROUP</span></b><small>2 tracks · Glue Comp</small></span>
@@ -584,6 +597,7 @@
           </li>
           <li class="sq-track is-child" data-track-id="6" data-color="2" data-parent="g1">
             <div class="sq-track__head">
+              <button type="button" class="sq-grip" aria-label="Reorder track" title="Drag to reorder">⠿</button>
               <button type="button" class="sq-power" aria-pressed="true" aria-label="Track on/off"></button>
               <button type="button" class="sq-expand" aria-expanded="false" aria-label="Open track">V</button>
               <span class="sq-track__name"><b>6. Bass</b><small>🎹 Analog</small></span>
@@ -600,6 +614,7 @@
           </li>
           <li class="sq-track is-child" data-track-id="7" data-color="1" data-parent="g1">
             <div class="sq-track__head">
+              <button type="button" class="sq-grip" aria-label="Reorder track" title="Drag to reorder">⠿</button>
               <button type="button" class="sq-power" aria-pressed="true" aria-label="Track on/off"></button>
               <button type="button" class="sq-expand" aria-expanded="false" aria-label="Open track">V</button>
               <span class="sq-track__name"><b>7. Sub</b><small>🎹 Operator</small></span>
@@ -612,6 +627,7 @@
           </li>
           <li class="sq-track" data-track-id="8" data-color="audio">
             <div class="sq-track__head">
+              <button type="button" class="sq-grip" aria-label="Reorder track" title="Drag to reorder">⠿</button>
               <button type="button" class="sq-power" aria-pressed="true" aria-label="Track on/off"></button>
               <button type="button" class="sq-expand" aria-expanded="false" aria-label="Open track">V</button>
               <span class="sq-track__name"><b>8. Vocal</b><small>🎵 vox_take2.wav</small></span>
@@ -624,6 +640,7 @@
           </li>
           <li class="sq-track" data-track-id="9" data-color="audio">
             <div class="sq-track__head">
+              <button type="button" class="sq-grip" aria-label="Reorder track" title="Drag to reorder">⠿</button>
               <button type="button" class="sq-power" aria-pressed="true" aria-label="Track on/off"></button>
               <button type="button" class="sq-expand" aria-expanded="false" aria-label="Open track">V</button>
               <span class="sq-track__name"><b>9. Riser</b><small>🎵 riser_8bar.wav</small></span>
@@ -637,6 +654,7 @@
           <!-- 레이어 트랙 (FR-2198 · 목업 11) — 자기 노트를 1. Lead 의 악기 칸으로 보냄 (→1). 그래서 믹서는 꺼짐(OFF) -->
           <li class="sq-track" data-track-id="10" data-color="5">
             <div class="sq-track__head">
+              <button type="button" class="sq-grip" aria-label="Reorder track" title="Drag to reorder">⠿</button>
               <button type="button" class="sq-power" aria-pressed="true" aria-label="Track on/off"></button>
               <button type="button" class="sq-expand" aria-expanded="false" aria-controls="acc-10" aria-label="Open track">V</button>
               <span class="sq-track__name"><b>10. Lead Hi</b><small><span class="sq-link" title="Sends to Track 1 › Instruments">→1</span>🎹 Analog</small></span>
@@ -703,6 +721,7 @@
         <!-- 리턴 트랙 (FR-2212 · 목업 15) — 트랙들의 Sends A/B 를 받음. ＋ Add Track 아래, MASTER 위 -->
         <div class="sq-track sq-track--return" data-track-id="ra">
           <div class="sq-track__head">
+            <button type="button" class="sq-grip" aria-label="Reorder track" title="Drag to reorder">⠿</button>
             <button type="button" class="sq-power" aria-pressed="true" aria-label="Track on/off"></button>
             <button type="button" class="sq-expand" aria-expanded="false" aria-label="Open return track">V</button>
             <span class="sq-track__name"><b>A Reverb <span class="sq-badge is-return">RETURN</span></b><small>Hybrid Reverb · Hall</small></span>
@@ -712,6 +731,7 @@
         </div>
         <div class="sq-track sq-track--return" data-track-id="rb">
           <div class="sq-track__head">
+            <button type="button" class="sq-grip" aria-label="Reorder track" title="Drag to reorder">⠿</button>
             <button type="button" class="sq-power" aria-pressed="true" aria-label="Track on/off"></button>
             <button type="button" class="sq-expand" aria-expanded="false" aria-label="Open return track">V</button>
             <span class="sq-track__name"><b>B Delay <span class="sq-badge is-return">RETURN</span></b><small>Echo · 1/8 dotted</small></span>
