@@ -197,3 +197,14 @@ initRecoverForms(document.getElementById('login-modal'));
 
 ## 6. 아직 안 된 것
 `send again`은 아직 잠긴 채입니다. 다음 함수가 1분 뒤에 켜고, 누르면 `modal.recoverLast`로 다시 보냅니다.
+
+## 7. 개정 (2026-10-15): 늦게 도착한 응답과 옛 요청의 잠금
+[173번](173_recover_initRecoverResend.md) 시험을 하다가 이 함수에도 같은 오류가 있음을 발견해 고쳤습니다.
+
+| 문제 | 고침 |
+|---|---|
+| 요청을 보낸 뒤 응답이 오기 전에 `Back to Sign In`을 누르거나 모달을 닫으면, **늦게 온 응답이 보낸 뒤 화면을 띄우거나 타이머를 되살림** | `resetRecoverState()`가 `modal.recoverEpoch`(세대)를 올리고, 요청은 시작 때의 값을 기억해 응답이 왔을 때 달라져 있으면 성공도 실패도 **버림** |
+| 첫 요청이 안 끝난 채 화면을 떠났다가 다시 보내면 옛 요청의 `data-busy` 때문에 **새 전송이 무시됨** | 처음으로 돌릴 때 `data-busy`와 버튼 잠금을 풀고, 요청의 `finally`는 **같은 세대일 때만** 풂 |
+| 마지막으로 보낸 이메일이 메모리에 남음 | 처음으로 돌릴 때 `modal.recoverLast = null` |
+
+시험 `late.mjs`(14개)와 `resend_extra.mjs`(12개)가 이 경우들을 확인하고, 이 수정을 되돌리는 변이(M11, M13~M16, M12)를 모두 잡습니다. 위 53개 시험과 변이 시험 결과는 그대로입니다.

@@ -23,6 +23,31 @@ const run = async (u) => {
   await b.sleep(500);
   const calls3 = await q('window.__calls.length');
   check(u + ': 보내는 중 표시(data-busy)가 있으면 눌러도 무시', calls3 === 0, String(calls3));
+
+  // 마지막으로 보낸 이메일은 화면을 처음으로 돌리면 지워짐 (개인정보를 메모리에 남기지 않음)
+  await q(`(()=>{ const m=document.getElementById('login-modal'); m.recoverLast = {kind: 'password', email: 'keep@example.com'}; document.getElementById('recover-back').click(); })(); 1`);
+  await b.sleep(250);
+  const cleared = await q(`document.getElementById('login-modal').recoverLast === null`);
+  check(u + ': Back to Sign In 하면 recoverLast(마지막 이메일)가 지워짐', cleared === true, String(cleared));
+  await q(`(()=>{ const m=document.getElementById('login-modal'); m.recoverLast = {kind: 'email', email: 'keep2@example.com'}; m.close(); })(); 1`);
+  await b.sleep(250);
+  const cleared2 = await q(`document.getElementById('login-modal').recoverLast === null`);
+  check(u + ': 모달을 닫아도 recoverLast 가 지워짐', cleared2 === true, String(cleared2));
+
+  // 옛 요청이 늦게 끝나도 그 사이 시작한 새 요청의 잠금을 풀지 않음 (같은 세대일 때만 풂)
+  await q(`window.__calls = []; window.fetch = (url) => { window.__calls.push(String(url)); const isRecover = String(url).indexOf('/password-reset') >= 0; const delay = !isRecover ? 0 : (window.__calls.filter(c => c.indexOf('/password-reset') >= 0).length === 1 ? 1200 : 3000); return new Promise(resolve => setTimeout(() => resolve(new Response('{}', {status: isRecover ? 202 : 401, headers: {'Content-Type': 'application/json'}})), delay)); }; 1`);
+  await q(`(()=>{ const m=document.getElementById('login-modal'); window.__m.initRecoverForms(m); m.showModal(); document.getElementById('login-recover').click(); document.getElementById('recover-password-email').value='old@example.com'; document.getElementById('recover-password-form').requestSubmit(); })(); 1`);
+  await b.sleep(900);
+  await q(`(()=>{ document.getElementById('recover-back').click(); document.getElementById('login-recover').click(); document.getElementById('recover-password-email').value='new@example.com'; document.getElementById('recover-password-form').requestSubmit(); })(); 1`);
+  await b.sleep(1100);   // 옛 요청(1200ms)이 끝날 즈음
+  await b.sleep(500);
+  await q(`document.getElementById('recover-password-form').requestSubmit(); document.getElementById('recover-password-form').requestSubmit(); 1`);
+  await b.sleep(300);
+  const pwCalls = await q(`window.__calls.filter(c => c.indexOf('/password-reset') >= 0).length`);
+  const lockedNow = await q(`document.querySelector('#recover-password-form button[type=submit]').disabled`);
+  check(u + ': 옛 요청이 끝나도 새 요청의 잠금은 그대로(요청 2번뿐, 버튼 잠김)', pwCalls === 2 && lockedNow === true, JSON.stringify({ pwCalls, lockedNow }));
+  await b.sleep(3200);
+  await q(`document.getElementById('login-modal').open && document.getElementById('login-modal').close(); 1`);
 };
 await run('/home.html'); await run('/join.html');
 summary(); await b.close();

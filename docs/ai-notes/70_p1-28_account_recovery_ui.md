@@ -6,7 +6,7 @@
 | 작업 | P1-28 (YouTrack StudioNx-76): 비밀번호 찾기와 이메일을 잊은 경우의 화면 |
 | 브랜치 | `feature/phase1/p1-28-account-recovery` |
 | 백엔드 문서 | `docs/ai-notes/backend(fastAPI_Python)/P1-28 - 비밀번호 찾기/150~164` |
-| 상태 | 복구 모달의 HTML, CSS, 화면 전환, 폼 전송(JS 165~171)과 페이지 연결 완료. `send again`, `resetPassword.html`은 진행 예정 |
+| 상태 | 복구 모달의 HTML, CSS, 화면 전환, 폼 전송(JS 165~173)과 페이지 연결 완료(`send again` 포함). `resetPassword.html`은 진행 예정 |
 
 ## 1. 화면 구조 (사용자가 정함)
 - 로그인 모달 안에서 화면이 바뀝니다. 별도 페이지는 비밀번호를 바꾸는 `resetPassword.html` 하나뿐입니다.
@@ -67,6 +67,8 @@ initRecoverFromHash(document.getElementById('login-modal'));  // home.html#recov
 | `initRecoverFromHash` | `#recover`로 열기, 닫으면 주소의 `#recover` 지움 |
 | `showSentView` ([170](javascript/P1-28%20-%20비밀번호%20찾기/170_recover_showSentView.md)) | "Check your inbox" 화면 |
 | `initRecoverForms` ([171](javascript/P1-28%20-%20비밀번호%20찾기/171_recover_initRecoverForms.md)) | 두 폼 전송, 성공 화면, 실패 문구 |
+| `startResendCooldown`, `stopResendCooldown` ([172](javascript/P1-28%20-%20비밀번호%20찾기/172_recover_resendCooldown.md)) | `send again`의 1분 기다림(끝나는 시각 기준으로 셈) |
+| `initRecoverResend` ([173](javascript/P1-28%20-%20비밀번호%20찾기/173_recover_initRecoverResend.md)) | `send again`으로 다시 보내기, 429는 서버 시간만큼 다시 잠금 |
 
 ### 실제 화면 시험 (헤드리스 Chrome, 24개 통과)
 `home.html`, `join.html`에서 **실제 마우스 클릭과 키 입력**으로 시험했습니다.
@@ -92,6 +94,5 @@ initRecoverFromHash(document.getElementById('login-modal'));  // home.html#recov
 ## 5. 남은 일
 | 단계 | 내용 |
 |---|---|
-| 3 | JS: `send again` 1분 잠금과 다시 보내기 |
-| 4 | `resetPassword.html`의 HTML과 CSS |
-| 5 | `resetPassword.html`의 JS: `#token=` 읽기와 주소창에서 지우기, 새 비밀번호 전송 |
+| 3 | `resetPassword.html`의 HTML과 CSS |
+| 4 | `resetPassword.html`의 JS: `#token=` 읽기와 주소창에서 지우기, 새 비밀번호 전송 |
