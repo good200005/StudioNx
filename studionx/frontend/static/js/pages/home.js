@@ -5,6 +5,7 @@
 import { initAuthState, initLoginForm, initPasswordToggles, initOAuthPlaceholders } from '../core/auth-ui.js';
 import { initModalFallback } from '../core/modal.js';
 import { initImageProtection } from '../core/protect-images.js';
+import { initRecover, initRecoverFromHash, initRecoverForms, initRecoverResend } from '../core/recover.js';
 import { includePartials } from '../core/include.js';
 import { parseLoginHash, isLoggedIn } from '../core/auth.js';
 import { initFormAlerts, showAlert } from '../core/dialog.js';
@@ -427,6 +428,11 @@ await includePartials();
 initIntro();
 initAuthState();
 initLoginModalFromHash();
+// 계정 찾기(Can't sign in?, #recover) — 로그인 모달 안의 복구 화면 (P1-28)
+initRecover(document.getElementById('login-modal'));
+initRecoverFromHash(document.getElementById('login-modal'));
+initRecoverForms(document.getElementById('login-modal'));   // 두 폼 전송 (보낸 뒤 화면까지)
+initRecoverResend(document.getElementById('login-modal'));  // send again (1분 뒤 켜짐)
 // 로그인 성공 후: next 가 있으면 그 페이지로, 없으면 모달 닫고 <html data-auth="in"> (헤더 전환)
 initLoginForm({ onSuccess: null });   // onSuccess 를 안 주면 기본 동작 (core/auth-ui.js 13): next 가 있으면 그 페이지로, 없으면 모달을 닫고 헤더 전환
 initPasswordToggles();
