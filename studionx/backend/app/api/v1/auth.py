@@ -41,6 +41,8 @@ from app.core.security import (
 from app.schemas.auth import (
     PASSWORD_RESET_REQUEST_MESSAGE,
     AvailabilityResponse,
+    EmailReminderRequest,
+    EmailReminderResponse,
     LoginRequest,
     Nickname,
     PasswordResetConfirm,
@@ -266,3 +268,23 @@ def password_reset_confirm(data: PasswordResetConfirm, db: Db) -> None:
     - 서비스: `password_reset_service.reset_password`
     """
     password_reset_service.reset_password(db, data.token, data.new_password)
+
+
+@router.post(
+    "/email-reminder/request",
+    response_model=EmailReminderResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    responses={422: {"model": ErrorResponse}, 429: {"model": ErrorResponse}},
+)
+def email_reminder_request(
+    data: EmailReminderRequest, request: Request, db: Db
+) -> EmailReminderResponse:
+    """"가입한 이메일이 무엇인지" 알려 주는 메일 요청 (FR-119). 로그인 없이 부른다.
+
+    - 재설정 요청과 같다: **가입 여부와 관계없이 항상 같은 202 와 같은 본문**이고, 오류는
+      형식이 틀린 이메일의 422 와 요청이 잦을 때의 429 뿐이다 (한도는 재설정 요청과 따로 센다)
+    - 메일은 가입된 ACTIVE 계정에만 간다. 가입되지 않은 주소에는 아무것도 보내지 않는다
+    - 서비스: `password_reset_service.request_email_reminder`
+    """
+    password_reset_service.request_email_reminder(db, data.email, client_ip(request))
+    return EmailReminderResponse(message=PASSWORD_RESET_REQUEST_MESSAGE)

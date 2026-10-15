@@ -128,5 +128,16 @@ class PasswordResetConfirm(BaseModel):
     new_password: str = Field(min_length=1, max_length=100)
 
 
+class EmailReminderRequest(PasswordResetRequest):
+    """POST /auth/email-reminder/request  — 복구 화면 Email 탭의 JSON { email } (P1-28, FR-119)
+
+    본문과 검사는 재설정 요청과 같다: 쓸 만한 다른 이메일 하나(형식만 검사, 가입 여부는 알리지 않음)
+    """
+
+
+class EmailReminderResponse(PasswordResetRequestResponse):
+    """이메일 안내 요청 응답 (202) — 재설정 요청과 같은 고정 본문, 가입 여부와 관계없이 같다."""
+
+
 # 재설정 요청에 항상 돌려주는 문구 (가입된 주소든 아니든 같다)
 PASSWORD_RESET_REQUEST_MESSAGE = "If an account exists for that email, we've sent a message."

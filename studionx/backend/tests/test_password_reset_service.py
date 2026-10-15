@@ -691,3 +691,193 @@ def test_confirm_whole_flow_rejects_the_old_login_afterwards(api, db, caplog):
     assert confirm(api, token).status_code == 204
 
     assert api.get("/api/v1/me/dashboard", headers=old).status_code == 401
+
+
+# ---------------------------------------------------------------- request_email_reminder (FR-119)
+@pytest.fixture
+def mail(clock, monkeypatch, caplog):
+    caplog.set_level(logging.INFO, logger="uvicorn.error")
+    svc._recent_reminders.clear()
+    settings = get_settings()
+    monkeypatch.setattr(settings, "mail_backend", "log")
+    monkeypatch.setattr(settings, "app_base_url", "http://localhost:8000")
+    yield caplog
+    svc._recent_reminders.clear()
+
+
+def remind(db, email="real@example.com", ip="1.1.1.1"):
+    return svc.request_email_reminder(db, email, ip)
+
+
+def test_active_user_gets_a_reminder_and_the_log_shows_a_masked_recipient(db, mail):
+    add_user(db, "real@example.com", "real0001")
+    assert remind(db) is None
+    text = logged(mail)
+    assert "[DEV MAIL] to r***@example.com: Here's the email you signed up with" in text
+    assert "real@example.com" not in text  # 로그에는 원문 이메일이 없음
+
+
+def test_log_does_not_contain_the_mail_body_or_any_token(db, mail):
+    user = add_user(db, "real@example.com", "real0001")
+    remind(db)
+    text = logged(mail)
+    assert "home.html#login" not in text and "#token=" not in text
+    assert rows(db, user) == []  # 토큰을 만들지 않음
+
+
+def test_unknown_email_sends_nothing_and_returns_the_same(db, mail):
+    assert remind(db, "ghost@example.com") is None
+    assert "DEV MAIL" not in logged(mail)  # 가입되지 않은 주소에는 아무것도 보내지 않음
+
+
+@pytest.mark.parametrize("status", [UserStatus.DELETED, UserStatus.SUSPENDED])
+def test_deleted_or_suspended_user_gets_nothing(db, mail, status):
+    user = add_user(db, "gone@example.com", "gone0001")
+    user.status = status
+    db.commit()
+    assert remind(db, "gone@example.com") is None
+    assert "DEV MAIL" not in logged(mail)
+
+
+def test_reminder_email_lookup_ignores_case_and_spaces(db, mail):
+    add_user(db, "real@example.com", "real0001")
+    remind(db, "  REAL@Example.COM ")
+    assert "DEV MAIL" in logged(mail)
+
+
+def test_rate_limit_counts_unknown_emails_too_and_is_429(db, mail):
+    for _ in range(3):
+        remind(db, "ghost@example.com")
+    with pytest.raises(AppError) as err:
+        remind(db, "ghost@example.com")
+    assert err.value.status_code == 429
+
+
+def test_reminder_and_reset_requests_are_counted_separately(db, mail):
+    add_user(db, "real@example.com", "real0001")
+    for _ in range(3):
+        remind(db)  # 이메일 안내 3번: 이 쪽 한도를 다 씀
+    with pytest.raises(AppError):
+        remind(db)
+    for _ in range(3):  # 재설정 요청은 영향이 없음
+        svc.request_password_reset(db, "real@example.com", "1.1.1.1")
+    with pytest.raises(AppError):
+        svc.request_password_reset(db, "real@example.com", "1.1.1.1")
+
+
+def test_ip_limit_for_reminders_is_ten(db, mail):
+    for i in range(10):
+        remind(db, f"user{i}@example.com", "9.9.9.9")
+    with pytest.raises(AppError):
+        remind(db, "another@example.com", "9.9.9.9")
+
+
+def test_without_log_mail_backend_nothing_is_sent_and_it_is_noted(db, mail, monkeypatch):
+    monkeypatch.setattr(get_settings(), "mail_backend", "smtp")
+    add_user(db, "real@example.com", "real0001")
+    assert remind(db) is None
+    assert "DEV MAIL" not in logged(mail)
+    assert "not configured" in logged(mail)
+
+
+def test_sent_message_comes_from_the_template_with_the_site_base_url(db, mail, monkeypatch):
+    seen = []
+    real = svc.build_email_reminder_message
+
+    def spy(email, base):
+        seen.append((email, base))
+        return real(email, base)
+
+    monkeypatch.setattr(svc, "build_email_reminder_message", spy)
+    add_user(db, "real@example.com", "real0001")
+    remind(db)
+    assert seen == [("real@example.com", "http://localhost:8000")]  # 저장된 이메일과 설정의 주소
+
+
+# ---------------------------------------------------------------- POST /auth/email-reminder/request
+REMIND_URL = "/api/v1/auth/email-reminder/request"
+
+
+@pytest.fixture
+def api2(api, mail):
+    """api(실제 앱, 실제 MySQL)에 이메일 안내용 설정과 기록 정리를 더한 것."""
+    return api
+
+
+def test_reminder_route_is_registered_as_post_202():
+    from app.main import app
+
+    operation = app.openapi()["paths"][REMIND_URL]["post"]
+    assert "202" in operation["responses"]
+    assert "429" in operation["responses"]
+
+
+def test_reminder_known_account_gets_202_fixed_body_and_a_log_entry(api2, db, mail):
+    add_user(db, "real@example.com", "real0001")
+    res = api2.post(REMIND_URL, json={"email": "real@example.com"})
+    assert (res.status_code, res.json()) == (202, SAME_BODY)
+    assert "[DEV MAIL] to r***@example.com" in logged(mail)
+
+
+def test_reminder_unknown_account_gets_exactly_the_same_response(api2, db, mail):
+    add_user(db, "real@example.com", "real0001")
+    real = api2.post(REMIND_URL, json={"email": "real@example.com"})
+    ghost = api2.post(REMIND_URL, json={"email": "ghost@example.com"})
+    assert (ghost.status_code, ghost.json()) == (real.status_code, real.json()) == (202, SAME_BODY)
+    assert ghost.headers["content-length"] == real.headers["content-length"]
+    assert "set-cookie" not in real.headers and "set-cookie" not in ghost.headers
+    assert logged(mail).count("DEV MAIL") == 1  # 가입된 주소에만 보냄
+
+
+@pytest.mark.parametrize("status", [UserStatus.DELETED, UserStatus.SUSPENDED])
+def test_reminder_inactive_account_gets_the_same_response_and_no_mail(api2, db, mail, status):
+    user = add_user(db, "gone@example.com", "gone0001")
+    user.status = status
+    db.commit()
+    res = api2.post(REMIND_URL, json={"email": "gone@example.com"})
+    assert (res.status_code, res.json()) == (202, SAME_BODY)
+    assert "DEV MAIL" not in logged(mail)
+
+
+@pytest.mark.parametrize("bad", ["", "not-an-email", "a@", "@b.com", "a b@c.com"])
+def test_reminder_bad_email_format_is_422(api2, bad):
+    res = api2.post(REMIND_URL, json={"email": bad})
+    assert res.status_code == 422
+    assert res.json()["error"]["code"] == "VALIDATION_ERROR"
+
+
+def test_reminder_missing_body_is_422(api2):
+    assert api2.post(REMIND_URL, json={}).status_code == 422
+    assert api2.post(REMIND_URL).status_code == 422
+
+
+def test_reminder_rate_limit_is_429_for_known_and_unknown_alike(api2, db):
+    add_user(db, "real@example.com", "real0001")
+    for email in ("real@example.com", "ghost@example.com"):
+        for _ in range(3):
+            assert api2.post(REMIND_URL, json={"email": email}).status_code == 202
+        res = api2.post(REMIND_URL, json={"email": email})
+        assert res.status_code == 429
+        assert res.json()["error"]["details"]["retry_after"] > 0
+
+
+def test_reminder_ip_limit_applies_through_the_route(api2):
+    for i in range(10):
+        assert api2.post(REMIND_URL, json={"email": f"user{i}@example.com"}).status_code == 202
+    assert api2.post(REMIND_URL, json={"email": "another@example.com"}).status_code == 429
+
+
+def test_reminder_and_reset_limits_are_separate_through_the_routes(api2, db):
+    add_user(db, "real@example.com", "real0001")
+    for _ in range(3):
+        assert api2.post(REMIND_URL, json={"email": "real@example.com"}).status_code == 202
+    assert api2.post(REMIND_URL, json={"email": "real@example.com"}).status_code == 429
+    # 이메일 안내를 다 썼어도 비밀번호 재설정 요청은 막히지 않음 (그 반대도 따로)
+    assert api2.post(URL, json={"email": "real@example.com"}).status_code == 202
+
+
+def test_reminder_no_login_is_required_and_response_has_no_email(api2, db):
+    add_user(db, "real@example.com", "real0001")
+    res = api2.post(REMIND_URL, json={"email": "real@example.com"})
+    assert res.status_code == 202
+    assert "real@example.com" not in res.text  # 응답에는 이메일을 되돌려 주지 않음

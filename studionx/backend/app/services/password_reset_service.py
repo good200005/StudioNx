@@ -22,6 +22,7 @@ from app.core.security import (
 )
 from app.models import PasswordResetToken, User
 from app.models.user import UserStatus
+from app.services.mail_templates import build_email_reminder_message
 
 # uvicorn 이 보여 주는 로그 이름을 씀 (앱 자체 이름은 uvicorn 기본 설정에서 INFO 가 출력되지 않음)
 logger = logging.getLogger("uvicorn.error")
@@ -35,6 +36,7 @@ RESET_LIMIT_IP = 10
 # 최근 요청 시각 — 키: "ip:1.2.3.4" / "email:a@b.com", 값: time.monotonic() 시각들
 # 서버 메모리에 두므로 재시작하면 비워지고, 서버가 여러 대면 따로 셈 (문의와 같은 방식)
 _recent_requests: dict[str, deque[float]] = {}
+_recent_reminders: dict[str, deque[float]] = {}  # 이메일 안내 요청 (FR-119): 기록을 따로 센다
 _lock = threading.Lock()
 _clock = time.monotonic  # 시험에서 바꿔 끼움
 
@@ -77,6 +79,24 @@ def check_reset_rate_limit(ip: str | None, email: str) -> None:
     - 429 의 `details.retry_after` = 몇 초 뒤에 다시 할 수 있는지 (가장 오래된 기록이 만료될 때까지)
     - 10분이 지난 기록은 버리고, 비면 열쇠째 지운다 (메모리가 계속 늘지 않게)
     """
+    _rate_limit(_recent_requests, ip, email)
+
+
+def check_reminder_rate_limit(ip: str | None, email: str) -> None:
+    """이메일 안내 요청의 횟수를 검사하고 이번 요청을 센다. 넘었으면 429 (P1-28, FR-119).
+
+    한도와 규칙은 `check_reset_rate_limit` 과 같고(이메일 3번, IP 10번, 10분,
+    가입 여부와 무관하게 셈) **기록은 따로 센다**: 비밀번호 재설정 요청을 많이 해도
+    이메일 안내가 막히지 않고, 그 반대도 같다.
+    """
+    _rate_limit(_recent_reminders, ip, email)
+
+
+def _rate_limit(store: dict[str, deque[float]], ip: str | None, email: str) -> None:
+    """요청 횟수를 검사하고 이번 요청을 센다. 넘었으면 429. `store` 가 센 기록이다.
+
+    재설정 요청과 이메일 안내 요청이 같은 규칙을 쓰되 기록은 따로 센다(서로의 한도를 쓰지 않음).
+    """
     now = _clock()
     keys = [(f"email:{email.strip().lower()}", RESET_LIMIT_EMAIL)]
     if ip:
@@ -85,13 +105,13 @@ def check_reset_rate_limit(ip: str | None, email: str) -> None:
     with _lock:
         retry_after = 0
         for key, limit in keys:
-            q = _recent_requests.get(key)
+            q = store.get(key)
             if q is None:
                 continue
             while q and now - q[0] > RESET_LIMIT_SECONDS:
                 q.popleft()
             if not q:
-                del _recent_requests[key]
+                del store[key]
                 continue
             if len(q) >= limit:
                 retry_after = max(retry_after, int(RESET_LIMIT_SECONDS - (now - q[0])) + 1)
@@ -103,7 +123,7 @@ def check_reset_rate_limit(ip: str | None, email: str) -> None:
                 details={"retry_after": retry_after},
             )
         for key, _ in keys:
-            _recent_requests.setdefault(key, deque()).append(now)
+            store.setdefault(key, deque()).append(now)
 
 
 def mask_email(email: str) -> str:
@@ -198,3 +218,30 @@ def reset_password(db: Session, token: str, new_password: str) -> None:
         .values(used_at=now)
     )
     db.commit()
+
+
+def request_email_reminder(db: Session, email: str, ip: str | None) -> None:
+    """"가입한 이메일이 무엇인지" 알려 주는 메일을 요청한다 (P1-28, FR-119). **항상 같은 결과**.
+
+    1. `check_reminder_rate_limit()`: 한도를 넘으면 429 (가입 여부와 무관하게 센다)
+    2. 이메일(소문자, 공백 제거)로 회원을 찾는다. 없거나 `ACTIVE` 가 아니면(탈퇴, 정지)
+       아무것도 하지 않고 끝낸다. **가입되지 않은 주소에는 아무것도 보내지 않는다**
+       (사용자 결정: "계정이 없다" 메일은 만들지 않음)
+    3. `ACTIVE` 이면 `build_email_reminder_message()` 로 문안을 만들어 메일(지금은 로그)로 보낸다
+       - 개발용(`mail_backend=log`)일 때만 "보냈다"고 기록한다. 로그에는 받는 사람의 이메일을
+         가려 남기고 본문은 남기지 않는다. 그 밖의 설정이면 "메일 설정 없음"만 기록한다
+    - 토큰을 만들지 않는다: 이 메일은 이미 아는 사실(로그인 이메일)을 알려 줄 뿐 권한을 주지 않는다
+    """
+    check_reminder_rate_limit(ip, email)
+
+    user = db.scalar(select(User).where(User.email == email.strip().lower()))
+    if user is None or user.status != UserStatus.ACTIVE:
+        return
+
+    settings = get_settings()
+    if settings.mail_backend != "log":
+        logger.warning("email reminder requested but mail is not configured (MAIL_BACKEND)")
+        return
+
+    message = build_email_reminder_message(user.email, settings.app_base_url)
+    logger.info("[DEV MAIL] to %s: %s", mask_email(user.email), message.subject)
