@@ -1,0 +1,96 @@
+<!doctype html><html lang="en" data-theme="dark"><head><meta charset="utf-8"><title>mock reset password</title>
+<link rel="stylesheet" href="file:///C:/Users/USER/Desktop/myProject/StudioNx/studionx/frontend/static/css/tokens.css"><link rel="stylesheet" href="file:///C:/Users/USER/Desktop/myProject/StudioNx/studionx/frontend/static/css/base.css"><link rel="stylesheet" href="file:///C:/Users/USER/Desktop/myProject/StudioNx/studionx/frontend/static/css/forms.css"><link rel="stylesheet" href="file:///C:/Users/USER/Desktop/myProject/StudioNx/studionx/frontend/static/css/auth.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+body{background:#0b0a0f;padding:2.2rem 1.5rem;font-family:var(--font-text,sans-serif);}
+.grid{display:grid;grid-template-columns:repeat(2,26rem);gap:2.8rem 3rem;justify-content:center}
+.cell{position:relative;padding-top:1.8rem}
+.tag{position:absolute;top:0;left:0;font:700 .8rem/1 sans-serif;color:#a78bfa;letter-spacing:.08em}
+
+/* mini page frame: header strip + card (실제 페이지는 join.html 처럼 헤더·푸터를 끼움) */
+.page{width:26rem;background:var(--c-ground-raised);border:1px solid var(--c-rule)}
+.phead{display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.1rem;border-bottom:1px solid var(--c-rule)}
+.brand{display:flex;align-items:center;gap:.5rem;color:var(--c-ink);text-decoration:none}
+.brand__mark{width:1.5rem;height:1.5rem;color:var(--c-violet-ink)}
+.brand__name{font:700 .95rem/1 var(--font-display,sans-serif);letter-spacing:.04em}
+.phead .btn{padding:.35rem .8rem;font-size:.8rem}
+
+.rp{padding:2.4rem 2rem}
+.rp__title{font:800 var(--fs-xl,1.6rem)/1.05 var(--font-display,sans-serif);letter-spacing:.06em;text-transform:uppercase;margin:0}
+.rp__title + .auth-sub{margin-top:var(--sp-3,.75rem);margin-bottom:var(--sp-8,2rem)}
+.rp__foot{margin-top:var(--sp-6,1.5rem);text-align:center;color:var(--c-ink-soft);font-size:var(--fs-sm,.875rem)}
+
+.state{text-align:center;color:var(--c-violet-ink)}
+.rp__title + .state{margin-top:var(--sp-4,1rem)}   /* 제목과 체크 사이 간격 = 체크와 "Password changed" 사이 간격 */
+.state svg{display:block;margin:0 auto}
+.state__icon-ok{color:var(--c-ok)}
+.state h3{color:var(--c-ink);font:700 var(--fs-md,1.15rem)/1.3 var(--font-display,sans-serif);margin:var(--sp-4,1rem) 0 var(--sp-3,.75rem)}
+.state p{color:var(--c-ink-soft);font-size:var(--fs-sm,.875rem);margin:0 0 var(--sp-6,1.5rem)}
+.state--warn{color:var(--c-error)}
+
+.alert{display:flex;gap:.6rem;align-items:flex-start;padding:.8rem 1rem;border:1px solid var(--c-error);border-radius:6px;background:rgba(255,80,80,.08);color:var(--c-error);font-size:var(--fs-sm,.875rem);margin-bottom:var(--sp-6,1.5rem)}
+.alert svg{flex:none;width:1.1rem;height:1.1rem;margin-top:.1em}
+.hl{outline:1px dashed var(--c-violet-ink);outline-offset:4px}
+.note{max-width:64rem;margin:2.4rem auto 0;color:#9a98a8;font:.85rem/1.75 sans-serif}
+</style></head><body><div class="grid">
+
+<!-- 1. 기본: 새 비밀번호 입력 -->
+<div class="cell"><div class="tag">1. 기본 — 새 비밀번호와 조건 (Reset Password 페이지)</div>
+<div class="page"><div class="phead"><a class="brand"><svg class="brand__mark" viewBox="-1 -5 98 98" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M73.76 16.83A42 42 0 1 0 88.14 62.36A28 28 0 1 1 73.76 16.83ZM64 -2Q66.66 14.34 83 17Q66.66 19.66 64 36Q61.34 19.66 45 17Q61.34 14.34 64 -2Z"/></svg><span class="brand__name">Studio Nx</span></a><button type="button" class="btn btn--ghost">Sign In</button></div>
+<div class="rp">
+<h1 class="rp__title">Reset Password</h1>
+<p class="auth-sub">Choose a new password for your account.</p>
+<form class="form-stack">
+<div class="field"><label class="field__label">New password <span class="field__req" aria-hidden="true">*</span></label><div class="pw"><input class="field__control" type="password" placeholder="••••••••" value=""><button type="button" class="pw__toggle">Show</button></div>
+<ul class="pw-rules" aria-label="Password requirements"><li data-rule="length">8–20 characters</li><li data-rule="upper">Uppercase letter</li><li data-rule="lower">Lowercase letter</li><li data-rule="number">Number</li><li data-rule="special">Special character (!@#$…)</li></ul>
+<p class="field__msg"></p></div>
+<div class="field"><label class="field__label">Confirm new password <span class="field__req" aria-hidden="true">*</span></label><div class="pw"><input class="field__control" type="password" placeholder="••••••••" value=""><button type="button" class="pw__toggle">Show</button></div><p class="field__msg"></p></div>
+<button type="submit" class="btn btn--primary btn--block">Reset password</button>
+</form>
+</div></div></div>
+
+<!-- 2. 422: 규칙 미달 (링크는 계속 쓸 수 있음) -->
+<div class="cell"><div class="tag">2. 규칙 오류 (422) — 링크는 그대로 쓸 수 있음</div>
+<div class="page"><div class="phead"><a class="brand"><svg class="brand__mark" viewBox="-1 -5 98 98" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M73.76 16.83A42 42 0 1 0 88.14 62.36A28 28 0 1 1 73.76 16.83ZM64 -2Q66.66 14.34 83 17Q66.66 19.66 64 36Q61.34 19.66 45 17Q61.34 14.34 64 -2Z"/></svg><span class="brand__name">Studio Nx</span></a><button type="button" class="btn btn--ghost">Sign In</button></div>
+<div class="rp">
+<h1 class="rp__title">Reset Password</h1>
+<p class="auth-sub">Choose a new password for your account.</p>
+<form class="form-stack">
+<div class="field is-error"><label class="field__label">New password <span class="field__req" aria-hidden="true">*</span></label><div class="pw"><input class="field__control" type="password" value="password" aria-invalid="true"><button type="button" class="pw__toggle">Show</button></div>
+<ul class="pw-rules" aria-label="Password requirements"><li data-rule="length" class="is-met">8–20 characters</li><li data-rule="upper">Uppercase letter</li><li data-rule="lower" class="is-met">Lowercase letter</li><li data-rule="number">Number</li><li data-rule="special">Special character (!@#$…)</li></ul>
+<p class="field__msg" style="color:var(--c-error)">Check the password requirements.</p></div>
+<div class="field"><label class="field__label">Confirm new password <span class="field__req" aria-hidden="true">*</span></label><div class="pw"><input class="field__control" type="password" value="password"><button type="button" class="pw__toggle">Show</button></div><p class="field__msg"></p></div>
+<button type="submit" class="btn btn--primary btn--block">Reset password</button>
+</form>
+</div></div></div>
+
+<!-- 3. 잘못/만료된 링크 -->
+<div class="cell"><div class="tag">3. 잘못되었거나 만료된 링크 — 다시 요청 안내</div>
+<div class="page"><div class="phead"><a class="brand"><svg class="brand__mark" viewBox="-1 -5 98 98" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M73.76 16.83A42 42 0 1 0 88.14 62.36A28 28 0 1 1 73.76 16.83ZM64 -2Q66.66 14.34 83 17Q66.66 19.66 64 36Q61.34 19.66 45 17Q61.34 14.34 64 -2Z"/></svg><span class="brand__name">Studio Nx</span></a><button type="button" class="btn btn--ghost">Sign In</button></div>
+<div class="rp">
+<h1 class="rp__title">Reset Password</h1>
+<p class="auth-sub">Choose a new password for your account.</p>
+<div class="alert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5"/><path d="M12 16.4h.01"/></svg><span>This link is invalid or has expired. Request a new one to continue.</span></div>
+<form class="form-stack">
+<div class="field"><label class="field__label">New password <span class="field__req" aria-hidden="true">*</span></label><div class="pw"><input class="field__control" type="password" placeholder="••••••••" disabled><button type="button" class="pw__toggle" disabled>Show</button></div>
+<ul class="pw-rules" aria-label="Password requirements"><li data-rule="length">8–20 characters</li><li data-rule="upper">Uppercase letter</li><li data-rule="lower">Lowercase letter</li><li data-rule="number">Number</li><li data-rule="special">Special character (!@#$…)</li></ul></div>
+<div class="field"><label class="field__label">Confirm new password <span class="field__req" aria-hidden="true">*</span></label><div class="pw"><input class="field__control" type="password" placeholder="••••••••" disabled><button type="button" class="pw__toggle" disabled>Show</button></div></div>
+<button type="submit" class="btn btn--primary btn--block" disabled>Reset password</button>
+</form>
+<p class="rp__foot">Need a new link? <a class="text-link text-link--strong hl" href="#">Can't sign in?</a></p>
+</div></div></div>
+
+<!-- 4. 성공 (자동 로그인 없음) -->
+<div class="cell"><div class="tag">4. 성공 — 자동 로그인 없이 Sign In 안내</div>
+<div class="page"><div class="phead"><a class="brand"><svg class="brand__mark" viewBox="-1 -5 98 98" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M73.76 16.83A42 42 0 1 0 88.14 62.36A28 28 0 1 1 73.76 16.83ZM64 -2Q66.66 14.34 83 17Q66.66 19.66 64 36Q61.34 19.66 45 17Q61.34 14.34 64 -2Z"/></svg><span class="brand__name">Studio Nx</span></a><button type="button" class="btn btn--ghost">Sign In</button></div>
+<div class="rp">
+<h1 class="rp__title">Reset Password</h1>
+<div class="state"><svg class="state__icon-ok" viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="m8 12.3 2.6 2.6L16 9.5"/></svg>
+<h3>Password changed</h3>
+<p>Your password has been reset. Sign in with your new password.</p></div>
+<a class="btn btn--primary btn--block" href="#">Sign In</a>
+</div></div></div>
+
+</div>
+<p class="note">비밀번호를 바꾸는 별도 페이지 <b>resetPassword.html</b> (로그인 전, join.html 처럼 공통 헤더·푸터를 끼움). 재설정 메일의 링크(<b>resetPassword.html#token=&lt;값&gt;</b>)로 들어옵니다. 읽은 토큰은 곧바로 주소창에서 지웁니다(기록·Referer 로 새지 않게). 재설정에 성공해도 <b>자동 로그인은 하지 않고</b> 직접 로그인하도록 안내합니다. 3번은 다시 요청하는 길을 <b>Can't sign in?</b> 로 안내하며(로그인 모달의 복구 화면, home.html#recover) 점선은 새 화면 표시입니다.</p>
+</body></html>
