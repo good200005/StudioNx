@@ -313,6 +313,60 @@ def test_refresh_after_withdrawal(client, db):
     assert res.status_code == 401  # 30 get_active_user 가 막음
 
 
+# ── 비밀번호 재설정 이전에 발급된 리프레시 토큰은 재발급 거부 (P1-28, FR-118) ──
+
+
+def reset_password_at(db, user_id, seconds_from_now):
+    """회원이 `seconds_from_now` 초 뒤(음수면 전)에 비밀번호를 재설정한 것으로 기록."""
+    user = db.get(User, user_id)
+    user.password_changed_at = datetime.now(UTC).replace(tzinfo=None) + timedelta(
+        seconds=seconds_from_now
+    )
+    db.flush()
+
+
+def test_refresh_after_password_reset_is_401_and_clears_the_cookie(client, db):
+    user_id = signed_up(client)
+    login(client, remember=True)
+    assert refresh(client).status_code == 200  # 재설정 전: 재발급됨
+    reset_password_at(db, user_id, 5)  # 로그인한 뒤에 재설정
+    res = refresh(client)
+    assert res.status_code == 401
+    assert res.json() == {
+        "error": {"code": "UNAUTHORIZED", "message": "Please sign in again.", "details": None}
+    }
+    header = res.headers["set-cookie"].lower()
+    assert header.startswith('snx_refresh=""') and "max-age=0" in header
+    assert "path=/api/v1/auth" in header and "httponly" in header
+
+
+def test_refresh_after_password_reset_stays_rejected_without_the_cookie(client, db):
+    user_id = signed_up(client)
+    login(client, remember=True)
+    reset_password_at(db, user_id, 5)
+    assert refresh(client).status_code == 401  # 이때 쿠키가 지워짐
+    res = refresh(client)  # 시험 도구도 지워진 쿠키를 더 보내지 않음
+    assert res.status_code == 401
+    assert res.json()["error"]["message"] == "Please sign in."  # 쿠키 없음: 정상 흐름
+
+
+def test_login_after_password_reset_gets_a_working_refresh(client, db):
+    user_id = signed_up(client)
+    login(client)
+    reset_password_at(db, user_id, -0.2)  # 방금 재설정 (같은 초일 수 있음)
+    client.cookies.clear()
+    assert login(client, remember=True).status_code == 200  # 새 비밀번호로 다시 로그인
+    assert refresh(client).status_code == 200  # 재설정 직후 새 로그인이 쫓겨나지 않음
+
+
+def test_refresh_for_never_reset_account_is_unchanged(client):
+    signed_up(client)
+    login(client, remember=True)
+    res = refresh(client)
+    assert res.status_code == 200
+    assert "set-cookie" not in res.headers  # 정상 재발급은 쿠키를 건드리지 않음
+
+
 # ── POST /api/v1/auth/logout (P1-05) ──
 
 

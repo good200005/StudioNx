@@ -46,6 +46,7 @@ DROP TABLE IF EXISTS project_sessions;
 DROP TABLE IF EXISTS project_members;
 DROP TABLE IF EXISTS projects;
 DROP TABLE IF EXISTS dev_notes;
+DROP TABLE IF EXISTS password_reset_tokens;
 DROP TABLE IF EXISTS inquiries;
 DROP TABLE IF EXISTS users;
 

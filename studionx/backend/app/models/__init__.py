@@ -2,6 +2,7 @@
 
 from app.models.dev_note import DevNote
 from app.models.inquiry import Inquiry
+from app.models.password_reset_token import PasswordResetToken
 from app.models.project import Project, ProjectMember
 from app.models.project_session import ProjectSession
 from app.models.track import Track
@@ -10,6 +11,7 @@ from app.models.user import User
 __all__ = [
     "DevNote",
     "Inquiry",
+    "PasswordResetToken",
     "Project",
     "ProjectMember",
     "ProjectSession",

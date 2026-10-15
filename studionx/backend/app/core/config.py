@@ -30,6 +30,14 @@ class Settings(BaseSettings):
     jwt_secret: str = "change-me"
     jwt_access_minutes: int = 30
     jwt_refresh_days: int = 3  # 자동 로그인 체크 시 리프레시 쿠키 유지 기간 (PRD 01 FR-109)
+    password_reset_minutes: int = 30  # 비밀번호 재설정 링크 유효 시간 (PRD 01 FR-118)
+
+    # 메일 (P1-28) — 지금은 보내지 않고 서버 로그에 링크를 출력하는 개발용 방식뿐
+    # MAIL_BACKEND=log(기본): 개발 전용. 로그에 재설정 링크(비밀번호를 바꿀 수 있는 값)가 남아서
+    #   배포에서는 쓰지 않음
+    # 그 밖의 값(예: smtp, 아직 없음): 링크를 만들지 않고 "메일 발송이 설정되지 않음"만 기록
+    mail_backend: str = "log"
+    app_base_url: str = "http://localhost:8000"  # 메일 링크의 주소 (배포 때 실제 주소로)
 
     # 프록시(Nginx 등) 뒤에서 돌 때만 true — X-Forwarded-For 의 첫 IP 를 보낸 사람으로 봄
     # 프록시 없이 true 면 누구나 헤더를 꾸며 IP 제한을 피할 수 있음 (2026-10-08 결정: 기본 꺼짐)

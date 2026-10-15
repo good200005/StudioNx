@@ -4,6 +4,7 @@ import { initModalFallback } from '../core/modal.js';
 import { includePartials } from '../core/include.js';
 import { api } from '../core/api.js';
 import { initFormAlerts } from '../core/dialog.js';
+import { initRecover, initRecoverFromHash, initRecoverForms, initRecoverResend } from '../core/recover.js';
 import { PASSWORD_RULES, PASSWORD_ALLOWED } from '../core/password.js'; // 2026-10-08 여기서 core 로 옮김 (P1-10 25)
 
 /** 중복 확인 칸마다 다른 것 — 주소 · 문구 · 서버에 묻기 전 형식 검사 */
@@ -288,6 +289,11 @@ initModalFallback();
 initFormAlerts();   // 19 — 로그인 모달의 기본 말풍선 대신 알림창 (가입 폼은 novalidate 라 그대로)
 // 로그인 모달(이미 가입한 사람용): 성공하면 메인으로 — 헤더가 My Page·My Projects로 보임
 initLoginForm({ onSuccess: (next) => { location.href = next || 'home.html'; } }); // 13 — 가입 화면에서 로그인하면 홈(또는 next)으로
+// 계정 찾기(Can't sign in?, #recover) — 로그인 모달 안의 복구 화면 (P1-28)
+initRecover(document.getElementById('login-modal'));
+initRecoverFromHash(document.getElementById('login-modal'));
+initRecoverForms(document.getElementById('login-modal'));   // 두 폼 전송 (보낸 뒤 화면까지)
+initRecoverResend(document.getElementById('login-modal'));  // send again (1분 뒤 켜짐)
 initPasswordToggles();
 initOAuthPlaceholders();
 initDuplicateChecks();

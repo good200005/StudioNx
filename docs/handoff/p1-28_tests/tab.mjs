@@ -1,0 +1,57 @@
+import { launch, check, summary } from './lib.mjs';
+const b = await launch(9502, 1280, 900); const q = e => b.ev(e);
+const run = async (u) => {
+  await b.send('Page.navigate', { url: 'http://localhost:8000' + u }); await b.sleep(3500);
+  await q(`import('/static/js/core/recover.js').then(m => { window.__m = m; }); 1`); await b.sleep(500);
+  await q(`document.getElementById('login-modal').showModal(); window.__m.showView(document.getElementById('login-modal'),'recover'); 1`); await b.sleep(300);
+  const st = `JSON.stringify({pwSel: document.getElementById('recover-tab-password').getAttribute('aria-selected'), emSel: document.getElementById('recover-tab-email').getAttribute('aria-selected'), pwTab: document.getElementById('recover-tab-password').tabIndex, emTab: document.getElementById('recover-tab-email').tabIndex, pwShown: getComputedStyle(document.getElementById('recover-panel-password')).display!=='none', emShown: getComputedStyle(document.getElementById('recover-panel-email')).display!=='none', focus: document.activeElement.id})`;
+  const S = async () => JSON.parse(await q(st));
+  const call = (name, focus) => q(`window.__m.selectTab(document.getElementById('login-modal'), ${name}${focus === undefined ? '' : ', ' + focus})`);
+  const a0 = await S();
+  check(u + ': 시작: Password 탭 선택, Email 패널 숨음', a0.pwSel === 'true' && a0.emSel === 'false' && a0.pwTab === 0 && a0.emTab === -1 && a0.pwShown && !a0.emShown, JSON.stringify(a0));
+  const r1 = await call(`'email'`); const a1 = await S();
+  check(u + ': email 선택: 표시, tabindex, 패널이 실제로 바뀜', r1 === true && a1.emSel === 'true' && a1.pwSel === 'false' && a1.emTab === 0 && a1.pwTab === -1 && a1.emShown && !a1.pwShown, JSON.stringify([r1, a1]));
+  const r2 = await call(`'email'`); await b.sleep(150); const a2 = await S();
+  check(u + ': 이미 그 탭이면 같은 결과', r2 === true && JSON.stringify(a2) === JSON.stringify(a1), JSON.stringify([r2, a1, a2]));
+  await q(`document.getElementById('recover-email-email').value='keep@example.com'; document.getElementById('recover-password-email').value='pw@example.com'; 1`);
+  await call(`'password'`); await call(`'email'`);
+  const kept = JSON.parse(await q(`JSON.stringify([document.getElementById('recover-email-email').value, document.getElementById('recover-password-email').value])`));
+  check(u + ': 탭을 오가도 두 칸에 적은 값이 남음', kept[0] === 'keep@example.com' && kept[1] === 'pw@example.com', JSON.stringify(kept));
+  await q(`document.getElementById('recover-password-error').textContent='boom'; document.getElementById('recover-password-error').hidden=false; 1`);
+  await call(`'password'`);
+  const err = JSON.parse(await q(`JSON.stringify([document.getElementById('recover-password-error').textContent, document.getElementById('recover-password-error').hidden])`));
+  check(u + ': 오류 문구도 건드리지 않음', err[0] === 'boom' && err[1] === false, JSON.stringify(err));
+  await q(`document.getElementById('recover-password-error').hidden=true; document.activeElement.blur(); 1`);
+  await call(`'email'`); const nf = await S();
+  check(u + ': focus 인자가 없으면 커서를 옮기지 않음', nf.focus !== 'recover-tab-email', JSON.stringify(nf));
+  await call(`'password'`, 'false'); const nf2 = await S();
+  check(u + ': focus=false 도 옮기지 않음', nf2.focus !== 'recover-tab-password', JSON.stringify(nf2));
+  await call(`'email'`, 'true'); const wf = await S();
+  check(u + ': focus=true 면 고른 탭으로 커서', wf.focus === 'recover-tab-email', JSON.stringify(wf));
+  await q(`document.activeElement.blur(); 1`);
+  await call(`'password'`, '1'); const wf1 = await S();
+  check(u + ': focus 가 true 가 아니면(1) 옮기지 않음(엄격 비교)', wf1.focus !== 'recover-tab-password', JSON.stringify(wf1));
+  // 숨겨질 패널 안의 칸에 커서가 있는 경우
+  await call(`'password'`); await q(`document.getElementById('recover-password-email').focus(); 1`);
+  const inPw = (await S()).focus;
+  await call(`'email'`); await b.sleep(150); const lost = await S();
+  check(u + ': 숨겨질 패널의 칸에 있던 커서는 고른 탭으로 옮겨져 사라지지 않음', inPw === 'recover-password-email' && lost.focus === 'recover-tab-email', JSON.stringify([inPw, lost]));
+  await call(`'password'`); await q(`document.getElementById('recover-password-email').focus(); 1`);
+  await call(`'password'`); await b.sleep(150); const stay = await S();
+  check(u + ': 같은 탭을 다시 고르면 칸의 커서를 그대로 둠', stay.focus === 'recover-password-email', JSON.stringify(stay));
+  await call(`'email'`);
+  for (const bad of [`'x'`, `''`, `undefined`, `null`, `'EMAIL'`, `1`, `'login'`]) {
+    const before = await S(); const r = await call(bad); const after = await S();
+    check(u + ': 모르는 이름 ' + bad + ' → false, 안 바뀜', r === false && JSON.stringify(before) === JSON.stringify(after), JSON.stringify([r, before, after]));
+  }
+  check(u + ': 모달이 null 이면 false', (await q(`window.__m.selectTab(null,'email')`)) === false);
+};
+await run('/home.html'); await run('/join.html');
+await b.send('Page.navigate', { url: 'http://localhost:8000/home.html' }); await b.sleep(3000);
+await q(`import('/static/js/core/recover.js').then(m => { window.__m = m; }); 1`); await b.sleep(400);
+const f = JSON.parse(await q(`(()=>{ const mk=h=>{const d=document.createElement('div'); d.innerHTML=h; document.body.appendChild(d); return d;};
+  const noTabs = mk('<div role="tabpanel" id="recover-panel-email"></div>'); const noPanel = mk('<button role="tab" id="recover-tab-email"></button>'); const empty = mk('');
+  return JSON.stringify({noTabs: window.__m.selectTab(noTabs,'email'), noPanel: window.__m.selectTab(noPanel,'email'), empty: window.__m.selectTab(empty,'email'), panelStillShown: !noTabs.querySelector('div').hidden}) })()`));
+check('탭이 없거나 패널이 없는 모달은 false, 아무것도 안 바뀜', f.noTabs === false && f.noPanel === false && f.empty === false && f.panelStillShown, JSON.stringify(f));
+check('내보내는 상수', JSON.stringify(await q(`window.__m.RECOVER_TABS`)) === '["password","email"]');
+summary(); await b.close();

@@ -1,0 +1,45 @@
+<!doctype html><html lang="en" data-theme="dark"><head><meta charset="utf-8"><title>mock recovery</title>
+<link rel="stylesheet" href="file:///C:/Users/USER/Desktop/myProject/StudioNx/studionx/frontend/static/css/tokens.css"><link rel="stylesheet" href="file:///C:/Users/USER/Desktop/myProject/StudioNx/studionx/frontend/static/css/base.css"><link rel="stylesheet" href="file:///C:/Users/USER/Desktop/myProject/StudioNx/studionx/frontend/static/css/forms.css"><link rel="stylesheet" href="file:///C:/Users/USER/Desktop/myProject/StudioNx/studionx/frontend/static/css/auth.css">
+<style>
+body{background:#0b0a0f;padding:2.2rem 1.5rem;}
+.grid{display:grid;grid-template-columns:repeat(2,26rem);gap:2.6rem 3rem;justify-content:center}
+.cell{position:relative;padding-top:1.6rem} .tag{position:absolute;top:0;left:0;font:700 .8rem/1 sans-serif;color:#a78bfa;letter-spacing:.08em}
+dialog.modal{position:static;display:block;margin:0;width:26rem}
+.auth-foot--sub{margin-top:var(--sp-3)} .hl{outline:1px dashed var(--c-violet-ink);outline-offset:4px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--c-rule);margin-bottom:var(--sp-6)}
+.tab{background:none;border:0;color:var(--c-ink-soft);font:600 var(--fs-sm)/1 var(--font-text);letter-spacing:.08em;text-transform:uppercase;padding:var(--sp-3) 0;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.is-active{color:var(--c-ink);border-bottom-color:var(--c-violet-ink)}
+.hint{color:var(--c-ink-soft);font-size:var(--fs-sm)}
+.sent{text-align:center;color:var(--c-violet-ink);margin-bottom:var(--sp-6)} .sent h3{color:var(--c-ink);font:700 var(--fs-md)/1.3 var(--font-display);margin:var(--sp-3) 0} .sent p{color:var(--c-ink-soft)}
+.note{max-width:60rem;margin:2rem auto 0;color:#9a98a8;font:.85rem/1.7 sans-serif}
+</style></head><body><div class="grid">
+<div class="cell"><div class="tag">1. Sign In 모달: New here? 아래에 링크 추가 (점선은 새로 생긴 줄 표시)</div>
+<dialog class="modal modal--narrow" open><div class="modal__head"><h2 class="modal__title">Sign In</h2><button type="button" class="btn btn--ghost modal__close">Close</button></div>
+<div class="modal__body"><p class="auth-sub">Welcome back.</p>
+<form class="form-stack"><div class="field"><label class="field__label">Email</label><input class="field__control" placeholder="you@example.com"></div>
+<div class="field"><label class="field__label">Password</label><div class="pw"><input class="field__control" type="password"><button type="button" class="pw__toggle">Show</button></div></div>
+<p class="form-consent"><input type="checkbox"><label>Keep me signed in (3 days)</label></p>
+<button type="button" class="btn btn--primary btn--block">Sign In</button></form>
+<p class="divider">or continue with</p>
+<p class="auth-foot">New here? <a class="text-link text-link--strong" href="#">Join Us</a></p>
+<p class="auth-foot auth-foot--sub"><a class="text-link hl" href="#">Can't sign in?</a></p></div></dialog></div>
+<div class="cell"><div class="tag">2. 복구 모달, Password 탭 (비밀번호 찾기)</div>
+<dialog class="modal modal--narrow" open><div class="modal__head"><h2 class="modal__title">Can't sign in?</h2><button type="button" class="btn btn--ghost modal__close">Close</button></div>
+<div class="modal__body"><div class="tabs" role="tablist"><button type="button" class="tab is-active">Password</button><button type="button" class="tab">Email</button></div><p class="auth-sub">Enter your email and we'll send you a link to reset your password.</p>
+<form class="form-stack"><div class="field"><label class="field__label">Email</label><input class="field__control" placeholder="you@example.com"></div>
+<button type="button" class="btn btn--primary btn--block">Send reset link</button></form>
+<p class="auth-foot"><a class="text-link" href="#">&larr; Back to Sign In</a></p></div></dialog></div>
+<div class="cell"><div class="tag">3. 복구 모달, Email 탭 (이메일을 잊은 경우 + Contact 문의 안내)</div>
+<dialog class="modal modal--narrow" open><div class="modal__head"><h2 class="modal__title">Can't sign in?</h2><button type="button" class="btn btn--ghost modal__close">Close</button></div>
+<div class="modal__body"><div class="tabs" role="tablist"><button type="button" class="tab">Password</button><button type="button" class="tab is-active">Email</button></div><p class="auth-sub">Not sure which email you signed up with? Enter an address you might have used. If an account exists, we'll send a reminder there.</p>
+<form class="form-stack"><div class="field"><label class="field__label">An email you might have used</label><input class="field__control" placeholder="you@example.com"></div>
+<button type="button" class="btn btn--primary btn--block">Send reminder</button></form>
+<p class="auth-foot hint">Still can't find it? <a class="text-link text-link--strong" href="#">Contact us</a></p>
+<p class="auth-foot"><a class="text-link" href="#">&larr; Back to Sign In</a></p></div></dialog></div>
+<div class="cell"><div class="tag">4. 보낸 뒤 화면 (두 탭 공통, 가입 여부와 관계없이 같은 문구)</div>
+<dialog class="modal modal--narrow" open><div class="modal__head"><h2 class="modal__title">Can't sign in?</h2><button type="button" class="btn btn--ghost modal__close">Close</button></div>
+<div class="modal__body"><div class="sent"><svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14"/><path d="m3 7 9 7 9-7"/></svg>
+<h3>Check your inbox</h3><p class="auth-sub">If <b>you@example.com</b> belongs to an account, we've sent a message. The link works for 30 minutes.</p></div>
+<button type="button" class="btn btn--primary btn--block">Back to Sign In</button>
+<p class="auth-foot hint">Didn't get it? Check spam, or <a class="text-link" href="#">send again</a> in a minute.</p></div></dialog></div>
+</div><p class="note">같은 모달 안에서 화면이 바뀝니다. 별도 페이지는 비밀번호를 바꾸는 resetPassword.html 하나뿐입니다. 링크 이름 "Can't sign in?"는 가칭입니다.</p></body></html>

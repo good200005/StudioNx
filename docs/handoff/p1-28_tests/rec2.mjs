@@ -1,0 +1,31 @@
+import { launch, check, summary } from './lib.mjs';
+const OUT = 'C:/Users/USER/Desktop/myProject/StudioNx/docs/ai-notes/images/';
+const b = await launch(9500, 1280, 900); const q = e => b.ev(e);
+await b.send('Page.navigate',{url:'http://localhost:8000/home.html'}); await b.sleep(3500);
+await q(`document.getElementById('login-modal').showModal(); 1`); await b.sleep(400);
+const vis = JSON.parse(await q(`JSON.stringify({login: !document.querySelector('[data-view=login]').hidden, recover: !document.querySelector('[data-view=recover]').hidden, form: !!document.getElementById('login-form'), recoverBtn: !!document.getElementById('login-recover')})`));
+check('로그인 화면이 그대로 보이고 복구 화면은 숨김', vis.login && !vis.recover && vis.form && vis.recoverBtn, JSON.stringify(vis));
+// 복구 화면 보이기 (JS 가 아직 없어서 직접)
+const show = async (panel, sent) => q(`(()=>{const m=document.getElementById('login-modal'); m.querySelector('[data-view=login]').hidden=true; m.querySelector('[data-view=recover]').hidden=false;
+  document.getElementById('login-modal-title').textContent=document.getElementById('login-modal-title').dataset.titleRecover;
+  const pw=${panel==='password'}; document.getElementById('recover-panel-password').hidden=!pw||${sent}; document.getElementById('recover-panel-email').hidden=pw||${sent};
+  document.getElementById('recover-tab-password').setAttribute('aria-selected', pw); document.getElementById('recover-tab-email').setAttribute('aria-selected', !pw);
+  document.querySelector('.tabs').hidden=${sent}; document.getElementById('recover-sent').hidden=!${sent}; document.getElementById('recover-back-row').hidden=${sent};
+  if(${sent}) document.getElementById('recover-sent-email').textContent='you@example.com'; return 1})()`);
+await show('password', false); await b.sleep(300);
+const g = JSON.parse(await q(`(()=>{const m=document.getElementById('login-modal').getBoundingClientRect(); const els=['#recover-password-email','.tabs','#recover-password-form button[type=submit]','#recover-back'].map(s=>document.querySelector(s).getBoundingClientRect()); return JSON.stringify({modalH:Math.round(m.height), inside: els.every(r=>r.left>=m.left&&r.right<=m.right&&r.bottom<=m.bottom), tabH: Math.round(els[1].height), overflowX: document.documentElement.scrollWidth<=innerWidth, title: document.getElementById('login-modal-title').textContent, hiddenEmailPanel: document.getElementById('recover-panel-email').hidden})})()`));
+check('Password 탭: 모달 안에 들어오고 제목이 바뀜, Email 패널은 숨김', g.inside && g.overflowX && g.title==="Can't sign in?" && g.hiddenEmailPanel, JSON.stringify(g));
+await b.shot(OUT+'p1-28_recover_password.png');
+await show('email', false); await b.sleep(300);
+const e = JSON.parse(await q(`JSON.stringify({pwHidden: document.getElementById('recover-panel-password').hidden, selected: document.getElementById('recover-tab-email').getAttribute('aria-selected'), contact: document.getElementById('recover-contact').getAttribute('href')})`));
+check('Email 탭: 패널 전환과 선택 표시, Contact 링크', e.pwHidden && e.selected==='true' && e.contact==='home.html#contact', JSON.stringify(e));
+await b.shot(OUT+'p1-28_recover_email.png');
+await show('password', true); await b.sleep(300);
+const s = JSON.parse(await q(`JSON.stringify({tabs: getComputedStyle(document.querySelector('.tabs')).display==='none', panels: ['recover-panel-password','recover-panel-email','recover-back-row'].every(i=>getComputedStyle(document.getElementById(i)).display==='none'), resend: document.getElementById('recover-resend').disabled, back: document.getElementById('recover-sent-back').getBoundingClientRect().height>=24, mail: document.getElementById('recover-sent-email').textContent})`));
+check('보낸 뒤 화면: 탭과 두 패널이 실제로 숨음(computed), send again 은 잠김, 이메일 표시', s.tabs && s.panels && s.resend && s.back && s.mail==='you@example.com', JSON.stringify(s));
+await b.shot(OUT+'p1-28_recover_sent.png');
+// 모바일 폭
+await b.resize(390, 800, true); await b.sleep(400);
+const mo = JSON.parse(await q(`(()=>{const m=document.getElementById('login-modal').getBoundingClientRect(); return JSON.stringify({fits: m.left>=0&&m.right<=innerWidth, noX: document.documentElement.scrollWidth<=innerWidth})})()`));
+check('모바일 390px: 모달이 화면 안에 들어오고 가로 넘침 없음', mo.fits && mo.noX, JSON.stringify(mo));
+summary(); await b.close();

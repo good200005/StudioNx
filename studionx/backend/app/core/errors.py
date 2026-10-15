@@ -50,6 +50,7 @@ class ErrorCode(StrEnum):
     REJOIN_TOO_SOON = "REJOIN_TOO_SOON"  # 409 탈퇴 후 3일이 지나지 않은 이메일 (FR-108)
     ACCOUNT_DISABLED = "ACCOUNT_DISABLED"  # 403 탈퇴·정지 계정 (FR-108)
     TOO_MANY_REQUESTS = "TOO_MANY_REQUESTS"  # 429 문의 반복 전송 (FR-113)
+    INVALID_RESET_LINK = "INVALID_RESET_LINK"  # 400 재설정 링크 틀림, 만료, 이미 씀 (FR-118)
     FILE_TOO_LARGE = "FILE_TOO_LARGE"  # 413 프로필 사진 2MB 초과 (P1-08)
     UNSUPPORTED_FILE_TYPE = "UNSUPPORTED_FILE_TYPE"  # 415 jpg/png/webp 가 아님 (P1-08)
     INTERNAL_ERROR = "INTERNAL_ERROR"  # 500 (자세한 내용은 Sentry로만)

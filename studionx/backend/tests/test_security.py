@@ -15,6 +15,8 @@ from app.core.security import (
     create_refresh_token,
     decode_access_token,
     decode_refresh_token,
+    decode_token_with_iat,
+    issued_before_password_change,
 )
 
 SECRET = get_settings().jwt_secret
@@ -173,3 +175,82 @@ def test_access_token_cannot_be_used_as_refresh():
 )
 def test_refresh_bad_tokens(token):
     assert_refresh_unauthorized(token)
+
+
+# ---------------------------------------------------------------- decode_token_with_iat (P1-28)
+def test_with_iat_returns_user_id_and_the_iat_of_a_real_access_token():
+    before = int(datetime.now(UTC).timestamp())
+    user_id, iat = decode_token_with_iat(create_access_token(7), "access")
+    assert user_id == 7
+    assert isinstance(iat, int)
+    assert before - 1 <= iat <= before + 2
+
+
+def test_with_iat_works_for_refresh_tokens_too():
+    user_id, iat = decode_token_with_iat(create_refresh_token(9), "refresh")
+    assert user_id == 9
+    assert isinstance(iat, int)
+
+
+def test_with_iat_returns_none_when_the_token_has_no_iat():
+    user_id, iat = decode_token_with_iat(make_token(), "access")  # make_token 은 iat 를 넣지 않음
+    assert user_id == 7
+    assert iat is None
+
+
+def test_with_iat_returns_the_iat_exactly_as_written():
+    stamp = 1_760_000_000
+    _, iat = decode_token_with_iat(make_token(iat=stamp), "access")
+    assert iat == stamp
+
+
+def test_with_iat_agrees_with_the_existing_functions():
+    access, refresh = create_access_token(11), create_refresh_token(12)
+    assert decode_token_with_iat(access, "access")[0] == decode_access_token(access)
+    assert decode_token_with_iat(refresh, "refresh")[0] == decode_refresh_token(refresh)
+
+
+@pytest.mark.parametrize(
+    "bad",
+    [
+        "garbage",
+        "",
+        make_token(secret="wrong-secret-that-is-long-enough-for-hs256"),
+        make_token(minutes=-5),  # 만료
+        make_token(sub=None),
+        make_token(sub="abc"),
+        make_token(type="refresh"),  # 종류가 다름
+    ],
+)
+def test_with_iat_rejects_what_the_existing_function_rejects_with_the_same_401(bad):
+    with pytest.raises(AppError) as err:
+        decode_token_with_iat(bad, "access")
+    assert (err.value.status_code, err.value.code) == (401, ErrorCode.UNAUTHORIZED)
+    assert err.value.message == "Please sign in again."
+
+
+def test_with_iat_rejects_an_access_token_asked_as_refresh_and_vice_versa():
+    with pytest.raises(AppError):
+        decode_token_with_iat(create_access_token(1), "refresh")
+    with pytest.raises(AppError):
+        decode_token_with_iat(create_refresh_token(1), "access")
+
+
+def test_with_iat_rejects_alg_none_tokens():
+    forged = jwt.encode({"sub": "7", "type": "access", "iat": 1}, key=None, algorithm="none")
+    with pytest.raises(AppError):
+        decode_token_with_iat(forged, "access")
+
+
+@pytest.mark.parametrize("bad_type", ["", "ACCESS", "id", None, 1])
+def test_with_iat_rejects_an_unknown_token_type_as_a_programmer_error(bad_type):
+    with pytest.raises(ValueError):
+        decode_token_with_iat(create_access_token(1), bad_type)
+
+
+def test_with_iat_feeds_issued_before_password_change():
+    _, iat = decode_token_with_iat(create_access_token(1), "access")
+    now = datetime.now(UTC).replace(tzinfo=None)
+    assert issued_before_password_change(iat, now) is False  # 같은 초에 발급: 유효
+    assert issued_before_password_change(iat, now + timedelta(seconds=5)) is True  # 재설정이 나중
+    assert issued_before_password_change(iat, None) is False  # 재설정한 적 없음

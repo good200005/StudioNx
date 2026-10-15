@@ -67,7 +67,7 @@ def assert_401(res, message):
 
 
 def test_active_user(make_client):
-    client, db = make_client(SimpleNamespace(user_id=7, status="ACTIVE"))
+    client, db = make_client(SimpleNamespace(user_id=7, status="ACTIVE", password_changed_at=None))
     res = client.get("/whoami", headers=bearer(make_token("7")))
     assert res.status_code == 200
     assert res.json() == {"user_id": 7}
@@ -99,7 +99,7 @@ def test_user_not_found(make_client):
 
 @pytest.mark.parametrize("status", ["SUSPENDED", "DELETED"])
 def test_inactive_user(make_client, status):
-    client, _ = make_client(SimpleNamespace(user_id=7, status=status))
+    client, _ = make_client(SimpleNamespace(user_id=7, status=status, password_changed_at=None))
     assert_401(client.get("/whoami", headers=bearer(make_token("7"))), "Please sign in again.")
 
 
@@ -107,7 +107,7 @@ def test_inactive_user(make_client, status):
 
 
 def test_optional_active_user(make_client):
-    client, _ = make_client(SimpleNamespace(user_id=7, status="ACTIVE"))
+    client, _ = make_client(SimpleNamespace(user_id=7, status="ACTIVE", password_changed_at=None))
     res = client.get("/maybe", headers=bearer(make_token("7")))
     assert res.status_code == 200
     assert res.json() == {"user_id": 7}
@@ -125,7 +125,10 @@ def test_optional_no_header_is_guest(make_client):
     [
         ((), bearer("not-a-token")),
         ((), bearer(make_token("99"))),
-        ((SimpleNamespace(user_id=7, status="DELETED"),), bearer(make_token("7"))),
+        (
+            (SimpleNamespace(user_id=7, status="DELETED", password_changed_at=None),),
+            bearer(make_token("7")),
+        ),
         ((), {"Authorization": "Basic dXNlcjpwYXNz"}),
     ],
     ids=["bad-token", "no-user", "deleted", "basic"],
@@ -133,4 +136,61 @@ def test_optional_no_header_is_guest(make_client):
 def test_optional_failure_is_guest(make_client, users, headers):
     client, _ = make_client(*users)
     res = client.get("/maybe", headers=headers)
+    assert (res.status_code, res.json()) == (200, {"user_id": None})
+
+
+# ── 비밀번호 재설정 이전에 발급된 로그인은 무효 (P1-28, FR-118) ──
+def token_with_iat(iat):
+    payload = {"sub": "7", "type": "access", "exp": datetime.now(UTC) + timedelta(minutes=30)}
+    if iat is not None:
+        payload["iat"] = iat
+    return jwt.encode(payload, get_settings().jwt_secret, algorithm="HS256")
+
+
+def reset_at(seconds_ago):
+    """`seconds_ago` 초 전에 재설정한 계정 (DB 처럼 UTC, 시간대 정보 없음, 밀리초 포함)."""
+    ago = timedelta(seconds=seconds_ago, milliseconds=300)
+    changed = datetime.now(UTC).replace(tzinfo=None) - ago
+    return SimpleNamespace(user_id=7, status="ACTIVE", password_changed_at=changed)
+
+
+def now_epoch():
+    return int(datetime.now(UTC).timestamp())
+
+
+def test_token_issued_before_the_reset_is_rejected_with_the_same_401(make_client):
+    client, _ = make_client(reset_at(60))
+    old = token_with_iat(now_epoch() - 3600)
+    assert_401(client.get("/whoami", headers=bearer(old)), "Please sign in again.")
+
+
+def test_token_issued_after_the_reset_is_accepted(make_client):
+    client, _ = make_client(reset_at(60))
+    new = token_with_iat(now_epoch() - 10)
+    res = client.get("/whoami", headers=bearer(new))
+    assert (res.status_code, res.json()) == (200, {"user_id": 7})
+
+
+def test_token_issued_in_the_same_second_as_the_reset_is_accepted(make_client):
+    user = reset_at(0)
+    client, _ = make_client(user)
+    same_second = int(user.password_changed_at.replace(tzinfo=UTC).timestamp())
+    res = client.get("/whoami", headers=bearer(token_with_iat(same_second)))
+    assert res.status_code == 200  # 재설정 직후 같은 초에 새로 로그인한 사람이 쫓겨나지 않음
+
+
+def test_token_without_iat_is_rejected_once_the_password_was_reset(make_client):
+    client, _ = make_client(reset_at(60))
+    assert_401(client.get("/whoami", headers=bearer(token_with_iat(None))), "Please sign in again.")
+
+
+def test_never_reset_accounts_keep_working_even_without_iat(make_client):
+    client, _ = make_client(SimpleNamespace(user_id=7, status="ACTIVE", password_changed_at=None))
+    res = client.get("/whoami", headers=bearer(token_with_iat(None)))
+    assert res.status_code == 200  # 재설정한 적 없는 계정의 기존 로그인은 그대로
+
+
+def test_optional_user_treats_a_stale_token_as_a_guest(make_client):
+    client, _ = make_client(reset_at(60))
+    res = client.get("/maybe", headers=bearer(token_with_iat(now_epoch() - 3600)))
     assert (res.status_code, res.json()) == (200, {"user_id": None})

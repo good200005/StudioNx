@@ -26,7 +26,10 @@ get_current_user(P1-03)가 decode_access_token 을 쓰고,
 설정값: core/config.py  jwt_secret, jwt_access_minutes(30), jwt_refresh_days(3)
 """
 
+import calendar
+import hashlib
 import re
+import secrets
 import string
 from datetime import UTC, datetime, timedelta
 
@@ -40,6 +43,9 @@ JWT_ALGORITHM = "HS256"
 
 # 비밀번호 조건 (PRD 01 FR-102) — 화면(join.js PASSWORD_RULES)과 같은 규칙
 PASSWORD_MIN, PASSWORD_MAX = 8, 20
+
+# 재설정 토큰의 무작위 바이트 수 (P1-28): 32바이트 = 256비트, 추측이 불가능한 크기
+RESET_TOKEN_BYTES = 32
 
 
 def check_password_rules(plain: str) -> list[str]:
@@ -153,6 +159,15 @@ def _decode_token(token: str, expected_type: str) -> int:
     - algorithms 를 HS256 하나로 고정 — 토큰이 스스로 정한 방식("none" 등)을 믿지 않음
     - exp · sub · type 이 없으면 실패 (require)
     - 어떤 이유로 실패해도 같은 401 · 같은 문구 (왜 틀렸는지 알려 주지 않음)
+    - 검사는 `_decode_claims` 가 하고, 여기서는 user_id 만 꺼낸다 (P1-28 에서 나눔, 동작은 그대로)
+    """
+    return _decode_claims(token, expected_type)[0]
+
+
+def _decode_claims(token: str, expected_type: str) -> tuple[int, object]:
+    """토큰을 검사하고 (user_id, 발급 시각 iat) 를 돌려준다. `_decode_token` 과 같은 검사.
+
+    iat 는 토큰에 적힌 그대로 돌려준다(없으면 None, 형식 검사는 쓰는 쪽 몫).
     """
     invalid = AppError(ErrorCode.UNAUTHORIZED, 401, "Please sign in again.")
     try:
@@ -167,6 +182,69 @@ def _decode_token(token: str, expected_type: str) -> int:
     if payload["type"] != expected_type:
         raise invalid
     try:
-        return int(payload["sub"])
+        return int(payload["sub"]), payload.get("iat")
     except (TypeError, ValueError):
         raise invalid from None
+
+
+def decode_token_with_iat(token: str, token_type: str) -> tuple[int, object]:
+    """토큰을 검사하고 (user_id, 발급 시각 iat) 를 돌려준다 (P1-28, FR-118).
+
+    - `token_type`: "access" 또는 "refresh". 그 밖의 값은 ValueError (부르는 쪽의 실수를 바로 알림)
+    - 검사는 `decode_access_token` · `decode_refresh_token` 과 같다: 서명, 만료, 형식, 종류가
+      틀리면 같은 401 "Please sign in again." (이유를 알려 주지 않음)
+    - 기존 두 함수는 user_id 만 돌려주고 호출하는 곳이 많아서 그대로 두고 이 함수를 따로 더했다.
+      `issued_before_password_change(iat, user.password_changed_at)` 와 함께 써서 재설정 이전의
+      로그인을 거부한다 (get_current_user 와 /auth/refresh 가 다음 단계에서 연결)
+    - iat 는 토큰에 적힌 값 그대로 (없으면 None). 형식 검사는 issued_before_password_change 가 한다
+    """
+    if token_type not in ("access", "refresh"):
+        raise ValueError("token_type must be 'access' or 'refresh'")
+    return _decode_claims(token, token_type)
+
+
+def hash_reset_token(token: str) -> str:
+    """재설정 토큰 원문 → DB에 저장하는 해시 (P1-28, FR-118).
+
+    - SHA-256, 소문자 16진수 64자(CHAR(64))
+    - 토큰은 `secrets` 로 만든 긴 무작위 값이라 bcrypt 같은 느린 해시가 필요 없다.
+      링크를 눌렀을 때 해시로 바로 찾아야 해서(`token_hash` 유일 색인) 항상 같은 값이어야 한다
+    - 원문은 저장하지 않는다: DB가 새어 나가도 해시만으로는 재설정 링크를 만들 수 없다
+    - 빈 문자열이나 문자열이 아닌 값은 ValueError (잘못 넘긴 값이 조용히 저장되지 않게)
+    """
+    if not isinstance(token, str) or token == "":
+        raise ValueError("token must be a non-empty string")
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def generate_reset_token() -> tuple[str, str]:
+    """새 재설정 토큰 하나 → (원문, 해시) (P1-28, FR-118).
+
+    - 원문: `secrets.token_urlsafe(32)` = 무작위 32바이트(256비트)를 URL 안전 글자 43자로 바꾼 값.
+      메일 링크에만 넣고 어디에도 저장하지 않는다
+    - 해시: `hash_reset_token(원문)`. DB(`password_reset_tokens.token_hash`)에 저장한다
+    - `secrets` 는 운영체제의 암호용 난수를 쓴다. `random` 은 예측할 수 있어서 쓰지 않는다
+    - 호출할 때마다 다른 값이 나온다
+    """
+    token = secrets.token_urlsafe(RESET_TOKEN_BYTES)
+    return token, hash_reset_token(token)
+
+
+def issued_before_password_change(issued_at: object, password_changed_at: datetime | None) -> bool:
+    """로그인 토큰이 비밀번호 재설정 **이전**에 발급된 것이면 True = 무효 (P1-28, FR-118).
+
+    - `issued_at`: 토큰의 발급 시각 `iat` (JWT 는 1970년부터 지난 **초**, 정수)
+    - `password_changed_at`: `users.password_changed_at` (DB 의 UTC, 시간대 정보 없음, 밀리초까지)
+    - 재설정한 적이 없으면(None) 항상 False: 기존 로그인은 그대로 쓸 수 있다
+    - **초 단위로 비교한다.** `iat` 는 초, `password_changed_at` 은 밀리초까지라서 그대로 비교하면
+      재설정 직후 같은 초에 새로 로그인한 토큰이 "이전 것"으로 잘못 무효가 된다.
+      그래서 `password_changed_at` 의 초 미만을 버리고 `iat < 그 초` 일 때만 무효로 본다
+      (같은 초의 토큰은 유효: 재설정은 메일 링크를 거치므로 같은 초에 앞선 로그인이 있을 수 없다)
+    - 재설정한 적이 있는데 `iat` 가 없거나 숫자가 아니면(위조, 옛 형식) 무효: 확인할 수 없으면 거부
+    """
+    if password_changed_at is None:
+        return False
+    if isinstance(issued_at, bool) or not isinstance(issued_at, int | float):
+        return True
+    changed = calendar.timegm(password_changed_at.utctimetuple())
+    return issued_at < changed

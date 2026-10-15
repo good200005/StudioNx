@@ -24,7 +24,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.core.errors import AppError, ErrorCode
-from app.core.security import decode_access_token
+from app.core.security import decode_token_with_iat, issued_before_password_change
 from app.db.session import get_db
 from app.models import User
 
@@ -46,14 +46,19 @@ def get_current_user(
     3. user = db.get(User, user_id)
     4. user 가 없거나 status != 'ACTIVE' 이면
        raise AppError(ErrorCode.UNAUTHORIZED, 401, ...)  — 탈퇴 계정 차단 (FR-108)
-    5. return user
+    5. 비밀번호 재설정 이전에 발급된 토큰이면 같은 401 (P1-28, FR-118)
+    6. return user
     - 프론트(P1-02)는 401 + code=UNAUTHORIZED 를 받으면 /auth/refresh 로 재발급 후 한 번 다시 요청
     """
     if credentials is None:
         raise AppError(ErrorCode.UNAUTHORIZED, 401, "Please sign in.")
-    user_id = decode_access_token(credentials.credentials)
+    user_id, issued_at = decode_token_with_iat(credentials.credentials, "access")
     user = db.get(User, user_id)
     if user is None or user.status != "ACTIVE":
+        raise AppError(ErrorCode.UNAUTHORIZED, 401, "Please sign in again.")
+    # 비밀번호를 재설정하기 전에 발급된 로그인은 무효 (P1-28, FR-118)
+    # → 401 이면 화면이 재발급을 시도하나 리프레시 토큰도 같은 검사로 거부되어 로그인 화면으로 간다
+    if issued_before_password_change(issued_at, user.password_changed_at):
         raise AppError(ErrorCode.UNAUTHORIZED, 401, "Please sign in again.")
     return user
 
