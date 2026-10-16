@@ -383,6 +383,7 @@ const PDFS = [
   { out: 'ai-notes/72_s1-06_site_test.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 72 — S1-06 실제 화면 시험', files: ['ai-notes/72_s1-06_site_test.md'], base: 'ai-notes' },
   { out: 'ai-notes/73_s1-05_site_test.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 73 — S1-05 실제 화면 시험', files: ['ai-notes/73_s1-05_site_test.md'], base: 'ai-notes' },
   { out: 'ai-notes/74_s1-07_sample_library.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 74 — S1-07 샘플 라이브러리', files: ['ai-notes/74_s1-07_sample_library.md'], base: 'ai-notes' },
+  { out: 'ai-notes/75_s1-07_sample_library_ui.pdf', title: 'Studio Nx', subtitle: 'AI 구현 설명 75 — S1-07 샘플 라이브러리 UI (HTML/CSS)', files: ['ai-notes/75_s1-07_sample_library_ui.md'], base: 'ai-notes' },
   { out: 'ai-notes/javascript/P1-28 - 비밀번호 찾기/165_recover_showView.pdf', title: 'Studio Nx', subtitle: 'JS 165 — showView()', files: ['ai-notes/javascript/P1-28 - 비밀번호 찾기/165_recover_showView.md'], base: 'ai-notes/javascript/P1-28 - 비밀번호 찾기' },
   { out: 'ai-notes/javascript/P1-28 - 비밀번호 찾기/166_recover_selectTab.pdf', title: 'Studio Nx', subtitle: 'JS 166 — selectTab()', files: ['ai-notes/javascript/P1-28 - 비밀번호 찾기/166_recover_selectTab.md'], base: 'ai-notes/javascript/P1-28 - 비밀번호 찾기' },
   { out: 'ai-notes/javascript/P1-28 - 비밀번호 찾기/167_recover_initRecoverTabs.pdf', title: 'Studio Nx', subtitle: 'JS 167 — initRecoverTabs()', files: ['ai-notes/javascript/P1-28 - 비밀번호 찾기/167_recover_initRecoverTabs.md'], base: 'ai-notes/javascript/P1-28 - 비밀번호 찾기' },
