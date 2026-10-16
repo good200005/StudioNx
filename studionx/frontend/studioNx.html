@@ -273,24 +273,50 @@
     <section class="sq-files" aria-labelledby="files-title">
       <div class="sq-files__head">
         <h2 id="files-title">Samples</h2>
-        <span class="sq-files__count sq-num">8 items</span>
+        <span class="sq-files__count sq-num">12 items</span>
+        <button type="button" class="sq-sort" id="file-sort" aria-haspopup="menu" aria-expanded="false">Sort ▾</button>
         <button type="button" class="sq-upload" id="upload-button">⤒ Upload</button>
         <input type="file" id="upload-input" accept=".wav,.mp3,.flac,.ogg,.aif,.aiff,.mid,.midi" multiple hidden>
       </div>
       <div class="sq-filters" role="group" aria-label="Filter">
-        <button type="button" aria-pressed="false">Drums</button><button type="button" aria-pressed="false">Bass</button><button type="button" aria-pressed="false">FX</button>
+        <button type="button" aria-pressed="true">All</button><button type="button" aria-pressed="false">Drums</button><button type="button" aria-pressed="false">Bass</button><button type="button" aria-pressed="false">FX</button>
         <button type="button" aria-pressed="false">Vocal</button><button type="button" aria-pressed="false">Loops</button><button type="button" aria-pressed="false">My uploads</button>
+        <button type="button" class="sq-filters__tag">＋ Tag</button>
       </div>
-      <ul class="sq-filelist" id="file-list" role="listbox" aria-label="Samples">
-        <li class="sq-file" role="option" aria-selected="false" draggable="true" data-kind="audio" data-name="kick_808_punch" data-bars="0.25"><span>🥁</span><span class="sq-file__name">kick_808_punch.wav</span><span class="sq-file__meta sq-num">0:01 · C</span><span class="sq-file__wave"></span></li>
-        <li class="sq-file" role="option" aria-selected="false" draggable="true" data-kind="audio" data-name="snare_tight_02" data-bars="0.25"><span>🥁</span><span class="sq-file__name">snare_tight_02.wav</span><span class="sq-file__meta sq-num">0:01</span><span class="sq-file__wave"></span></li>
-        <li class="sq-file" role="option" aria-selected="true" draggable="true" data-kind="audio" data-name="vox_take2" data-bars="7.25"><span>🎤</span><span class="sq-file__name">vox_take2.wav</span><span class="sq-file__meta sq-num">0:12 · 145</span><span class="sq-file__wave"></span></li>
-        <li class="sq-file" role="option" aria-selected="false" draggable="true" data-kind="audio" data-name="drum_loop_145" data-bars="4"><span>🔁</span><span class="sq-file__name">drum_loop_145.wav</span><span class="sq-file__meta sq-num">0:06 · 145</span><span class="sq-file__wave"></span></li>
-        <li class="sq-file" role="option" aria-selected="false" draggable="true" data-kind="audio" data-name="gtr_strum_Am" data-bars="5"><span>🎸</span><span class="sq-file__name">gtr_strum_Am.wav</span><span class="sq-file__meta sq-num">0:08 · Am</span><span class="sq-file__wave"></span></li>
-        <li class="sq-file" role="option" aria-selected="false" draggable="true" data-kind="audio" data-name="riser_8bar" data-bars="8"><span>✨</span><span class="sq-file__name">riser_8bar.wav</span><span class="sq-file__meta sq-num">0:13</span><span class="sq-file__wave"></span></li>
-        <li class="sq-file" role="option" aria-selected="false" draggable="true" data-kind="audio" data-name="hat_open_01" data-bars="0.25"><span>🥁</span><span class="sq-file__name">hat_open_01.wav</span><span class="sq-file__meta sq-num">0:01</span><span class="sq-file__wave"></span></li>
-        <li class="sq-file is-missing" role="option" aria-selected="false" draggable="false"><span>⚠</span><span class="sq-file__name">piano_chop_C#m.wav</span><span class="sq-file__meta">Missing · Relink</span><span class="sq-file__wave"></span></li>
+      <!-- 업로드 진행 — dropped files upload one by one (FR-226). JS가 채움 -->
+      <ul class="sq-uploads" id="upload-list" hidden>
+        <li class="sq-upload-row"><span class="sq-upload-row__ic" aria-hidden="true">🎵</span><b>riser_8bar.wav</b><em class="sq-num">1.4 MB/s</em><button type="button" class="sq-upload-row__cancel" aria-label="Cancel upload">✕</button><span class="sq-upload-row__bar"><i style="--p:72%"></i></span></li>
+        <li class="sq-upload-row"><span class="sq-upload-row__ic" aria-hidden="true">🎵</span><b>vox_take3.wav</b><em class="sq-num">2.1 MB/s</em><button type="button" class="sq-upload-row__cancel" aria-label="Cancel upload">✕</button><span class="sq-upload-row__bar"><i style="--p:38%"></i></span></li>
       </ul>
+      <ul class="sq-filelist" id="file-list" role="listbox" aria-label="Samples">
+        <li class="sq-file" role="option" aria-selected="false" draggable="true" data-kind="audio" data-name="kick_808_punch" data-bars="0.25"><button type="button" class="sq-file__play" aria-label="Preview kick_808_punch.wav">▶</button><span class="sq-file__icon" aria-hidden="true">🥁</span><span class="sq-file__title"><span class="sq-file__name">kick_808_punch.wav</span><span class="sq-file__tags"><span class="sq-file__tag">Drums</span></span></span><span class="sq-file__meta sq-num">0:01 · C</span><span class="sq-file__wave"></span></li>
+        <li class="sq-file" role="option" aria-selected="false" draggable="true" data-kind="audio" data-name="snare_tight_02" data-bars="0.25"><button type="button" class="sq-file__play" aria-label="Preview snare_tight_02.wav">▶</button><span class="sq-file__icon" aria-hidden="true">🥁</span><span class="sq-file__title"><span class="sq-file__name">snare_tight_02.wav</span><span class="sq-file__tags"><span class="sq-file__tag">Drums</span></span></span><span class="sq-file__meta sq-num">0:01</span><span class="sq-file__wave"></span></li>
+        <li class="sq-file is-playing" role="option" aria-selected="true" draggable="true" data-kind="audio" data-name="vox_take2" data-bars="7.25"><button type="button" class="sq-file__play" aria-label="Pause vox_take2.wav">❚❚</button><span class="sq-file__icon" aria-hidden="true">🎤</span><span class="sq-file__title"><span class="sq-file__name">vox_take2.wav</span><span class="sq-file__tags"><span class="sq-file__tag">Vocal</span><span class="sq-file__tag is-genre">Future Bass</span></span></span><span class="sq-file__meta sq-num">0:05 / 0:12</span><span class="sq-file__wave"><i style="--p:42%"></i></span></li>
+        <li class="sq-file" role="option" aria-selected="false" draggable="true" data-kind="audio" data-name="drum_loop_145" data-bars="4"><button type="button" class="sq-file__play" aria-label="Preview drum_loop_145.wav">▶</button><span class="sq-file__icon" aria-hidden="true">🔁</span><span class="sq-file__title"><span class="sq-file__name">drum_loop_145.wav</span><span class="sq-file__tags"><span class="sq-file__tag">Drums</span><span class="sq-file__tag is-genre">Loops</span></span></span><span class="sq-file__meta sq-num">0:06 · 145</span><span class="sq-file__wave"></span></li>
+        <li class="sq-file" role="option" aria-selected="false" draggable="true" data-kind="audio" data-name="gtr_strum_Am" data-bars="5"><button type="button" class="sq-file__play" aria-label="Preview gtr_strum_Am.wav">▶</button><span class="sq-file__icon" aria-hidden="true">🎸</span><span class="sq-file__title"><span class="sq-file__name">gtr_strum_Am.wav</span><span class="sq-file__tags"><span class="sq-file__tag">Keys</span></span></span><span class="sq-file__meta sq-num">0:08 · Am</span><span class="sq-file__wave"></span></li>
+        <li class="sq-file" role="option" aria-selected="false" draggable="true" data-kind="audio" data-name="riser_8bar" data-bars="8"><button type="button" class="sq-file__play" aria-label="Preview riser_8bar.wav">▶</button><span class="sq-file__icon" aria-hidden="true">✨</span><span class="sq-file__title"><span class="sq-file__name">riser_8bar.wav</span><span class="sq-file__tags"><span class="sq-file__tag">FX</span></span></span><span class="sq-file__meta sq-num">0:13</span><span class="sq-file__wave"></span></li>
+        <li class="sq-file" role="option" aria-selected="false" draggable="true" data-kind="audio" data-name="hat_open_01" data-bars="0.25"><button type="button" class="sq-file__play" aria-label="Preview hat_open_01.wav">▶</button><span class="sq-file__icon" aria-hidden="true">🥁</span><span class="sq-file__title"><span class="sq-file__name">hat_open_01.wav</span><span class="sq-file__tags"><span class="sq-file__tag">Drums</span></span></span><span class="sq-file__meta sq-num">0:01</span><span class="sq-file__wave"></span></li>
+        <li class="sq-file" role="option" aria-selected="false" draggable="true" data-kind="audio" data-name="pad_warm_Cm" data-bars="8"><button type="button" class="sq-file__play" aria-label="Preview pad_warm_Cm.wav">▶</button><span class="sq-file__icon" aria-hidden="true">🎹</span><span class="sq-file__title"><span class="sq-file__name">pad_warm_Cm.wav</span><span class="sq-file__tags"><span class="sq-file__tag">Keys</span><span class="sq-file__tag is-genre">House</span></span></span><span class="sq-file__meta sq-num">0:14 · Cm</span><span class="sq-file__wave"></span></li>
+        <li class="sq-file" role="option" aria-selected="false" draggable="true" data-kind="audio" data-name="sub_808_C" data-bars="1"><button type="button" class="sq-file__play" aria-label="Preview sub_808_C.wav">▶</button><span class="sq-file__icon" aria-hidden="true">🔊</span><span class="sq-file__title"><span class="sq-file__name">sub_808_C.wav</span><span class="sq-file__tags"><span class="sq-file__tag">Bass</span></span></span><span class="sq-file__meta sq-num">0:02 · C</span><span class="sq-file__wave"></span></li>
+        <li class="sq-file" role="option" aria-selected="false" draggable="true" data-kind="audio" data-name="fx_sweep_up" data-bars="2"><button type="button" class="sq-file__play" aria-label="Preview fx_sweep_up.wav">▶</button><span class="sq-file__icon" aria-hidden="true">✨</span><span class="sq-file__title"><span class="sq-file__name">fx_sweep_up.wav</span><span class="sq-file__tags"><span class="sq-file__tag">FX</span></span></span><span class="sq-file__meta sq-num">0:04</span><span class="sq-file__wave"></span></li>
+        <li class="sq-file" role="option" aria-selected="false" draggable="true" data-kind="audio" data-name="perc_tamb_01" data-bars="0.25"><button type="button" class="sq-file__play" aria-label="Preview perc_tamb_01.wav">▶</button><span class="sq-file__icon" aria-hidden="true">🥁</span><span class="sq-file__title"><span class="sq-file__name">perc_tamb_01.wav</span><span class="sq-file__tags"><span class="sq-file__tag">Drums</span></span></span><span class="sq-file__meta sq-num">0:01</span><span class="sq-file__wave"></span></li>
+        <li class="sq-file is-missing" role="option" aria-selected="false" draggable="false"><span class="sq-file__icon" aria-hidden="true">⚠</span><span class="sq-file__title"><span class="sq-file__name">piano_chop_C#m.wav</span></span><span class="sq-file__meta">Missing · Relink</span><span class="sq-file__wave"></span></li>
+      </ul>
+      <!-- 빈 목록 (FR-221) — JS가 목록이 0건일 때 보임 -->
+      <div class="sq-empty" id="files-empty" hidden>
+        <span class="sq-empty__icon" aria-hidden="true">🎵</span>
+        <b>No samples yet</b>
+        <span class="sq-empty__hint">Drop files anywhere on this panel, or press Upload.</span>
+        <button type="button" class="sq-upload sq-empty__cta" id="empty-upload">⤒ Upload files</button>
+        <span class="sq-empty__note">WAV · MP3 · FLAC · OGG · AIFF · up to 100 MB</span>
+      </div>
+      <!-- 검색 결과 없음 (FR-224) — JS가 검색·필터 결과가 0건일 때 보임 -->
+      <div class="sq-noresults" id="files-noresults" hidden>
+        <span class="sq-noresults__icon" aria-hidden="true">⌕</span>
+        <b>No samples match “<span id="noresults-query">kick 909</span>”</b>
+        <span class="sq-noresults__hint">Search by name or #tag — try #Drums or #Vocal.</span>
+        <button type="button" class="sq-link" id="clear-search">✕ Clear search</button>
+      </div>
       <!-- 패턴 목록 — 왼쪽 Patterns 버튼으로 보임. 트랙(MIDI)에 끌어 놓으면 클립이 생김 -->
       <ul class="sq-filelist" id="pattern-list" role="listbox" aria-label="Patterns" hidden>
         <li class="sq-file sq-pattern" role="option" aria-selected="false" draggable="true" data-kind="midi" data-name="Lead" data-bars="4" data-color="1"><span>▤</span><span class="sq-file__name">Lead</span><span class="sq-file__meta sq-num">4 bar</span></li>
@@ -307,6 +333,11 @@
         <span class="sq-drop__icon" aria-hidden="true">⇣</span>
         <b>Drop files here</b>
         <span>or press Upload · WAV · MP3 · FLAC · MID</span>
+      </div>
+      <!-- 저장 용량 (FR-227) — 사용량 / 최대. JS가 샘플 용량으로 채움 -->
+      <div class="sq-storage" id="storage">
+        <span>Project storage</span><em class="sq-storage__val sq-num">620 MB / 1 GB</em>
+        <span class="sq-storage__bar"><i style="--p:62%"></i></span>
       </div>
       <label class="sq-search">⌕ <input type="search" id="file-search" placeholder="Search samples (Ctrl+F)"></label>
     </section>

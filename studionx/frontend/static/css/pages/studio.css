@@ -9,7 +9,7 @@
 .sq {
   --sq-top-h: 3.875rem;          /* 상단바 두 줄 */
   --sq-rail-w: 3.25rem;          /* 왼쪽 버튼 줄 */
-  --sq-side-w: 16.5rem;          /* 파일 패널 */
+  --sq-side-w: 20.625rem;        /* 파일 패널 */
   --sq-head-w: 12.5rem;          /* 트랙 머리 */
   --sq-row-h: 2.75rem;           /* 트랙 줄 높이 */
   --sq-acc-h: 14rem;             /* 트랙 펼침 높이 (위아래 경계를 끌어 바꿈) */
@@ -158,29 +158,68 @@ body.sq {
 .sq-files__head { display: flex; align-items: center; gap: 0.4rem; padding: 0.55rem 0.65rem 0.35rem; }
 .sq-files__head h2 { font: 600 0.85rem/1.2 var(--font-text); }
 .sq-files__count { color: var(--c-ink-faint); font-size: 0.65rem; }
+.sq-sort { margin-left: auto; height: 1.45rem; padding: 0 0.5rem; border: 1px solid var(--sq-line); color: var(--c-ink-soft); font-size: 0.65rem; }
 .sq-upload { margin-left: auto; height: 1.45rem; padding: 0 0.55rem; border: 1px solid var(--sq-accent); color: var(--sq-accent); }
+.sq-files__head .sq-upload { margin-left: 0; }
 .sq-upload:hover { background: var(--c-invert); border-color: var(--c-invert); color: var(--c-invert-accent); }
 .sq-filters { display: flex; flex-wrap: wrap; gap: 0.2rem; padding: 0 0.65rem 0.4rem; }
-.sq-filters button { padding: 0.05rem 0.4rem; border: 1px solid var(--sq-line); border-radius: 1rem; color: var(--c-ink-soft); font-size: 0.65rem; }
-.sq-filters [aria-pressed="true"] { color: var(--c-ink); border-color: var(--sq-accent); }
+.sq-filters button { padding: 0.05rem 0.45rem; border: 1px solid var(--sq-line); border-radius: 1rem; color: var(--c-ink-soft); font-size: 0.65rem; }
+.sq-filters [aria-pressed="true"] { color: var(--c-ink); border-color: var(--sq-accent); background: color-mix(in srgb, var(--sq-accent) 22%, transparent); }
+.sq-filters__tag { border-style: dashed !important; color: var(--c-ink-faint) !important; }
+/* 업로드 진행 (FR-226) — 목록 위에 잠깐 나타남. .sq-upload-row 는 JS가 채움 */
+.sq-uploads { padding: 0.35rem 0.65rem; border-bottom: 1px solid var(--sq-line); background: var(--sq-panel-2); max-height: 7rem; overflow-y: auto; }
+.sq-uploads[hidden] { display: none; }
+.sq-upload-row { display: grid; grid-template-columns: 1rem minmax(0, 1fr) auto auto; align-items: center; gap: 0.15rem 0.4rem; padding: 0.25rem 0 0.3rem; }
+.sq-upload-row__ic { text-align: center; }
+.sq-upload-row b { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sq-upload-row em { font-style: normal; font-size: 0.6rem; color: var(--c-ink-faint); }
+.sq-upload-row__cancel { color: var(--c-ink-faint); font-size: 0.65rem; }
+.sq-upload-row__bar { grid-column: 2 / -1; height: 0.25rem; background: rgb(0 0 0 / 0.3); overflow: hidden; }
+.sq-upload-row__bar i { display: block; height: 100%; width: var(--p, 0%); background: var(--sq-accent); }
 .sq-filelist { flex: 1; min-height: 0; overflow-y: auto; border-top: 1px solid var(--sq-line); }
-.sq-file { display: grid; grid-template-columns: 1.1rem minmax(0, 1fr) auto; gap: 0.1rem 0.4rem; align-items: center; padding: 0.3rem 0.65rem; border-bottom: 1px solid rgb(255 255 255 / 0.03); cursor: grab; }
+.sq-file { display: grid; grid-template-columns: 1.05rem minmax(0, 1fr) auto; gap: 0.1rem 0.4rem; align-items: center; padding: 0.3rem 0.65rem; border-bottom: 1px solid rgb(255 255 255 / 0.03); cursor: grab; }
+#file-list .sq-file { grid-template-columns: 1.05rem 1.05rem minmax(0, 1fr) auto; }
 .sq-file[aria-selected="true"] { background: var(--sq-sel); }
-.sq-file__name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sq-file > span:first-child, .sq-file__icon { text-align: center; }
+.sq-file__play { width: 1.05rem; height: 1.05rem; display: grid; place-items: center; border: 1px solid var(--sq-line-2); border-radius: 0.125rem; font-size: 0.5rem; color: var(--c-ink-soft); }
+.sq-file__play:hover { border-color: var(--sq-accent); color: var(--sq-accent); }
+.sq-file.is-playing { background: color-mix(in srgb, var(--sq-accent) 16%, transparent); box-shadow: inset 2px 0 0 var(--sq-accent); }
+.sq-file.is-playing .sq-file__play { background: var(--sq-accent); border-color: var(--sq-accent); color: var(--sq-panel); }
+.sq-file__title { display: flex; align-items: center; gap: 0.25rem; min-width: 0; }
+.sq-file__name { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sq-file__tags { display: inline-flex; gap: 0.2rem; flex: none; }
 .sq-file__meta { color: var(--c-ink-faint); font-size: 0.65rem; }
-.sq-file__wave { grid-column: 2 / -1; height: 0.7rem; opacity: 0.5; background: linear-gradient(transparent 20%, var(--sq-ok) 20% 80%, transparent 80%); mask: repeating-linear-gradient(90deg, #000 0 1px, transparent 1px 2px); }
+#file-list .sq-file .sq-file__title { grid-column: 3; }
+#file-list .sq-file .sq-file__meta { grid-column: 4; }
+.sq-file__wave { grid-column: 2 / -1; position: relative; height: 0.8rem; opacity: 0.5; background: linear-gradient(transparent 20%, var(--sq-ok) 20% 80%, transparent 80%); mask: repeating-linear-gradient(90deg, #000 0 1px, transparent 1px 2px); }
+.sq-file.is-playing .sq-file__wave { opacity: 0.95; }
+.sq-file__wave i { position: absolute; inset: 0; width: var(--p, 0%); background: var(--sq-accent); }
+.sq-file__wave i::after { content: ""; position: absolute; top: -1px; bottom: -1px; right: -1px; width: 1.5px; background: var(--c-ink); }
 .sq-file.is-missing .sq-file__name { color: #ffcf5c; }
 :root[data-theme="light"] .sq .sq-file.is-missing .sq-file__name { color: #9a5b00; }
-.sq-file__tag { font-size: 0.55rem; padding: 0 0.25rem; margin-left: 0.25rem; background: var(--sq-line-2); color: var(--c-ink-soft); }
+.sq-file__tag { font-size: 0.55rem; padding: 0 0.3rem; background: var(--sq-line-2); color: var(--c-ink-soft); border-radius: 0.125rem; white-space: nowrap; }
+.sq-file__tag.is-genre { background: color-mix(in srgb, var(--sq-accent) 26%, transparent); color: var(--c-ink); }
+.sq-empty, .sq-noresults { flex: 1; min-height: 0; display: grid; place-content: center; justify-items: center; gap: 0.4rem; text-align: center; color: var(--c-ink-faint); padding: 0 1.25rem; }
+.sq-empty[hidden], .sq-noresults[hidden] { display: none; }
+.sq-empty__icon, .sq-noresults__icon { font-size: 1.9rem; line-height: 1; color: var(--sq-accent); }
+.sq-empty b, .sq-noresults b { color: var(--c-ink); font-size: 0.8rem; font-weight: 600; }
+.sq-empty__hint, .sq-empty__note, .sq-noresults__hint { font-size: 0.6rem; line-height: 1.35; }
+.sq-empty__cta { margin: 0.25rem 0; }
+.sq-link { color: var(--sq-accent); font-size: 0.65rem; }
 .sq-drop {
-  margin: 0.5rem 0.65rem; height: 6rem; display: grid; place-content: center; justify-items: center; gap: 0.2rem;
+  margin: 0.4rem 0.65rem; height: 2.75rem; display: flex; align-items: center; justify-content: center; gap: 0.4rem;
   border: 1.5px dashed color-mix(in srgb, var(--sq-accent) 60%, transparent);
   background: color-mix(in srgb, var(--sq-accent) 7%, transparent);
   color: var(--c-ink-faint); font-size: 0.65rem; text-align: center;
 }
-.sq-drop__icon { font-size: 1.35rem; line-height: 1; color: var(--sq-accent); }
-.sq-drop b { font-size: 0.78rem; font-weight: 600; color: var(--c-ink); }
+.sq-drop__icon { font-size: 1.1rem; line-height: 1; color: var(--sq-accent); }
+.sq-drop b { font-size: 0.75rem; font-weight: 600; color: var(--c-ink); }
 .sq-drop.is-over { border-style: solid; background: color-mix(in srgb, var(--sq-accent) 18%, transparent); }
+/* 저장 용량 (FR-227) */
+.sq-storage { padding: 0.4rem 0.65rem; border-top: 1px solid var(--sq-line); background: var(--sq-panel-2); font-size: 0.62rem; color: var(--c-ink-soft); }
+.sq-storage__val { font-style: normal; color: var(--c-ink-faint); float: right; }
+.sq-storage__bar { display: block; clear: both; height: 0.3rem; margin-top: 0.3rem; background: rgb(0 0 0 / 0.3); overflow: hidden; }
+.sq-storage__bar i { display: block; height: 100%; width: var(--p, 0%); background: linear-gradient(90deg, var(--sq-accent), var(--sq-ok)); }
 .sq-search { display: flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.65rem; border-top: 1px solid var(--sq-line); background: var(--sq-panel-2); }
 .sq-search input { flex: 1; min-width: 0; border: 0; background: none; color: var(--c-ink); font: inherit; outline: none; }
 .sq-search input::placeholder { color: var(--c-ink-faint); }
