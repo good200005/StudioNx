@@ -52,6 +52,10 @@ class Settings(BaseSettings):
     # 파일 저장 위치 (DB에는 이 경로 기준 상대 경로만 저장)
     storage_dir: Path = ROOT_DIR / "storage"
 
+    # 샘플 업로드 (S1-07) — 파일 하나 최대 크기 (FR-222, 기본 100MB)
+    # 지원 형식(WAV·MP3·FLAC·OGG·AIFF)은 services/sample_audio_service.py 의 상수다
+    sample_max_bytes: int = 100 * 1024 * 1024
+
     # Sentry — 비어 있으면 비활성화
     sentry_dsn: str = ""
     sentry_traces_sample_rate: float = 0.1
