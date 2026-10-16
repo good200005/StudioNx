@@ -20,3 +20,7 @@ itsdangerous>=2.1          # 관리자 화면(/admin) 로그인 세션 쿠키 �
 
 # 오류 추적
 sentry-sdk[fastapi]>=2.14
+
+# 오디오 분석 — 샘플 길이 · 샘플레이트 · 채널 · 파형 데이터 (S1-07, FR-223)
+soundfile>=0.12              # libsndfile 1.2+ — WAV · MP3 · FLAC · OGG · AIFF 지원 (wheel 에 라이브러리 포함)
+numpy>=1.26                  # 파형 peaks 계산

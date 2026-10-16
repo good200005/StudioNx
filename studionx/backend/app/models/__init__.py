@@ -5,6 +5,8 @@ from app.models.inquiry import Inquiry
 from app.models.password_reset_token import PasswordResetToken
 from app.models.project import Project, ProjectMember
 from app.models.project_session import ProjectSession
+from app.models.sample import Sample, SampleSource
+from app.models.tag import SampleTag, Tag, TagCategory
 from app.models.track import Track
 from app.models.user import User
 
@@ -15,6 +17,11 @@ __all__ = [
     "Project",
     "ProjectMember",
     "ProjectSession",
+    "Sample",
+    "SampleSource",
+    "SampleTag",
+    "Tag",
+    "TagCategory",
     "Track",
     "User",
 ]
