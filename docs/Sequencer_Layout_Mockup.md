@@ -5,7 +5,7 @@
 | 기준 | 사용자 레퍼런스 `studionx/frontend-reference/images/sequencer reference/sequencer 기본 배치.pdf` (5쪽, 2026-10-05) |
 | 이전 문서 | [Sequencer_UI_Reference_Analysis.md](Sequencer_UI_Reference_Analysis.md) — Ableton : FL 유사도 목업 |
 | 작성일 | 2026-10-05 |
-| 목업 | `docs/page_mockups/sequencer/layout/` — 상태별 18장 + 개요, 소스 `_source/layout.html?s=1..18` |
+| 목업 | `docs/page_mockups/sequencer/layout/` — 상태별 25장 + 개요, 소스 `_source/layout.html?s=1..25` (19~25는 S1-07 샘플 라이브러리 패널, 2026-10-16 추가) |
 | PRD | [PRD 02](PRD/02_Phase2_Sequencer_Core.md) §4.17 FR-2191~2202 에 이 문서의 결정을 반영 (2026-10-05) · 빠진 기능 후보는 [Sequencer_Feature_Gaps.md](Sequencer_Feature_Gaps.md) |
 | 언어 목업 | `docs/page_mockups/sequencer/lang/` — 영어(기본)·한국어·일본어 × 01·05·17·18 (§8), 소스 `layout.html?s=N&theme=C&lang=en|ko|ja` + `_source/i18n.js` |
 | 색 시안 | `docs/page_mockups/sequencer/color/` — home.html 색 배치 기준 5개 × 3장 (§7), 소스는 같은 `layout.html?s=N&theme=A|B|C|D|L` |
@@ -37,6 +37,13 @@
 | 16 | `16_arrange_edit.png` | **편곡 편집** — 마커 줄, 시간 범위 선택 + Insert/Delete/Duplicate Time 메뉴, 페이드·크로스페이드, 프리즈, 펀치, Follow, 오토메이션 Arm, Missing/Unused 샘플 (FR-2213·2215~2217·2221·2222·2224·2230) |
 | 18 | `18_menu_edit.png` | **상단 메뉴 — 편집 펼침** (파일~도움말 항목은 PRD 02 §4.19 FR-2241~2249) |
 | 17 | `17_pianoroll_plus.png` | **피아노롤 확장** — Chop·Glue·Legato·Humanize·Quantize %, 스윙, 노트 뮤트·확률, 다른 트랙 흐린 노트, Control 레인(CC64 서스테인·피치벤드) (FR-2219·2220·2223·2226·2227) |
+| 19 | `19_library_list_tags.png` | **샘플 라이브러리 — 목록·태그** — 줄마다 재생 버튼·이름·길이(BPM/Key)·파형·태그 칩(악기·장르), 분류 필터·정렬·Upload (S1-07, FR-224) |
+| 20 | `20_library_preview_playing.png` | **샘플 라이브러리 — 미리듣기 재생 중** — 한 샘플만 재생, 보라 배경·파형 채움·진행 시간·❚❚ 버튼 (FR-224) |
+| 21 | `21_library_storage.png` | **샘플 라이브러리 — 저장 용량** — 아래 칸에 사용/최대(620 MB / 1 GB) 막대와 62% used (FR-227) |
+| 22 | `22_library_rename_tags.png` | **샘플 라이브러리 — 이름·태그 편집** — 이름 인라인 편집 + 분류별 태그 편집기(통째 교체) (FR-225) |
+| 23 | `23_library_drop_upload.png` | **샘플 라이브러리 — 드래그앤드롭 업로드** — 놓기 영역 강조 + 파일별 진행률·속도·취소 (FR-221·222·226) |
+| 24 | `24_library_empty.png` | **샘플 라이브러리 — 빈 목록** — 안내·Upload 버튼·지원 형식·용량 0 MB (FR-221) |
+| 25 | `25_library_no_results.png` | **샘플 라이브러리 — 검색 결과 없음** — 이름·#태그 안내, Clear search (FR-224) |
 
 ## 2. PDF 요구 → 목업 반영
 | PDF 요구 | 목업 |
@@ -179,7 +186,7 @@
 ## 6. 다시 만들기
 ```powershell
 cd docs/page_mockups/sequencer/layout/_source
-node shot.mjs ..        # 01~18 PNG (Chrome headless, 1440×960), 일부만: node shot.mjs .. 15,16
+node shot.mjs ..        # 01~25 PNG (Chrome headless, 1440×960), 일부만: node shot.mjs .. 19,20
 ```
 개요(`00_overview.png`)는 18장을 이어 붙인 그림입니다. 모든 장면에서 **MASTER 트랙은 트랙 목록 맨 아래** (2026-10-06 결정).
 

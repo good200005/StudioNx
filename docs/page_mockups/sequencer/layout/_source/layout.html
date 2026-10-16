@@ -374,6 +374,64 @@
   /* 피아노 롤 노트·벨로시티도 홈 보라로 */
   html[class*="t-"] .notes i, html[class*="t-"] .vel i, html[class*="t-"] .vel i::after { background: var(--vi); }
   html.t-C .notes i, html.t-C .vel i, html.t-C .vel i::after { background: #7fe0a8; }
+  /* S1-07 샘플 라이브러리 패널 (장면 19~25) */
+  .pph { display: flex; align-items: center; gap: 6px; padding: 8px 12px 6px; }
+  .pph h3 { font-size: 13px; font-weight: 600; } .pph .cnt2 { color: var(--faint); font-size: 10px; }
+  .pph .up2 { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+  .pph .up2 .go { color: #fff; background: var(--v); padding: 3px 9px; border-radius: 3px; font-size: 11px; }
+  .pph .up2 .srt { border: 1px solid var(--line); color: var(--soft); padding: 3px 7px; border-radius: 3px; font-size: 10px; }
+  .pfil { display: flex; flex-wrap: wrap; gap: 3px; padding: 0 12px 7px; }
+  .pfil span { font-size: 10px; border: 1px solid var(--line); padding: 1px 7px; border-radius: 9px; color: var(--soft); }
+  .pfil span.on { color: #fff; border-color: var(--vi); background: color-mix(in srgb, var(--vi) 22%, transparent); }
+  .pfil span.add { border-style: dashed; color: var(--faint); }
+  .plist { flex: 1; min-height: 0; overflow: hidden; border-top: 1px solid var(--line); }
+  .li2 { display: grid; grid-template-columns: 18px 16px minmax(0, 1fr) auto; gap: 1px 6px; padding: 5px 12px 6px; border-bottom: 1px solid rgb(255 255 255 / .03); align-items: center; }
+  .li2.on { background: var(--sel); }
+  .li2.play { background: color-mix(in srgb, var(--vi) 16%, transparent); box-shadow: inset 2px 0 0 var(--vi); }
+  .li2 .pv { width: 16px; height: 16px; display: grid; place-items: center; border: 1px solid var(--line2); border-radius: 2px; font-size: 7px; color: var(--soft); }
+  .li2.play .pv { background: var(--vi); border-color: var(--vi); color: #111; }
+  .li2 .nm3 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .li2 em { font-style: normal; color: var(--faint); font-size: 10px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .li2 .lw { grid-column: 2 / -1; height: 13px; position: relative; opacity: .55;
+    background: linear-gradient(transparent 15%, #9fe0b4 15% 85%, transparent 85%); mask: repeating-linear-gradient(90deg, #000 0 1px, transparent 1px 2px); }
+  .li2.play .lw { opacity: .95; } .li2 .lw i { position: absolute; inset: 0; width: var(--p, 0%); background: var(--vi); }
+  .li2 .lw i::after { content: ""; position: absolute; top: -1px; bottom: -1px; right: -1px; width: 1.5px; background: #fff; }
+  .li2 .ltag { display: inline; }
+  .li2 .ltag span { font-size: 9px; color: var(--soft); background: var(--line); padding: 0 5px; border-radius: 2px; margin-left: 4px; }
+  .li2 .ltag span.gen { background: color-mix(in srgb, var(--vi) 26%, transparent); color: #ddd0ff; }
+  .li2 .nedit { width: 100%; border: 1px solid var(--vi); background: rgb(0 0 0 / .32); color: #fff; font: inherit; padding: 1px 5px; border-radius: 2px; }
+  .tagedit { margin: 6px 12px; border: 1px solid var(--vi); background: var(--panel); border-radius: 4px; box-shadow: 0 10px 26px rgb(0 0 0 / .55); padding: 7px 9px 9px; }
+  .tagedit h6 { font-size: 9px; letter-spacing: .09em; color: var(--faint); margin: 7px 0 4px; }
+  .tagedit h6:first-child { margin-top: 0; }
+  .tagedit .row { display: flex; flex-wrap: wrap; gap: 3px; }
+  .tagedit .row span { font-size: 10px; border: 1px solid var(--line); padding: 1px 7px; border-radius: 9px; color: var(--soft); }
+  .tagedit .row span.on { background: color-mix(in srgb, var(--vi) 30%, transparent); border-color: var(--vi); color: #fff; }
+  .tagedit .bt { display: flex; justify-content: flex-end; gap: 6px; margin-top: 9px; }
+  .tagedit .bt i { font-style: normal; font-size: 10px; padding: 2px 10px; border: 1px solid var(--line); border-radius: 3px; color: var(--soft); }
+  .tagedit .bt i.go { background: var(--v); border-color: var(--v); color: #fff; }
+  .quota { padding: 7px 12px; border-top: 1px solid var(--line); background: var(--panel2); font-size: 10px; color: var(--soft); }
+  .quota b { color: var(--ink); font-weight: 600; } .quota em { font-style: normal; color: var(--faint); float: right; }
+  .qbar { height: 5px; margin-top: 5px; background: rgb(0 0 0 / .3); border-radius: 3px; overflow: hidden; }
+  .qbar i { display: block; height: 100%; width: 62%; background: linear-gradient(90deg, var(--vi), var(--grn)); }
+  .ups { padding: 7px 12px; border-bottom: 1px solid var(--line); background: var(--panel2); }
+  .up-row { display: grid; grid-template-columns: 15px 1fr auto; gap: 2px 6px; align-items: center; padding: 4px 0 5px; }
+  .up-row b { font-size: 10.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .up-row em { font-style: normal; font-size: 9.5px; color: var(--faint); }
+  .up-row .can { color: var(--faint); font-size: 10px; }
+  .upbar { grid-column: 2 / -1; height: 4px; background: rgb(0 0 0 / .3); border-radius: 2px; overflow: hidden; }
+  .upbar i { display: block; height: 100%; background: var(--vi); } .upbar i.done { background: var(--grn); }
+  .drop.over { border-style: solid; border-color: var(--vi); background: color-mix(in srgb, var(--vi) 20%, transparent); }
+  .drop.over b { color: #fff; font-size: 13px; } .drop.over .ic { transform: scale(1.15); }
+  .drop.slim { height: 44px; grid-auto-flow: column; align-items: center; gap: 6px; }
+  .empty2 { flex: 1; display: grid; place-content: center; justify-items: center; gap: 6px; text-align: center; color: var(--faint); padding: 0 20px; }
+  .empty2 .ic2 { font-size: 30px; color: var(--vi); }
+  .empty2 b { color: var(--ink); font-size: 12.5px; }
+  .empty2 .cta { margin-top: 4px; background: var(--v); color: #fff; padding: 4px 13px; border-radius: 3px; font-size: 11px; }
+  .nores { flex: 1; display: grid; place-content: center; justify-items: center; gap: 5px; text-align: center; color: var(--faint); padding: 0 20px; }
+  .nores b { color: var(--ink); font-size: 12px; } .nores .clr { color: var(--vi); font-size: 10.5px; }
+  .sbar { margin: 0; padding: 7px 12px; border-top: 1px solid var(--line); background: var(--panel2); display: flex; align-items: center; gap: 6px; }
+  .sbar .q { flex: 1; border: 1px solid var(--vi); background: rgb(0 0 0 / .28); border-radius: 3px; padding: 2px 7px; color: #fff; font-size: 10.5px; }
+  .sbar .ph0 { color: var(--faint); font-size: 10.5px; } .sbar .x2 { color: var(--faint); }
 </style></head><body>
 <div class="app" id="app"></div>
 <script>
@@ -382,12 +440,17 @@ const THEME = new URLSearchParams(location.search).get('theme');   // 색 시안
 if (THEME) document.documentElement.classList.add('t-' + THEME);
 const R = document.documentElement.style, set = (k, v) => R.setProperty(k, v);
 const COLLAB = S === 2, AUTO = S === 3 || S === 9 || S === 14, ACC = S === 4 || S === 5 || (S >= 10 && S <= 12) || S === 15, CTX = { 6: 'roll', 7: 'sample', 8: 'agent', 13: 'mixer', 17: 'roll' }[S];
-set('--side-w', '264px'); set('--collab-h', COLLAB ? '330px' : '0px'); set('--ctx-h', CTX ? '300px' : '0px'); set('--acc-h', (new URLSearchParams(location.search).get('acch') || (S === 15 ? 200 : 226)) + 'px');   // ?acch= 로 펼침 높이 확인
-const RAIL = { 1: 'smp', 2: 'smp', 3: 'auto', 4: 'plug', 5: 'plug', 6: 'pat', 7: 'smp', 8: 'smp', 9: 'pat', 10: 'plug', 11: 'plug', 12: 'plug', 13: 'smp', 14: 'auto', 15: 'plug', 16: 'smp', 17: 'pat', 18: 'smp' }[S];
+const LIB = S >= 19 && S <= 25;   // S1-07 샘플 라이브러리 패널 상태 (19~25)
+set('--side-w', LIB ? '330px' : '264px'); set('--collab-h', COLLAB ? '330px' : '0px'); set('--ctx-h', CTX ? '300px' : '0px'); set('--acc-h', (new URLSearchParams(location.search).get('acch') || (S === 15 ? 200 : 226)) + 'px');   // ?acch= 로 펼침 높이 확인
+const RAIL = { 1: 'smp', 2: 'smp', 3: 'auto', 4: 'plug', 5: 'plug', 6: 'pat', 7: 'smp', 8: 'smp', 9: 'pat', 10: 'plug', 11: 'plug', 12: 'plug', 13: 'smp', 14: 'auto', 15: 'plug', 16: 'smp', 17: 'pat', 18: 'smp', 19: 'smp', 20: 'smp', 21: 'smp', 22: 'smp', 23: 'smp', 24: 'smp', 25: 'smp' }[S];
 const logo = '<svg viewBox="-1 -5 98 98"><path fill="currentColor" fill-rule="evenodd" d="M73.76 16.83A42 42 0 1 0 88.14 62.36A28 28 0 1 1 73.76 16.83ZM64 -2Q66.66 14.34 83 17Q66.66 19.66 64 36Q61.34 19.66 45 17Q61.34 14.34 64 -2Z"/></svg>';
 const HINT = { 1: '<b>Draw (P)</b> — Left-click to add the selected clip · Right-click to delete', 2: '<b>Collaboration</b> — 3 people editing now · Other cursors are shown in their colors', 3: '<b>Automation mode (A)</b> — Draw a curve over a pattern to automate its parameter',
   4: '<b>Effects</b> — Drag ⠿ to reorder · ＋ after the last effect adds one · Bottom + splits into parallel', 5: '<b>Merge ↘</b> — Press on any branch to merge them before the next effect', 6: '<b>Piano roll</b> — Draw notes and adjust velocity in the lane below',
-  7: '<b>Sample settings</b> — Drag start/end to trim · Warp to match the song BPM', 8: '<b>Nyxi</b> — Double-click for advice and chat · Esc to close', 9: '<b>Automation</b> — A pattern was dropped under an existing automation. Choose how to handle it', 10: '<b>Instrument stack</b> — Every instrument plays the same notes · ＋ adds another layer', 11: '<b>Layer track</b> — Notes stay on this track. The sound joins Track 1 at its instrument stage', 12: '<b>From Track 10</b> — The layer joins Track 1 in parallel and shares its effects and mixer', 13: '<b>Mixer (Tab)</b> — Every track in one row · Tab again to go back to the previous panel', 14: '<b>Tempo · Meter</b> — Click the Tempo line to add a change · Split the Meter bar at a bar line', 15: '<b>Group · Return</b> — Select tracks and press Ctrl+G to group · Sends go to Return tracks A / B', 16: '<b>Time selection</b> — Drag across tracks to select bars · Right-click for Insert / Delete / Duplicate Time', 17: '<b>Piano roll</b> — Chop · Glue · Legato · Humanize · Control lane: CC64 sustain pedal is recorded with the notes', 18: '<b>Edit menu</b> — Every command also works from its shortcut, the command palette (Ctrl+P) and the right-click menu' }[S];
+  7: '<b>Sample settings</b> — Drag start/end to trim · Warp to match the song BPM', 8: '<b>Nyxi</b> — Double-click for advice and chat · Esc to close', 9: '<b>Automation</b> — A pattern was dropped under an existing automation. Choose how to handle it', 10: '<b>Instrument stack</b> — Every instrument plays the same notes · ＋ adds another layer', 11: '<b>Layer track</b> — Notes stay on this track. The sound joins Track 1 at its instrument stage', 12: '<b>From Track 10</b> — The layer joins Track 1 in parallel and shares its effects and mixer', 13: '<b>Mixer (Tab)</b> — Every track in one row · Tab again to go back to the previous panel', 14: '<b>Tempo · Meter</b> — Click the Tempo line to add a change · Split the Meter bar at a bar line', 15: '<b>Group · Return</b> — Select tracks and press Ctrl+G to group · Sends go to Return tracks A / B', 16: '<b>Time selection</b> — Drag across tracks to select bars · Right-click for Insert / Delete / Duplicate Time',   17: '<b>Piano roll</b> — Chop · Glue · Legato · Humanize · Control lane: CC64 sustain pedal is recorded with the notes', 18: '<b>Edit menu</b> — Every command also works from its shortcut, the command palette (Ctrl+P) and the right-click menu',
+  19: '<b>Sample library</b> — Every sample shows its waveform and tags · Preview ▶ plays it while the list stays open', 20: '<b>Preview</b> — Only one sample plays at a time · The playing row fills with its position and a pause button',
+  21: '<b>Storage</b> — The footer bar shows how much of the project quota the samples use (FR-227)', 22: '<b>Rename · tag</b> — Double-click the name to rename · The tag editor replaces the whole tag set (FR-225)',
+  23: '<b>Drop to upload</b> — Release files onto the panel · Each file uploads on its own, the waveform is built right after (FR-226)', 24: '<b>Empty library</b> — Nothing uploaded yet · Drop files or press Upload · WAV · MP3 · FLAC · OGG · AIFF up to 100 MB (FR-222)',
+  25: '<b>No matches</b> — Search by name or #tag · Clear the search to see every sample again' }[S];
 let h = `<div class="top">
   <div><span class="brand">${logo}Studio Nx</span><span class="menu"><span>FILE</span><span${S === 18 ? ' class="mon"' : ''}>EDIT</span><span>ADD</span><span>PATTERNS</span><span>VIEW</span><span>OPTIONS</span><span>TOOLS</span><span>HELP</span></span>
     <span class="chip">PAT</span><span class="chip on">SONG</span><span class="tp"><i class="play">▶</i><i>■</i><i class="rec">●</i></span><span class="chip">145.000</span><span class="lcd" title="Click: switch to bars">00:20:276<small>MIN:SEC:MS</small><em>13.2.1<small>BAR</small></em></span>
@@ -409,7 +472,82 @@ const FILES = {
 };
 if (S === 16) { FILES.smp[1] = ['Drums', 'Bass', 'FX', 'Vocal', 'Unused 2', 'Missing 1']; FILES.smp[2][1] = ['⚠', 'snare_tight_02.wav', 'Missing · Relink']; FILES.smp[2][6] = ['🥁', 'hat_open_01.wav <i class="ub">UNUSED</i>', '0:01']; FILES.smp[2][7] = ['🎹', 'piano_chop_C#m.wav <i class="ub">UNUSED</i>', '0:04 · C#m']; }
 const [ft, fc, fl, wave] = FILES[RAIL];
-h += `<div class="side"><div class="files"><div class="ph"><h3>${ft}</h3><span style="color:var(--faint);font-size:10px">${fl.length} items</span><span class="up">⤒ Upload</span></div>
+// S1-07 샘플 라이브러리 패널 — 목록·태그·미리듣기·이름·태그 편집·업로드·용량 (장면 19~25)
+function libraryPanel() {
+  const SAMP = [
+    ['🥁', 'kick_808_punch.wav', '0:01 · C', ['Drums', 'Future Bass'], 0],
+    ['🥁', 'snare_tight_02.wav', '0:01', ['Drums'], 0],
+    ['🎤', 'vox_take2.wav', '0:12 · 145', ['Vocal', 'Future Bass'], 0],
+    ['🔁', 'drum_loop_145.wav', '0:06 · 145', ['Loops', 'House'], 0],
+    ['🎸', 'gtr_strum_Am.wav', '0:08 · Am', ['Guitar'], 0],
+    ['✨', 'riser_8bar.wav', '0:13', ['FX'], 0],
+    ['🥁', 'hat_open_01.wav', '0:01', ['Drums'], 0],
+    ['🎹', 'piano_chop_C#m.wav', '0:04 · C#m', ['Keys', 'Hip-Hop'], 0],
+    ['🎹', 'pad_warm_Cm.wav', '0:16 · Cm', ['Synth', 'Chill'], 0],
+    ['🥁', 'clap_stack_02.wav', '0:01', ['Drums'], 0],
+    ['🎸', 'bass_sub_D.wav', '0:02 · D', ['Bass'], 0],
+    ['✨', 'sweep_up_120.wav', '0:04', ['FX', 'House'], 0],
+  ];
+  const GEN = ['Future Bass', 'House', 'Hip-Hop', 'Chill'];
+  const tags = t => t.map(x => `<span${GEN.indexOf(x) >= 0 ? ' class="gen"' : ''}>#${x}</span>`).join('');
+  const row = (s, opt = {}) => {
+    const [ic, nm, meta, tg] = s;
+    const pv = opt.play ? '❚❚' : '▶';
+    const bar = `<span class="lw">${opt.p == null ? '' : `<i style="--p:${opt.p}%"></i>`}</span>`;
+    const tgx = opt.notags ? '' : `<span class="ltag">${tags(tg)}</span>`;
+    const name = opt.edit
+      ? `<span class="nm3"><input class="nedit" value="${nm.replace('.wav', '')}"></span>`
+      : `<span class="nm3">${nm}${tgx}</span>`;
+    return `<div class="li2${opt.play ? ' play' : ''}${opt.sel ? ' on' : ''}"><span class="pv">${pv}</span><span>${ic}</span>${name}<em>${opt.meta || meta}</em>${bar}</div>`;
+  };
+  const phead = (cnt, right) => `<div class="pph"><h3>Samples</h3><span class="cnt2">${cnt}</span><span class="up2">${right || '<span class="srt">Sort ▾</span><span class="go">⤒ Upload</span>'}</span></div>`;
+  const pfil = (on) => `<div class="pfil">${['All', 'Drums', 'Bass', 'FX', 'Vocal', 'Loops'].map(c => `<span${c === on ? ' class="on"' : ''}>${c}</span>`).join('')}<span class="add">＋ Tag</span></div>`;
+  const sbar = (q) => `<div class="sbar">⌕ ${q ? `<span class="q">${q}</span><span class="x2">✕</span>` : '<span class="ph0">Search samples (Ctrl+F)</span>'}</div>`;
+  const dropSlim = '<div class="drop slim"><span class="ic">⇣</span><b>Drop files here</b><span>or press Upload</span></div>';
+
+  if (S === 19) {
+    return `<div class="files">${phead('12 files')}${pfil('All')}<div class="plist">${SAMP.map(s => row(s)).join('')}</div>${dropSlim}${sbar()}</div>`;
+  }
+  if (S === 20) {
+    return `<div class="files">${phead('12 files', '<span class="srt" style="color:var(--vi);border-color:var(--vi)">❚❚ Previewing</span><span class="go">⤒ Upload</span>')}${pfil('All')}
+      <div class="plist">${SAMP.map((s, i) => row(s, i === 2 ? { play: 1, p: 42, meta: '0:05 / 0:12' } : {})).join('')}</div>${dropSlim}${sbar()}</div>`;
+  }
+  if (S === 21) {
+    return `<div class="files">${phead('12 files · 62% used')}${pfil('All')}<div class="plist">${SAMP.map(s => row(s, { notags: 1 })).join('')}</div>
+      <div class="quota"><b>Project storage</b><em>620 MB / 1 GB</em><div class="qbar"><i></i></div></div>${sbar()}</div>`;
+  }
+  if (S === 22) {
+    return `<div class="files">${phead('12 files')}${pfil('All')}<div class="plist">
+      ${SAMP.slice(0, 2).map(s => row(s)).join('')}
+      ${row(SAMP[2], { edit: 1, sel: 1 })}
+      <div class="tagedit"><h6>GENRE</h6><div class="row"><span class="on">Future Bass</span><span>House</span><span>Hip-Hop</span></div>
+        <h6>INSTRUMENT</h6><div class="row"><span>Drums</span><span>Bass</span><span class="on">Vocal</span><span>Guitar</span><span>Synth</span><span>FX</span></div>
+        <h6>MOOD</h6><div class="row"><span class="on">Bright</span><span>Dark</span><span>Chill</span></div>
+        <div class="bt"><i>Cancel</i><i class="go">Save tags</i></div></div>
+      </div>${dropSlim}${sbar()}</div>`;
+  }
+  if (S === 23) {
+    const up = (ic, nm, sub, p, done) => `<div class="up-row"><span>${ic}</span><b>${nm}</b><span class="can">✕</span><span class="upbar"><i class="${done ? 'done' : ''}" style="width:${p}%"></i></span><em>${sub}</em></div>`;
+    return `<div class="files">${phead('Uploading 3 files…')}${pfil('All')}
+      <div class="ups">${up('🥁', 'kick_909_deep.wav', 'Ready', 100, 1)}${up('🎤', 'vox_adlib_03.wav', '62% · 4.2 MB/s', 62)}${up('🔁', 'top_loop_120.wav', '18% · 4.2 MB/s', 18)}</div>
+      <div class="drop over" style="flex:1;height:auto;margin:8px 12px"><span class="ic">⤓</span><b>Release to upload 3 files</b><span>WAV · MP3 · FLAC · OGG · AIFF</span></div>
+      <div class="plist" style="flex:none;border-top:1px solid var(--line)">${SAMP.slice(2, 7).map(s => row(s)).join('')}</div>${sbar()}</div>`;
+  }
+  if (S === 24) {
+    return `<div class="files">${phead('0 files')}<div class="empty2"><span class="ic2">🎵</span><b>No samples yet</b>
+      <span>Drop files anywhere on this panel, or press Upload.</span><span class="cta">⤒ Upload files</span>
+      <span style="font-size:9.5px">WAV · MP3 · FLAC · OGG · AIFF · up to 100 MB</span></div>
+      <div class="drop over" style="height:70px;border-style:dashed;border-color:color-mix(in srgb,var(--vi) 60%,transparent);background:color-mix(in srgb,var(--vi) 7%,transparent)"><span class="ic" style="color:var(--vi)">⇣</span><b style="color:var(--ink)">Drop files here</b></div>
+      <div class="quota"><b>Project storage</b><em>0 MB / 1 GB</em><div class="qbar"><i style="width:0%"></i></div></div>${sbar()}</div>`;
+  }
+  return `<div class="files">${phead('0 results')}${pfil('All')}
+    <div class="nores"><span style="font-size:22px">⌕</span><b>No samples match "kick 909"</b>
+      <span>Search by name or #tag — try #Drums or #Vocal.</span><span class="clr">✕ Clear search</span></div>${dropSlim}${sbar('kick 909')}</div>`;
+}
+h += '<div class="side">';
+h += LIB
+  ? libraryPanel()
+  : `<div class="files"><div class="ph"><h3>${ft}</h3><span style="color:var(--faint);font-size:10px">${fl.length} items</span><span class="up">⤒ Upload</span></div>
   <div class="filt">${fc.map((c, i) => `<span${i === 0 ? ' class="on"' : ''}>${c}</span>`).join('')}</div>
   <div class="list">${fl.map(([ic, n, m], i) => `<div class="it${i === (RAIL === 'auto' ? 0 : RAIL === 'pat' ? 1 : 2) ? ' on' : ''}${ic === '⚠' ? ' miss' : ''}"><span>${ic}</span><span>${n}</span><em>${m}</em>${wave ? '<span class="w"></span>' : ''}</div>`).join('')}</div>
   <div class="drop"><span class="ic">⇣</span><b>Drop files here</b><span>or press Upload · WAV · MP3 · FLAC · MID</span></div>
@@ -627,6 +765,13 @@ const CAP = {
   13: ['13 Tab → 아래 칸 믹서', '키보드 Tab(Ableton 처럼 모드 전환) 또는 왼쪽 Mixer 버튼 → 아래 칸에 모든 트랙 믹서 띠 + 오른쪽 MASTER · 띠마다 이름·악기·FX 수·팬·미터·볼륨·dB·M S ● · 트랙 펼침의 Mixer 칸과 같은 값 · 입력칸에 커서가 있을 땐 Tab 은 원래대로(다음 칸)'],
   12: ['12 레이어링 ② 받는 쪽', '1번 트랙 INSTRUMENTS 에 &lt;from Track 10&gt; 줄이 병렬로 생김(보라 점선) · 다른 악기와 똑같이 볼륨·팬·Solo · 그 뒤 1번 트랙의 이펙트·믹서를 함께 씀 · 트랙 머리에 ⇠10, 보내는 트랙엔 → 1'],
   8: ['08 Nyxi 더블 클릭 → Agent 조언·채팅', '평소엔 재생 BPM 에 맞춰 춤(fruity dance) · 더블 클릭하면 아래 칸에 조언 카드(Apply·Preview·Dismiss) + Nyxi 채팅'],
+  19: ['19 샘플 라이브러리 — 목록·태그', '왼쪽 패널이 샘플 라이브러리 · 줄마다 재생 버튼(▶)·아이콘·이름·길이(BPM/Key)·파형·태그 칩(#Drums·#Vocal 같은 악기와 #Future Bass 같은 장르, 장르는 보라 칩) · 위에 분류 필터(All·Drums·Bass·FX·Vocal·Loops·＋Tag)와 정렬·Upload · 아래에 끌어 넣기 줄과 검색 · 드래그하면 트랙에 클립이 생김(FR-224)'],
+  20: ['20 샘플 라이브러리 — 미리듣기 재생 중', '줄의 ▶ 를 누르면 그 샘플만 재생(다른 줄을 누르면 바뀜) · 재생 중인 줄은 보라 배경·왼쪽 보라 띠, 버튼은 ❚❚(일시정지) · 파형이 보라색으로 채워지며 앞으로 가고 끝에 흰 세로선 · 길이 자리에 진행 시간(0:05 / 0:12) · 위에 Previewing 표시 · 목록은 그대로 열려 있음(FR-224)'],
+  21: ['21 샘플 라이브러리 — 저장 용량', '패널 맨 아래에 프로젝트 저장 용량 줄 — 사용/최대(620 MB / 1 GB)와 막대(보라→민트 그라데이션) · 위 시시 정보에도 62% used · 업로드·형식 검사와 함께 용량을 넘으면 안내(413 STORAGE_QUOTA_EXCEEDED) (FR-227)'],
+  22: ['22 샘플 라이브러리 — 이름·태그 편집', '이름을 두 번 누르면 그 자리에서 이름 칸(보라 테두리)으로 바뀜 · 아래에 태그 편집기가 펼쳐져 분류(GENRE·INSTRUMENT·MOOD)마다 태그를 골라 통째로 교체(PUT /samples/{id}/tags) · 고른 태그는 보라 칩 · 저장·취소 · 이름만 바꾸는 것은 PATCH /samples/{id}(FR-225)'],
+  23: ['23 샘플 라이브러리 — 드래그앤드롭 업로드', '파일을 패널 위로 끌어오면 놓기 영역이 보라 실선으로 강조(Release to upload 3 files) · 위에 올리는 중인 파일마다 진행률 막대와 속도, 끝난 파일은 “Ready”(웨이브폼 만드는 중) · ✕ 로 취소 · 여러 파일을 한 번에, 파일마다 따로 처리(FR-221·222·226)'],
+  24: ['24 샘플 라이브러리 — 빈 목록', '아직 올린 샘플이 없을 때 — 가운데 안내와 Upload 버튼, 지원 형식(WAV·MP3·FLAC·OGG·AIFF, 최대 100 MB) · 아래에 끌어 넣기 영역과 저장 용량(0 MB / 1 GB) · 업로드하면 목록과 파형이 채워짐(FR-221)'],
+  25: ['25 샘플 라이브러리 — 검색 결과 없음', '검색칸에 “kick 909” 를 치면 맞는 샘플이 없어 안내 — 이름이나 #태그로 찾으라고 알려 줌 · Clear search 로 지우면 전체 목록 · 검색은 이름·태그로 하고 서버 목록(GET /samples?q=, tag_id)을 다시 부름(FR-224)'],
 }[S];
 const TCAP = {
   A: ['A Ink', '홈의 흑백 + 보라 포인트 그대로 — 먹색 바탕 · 종이색 글자 · 얇은 선 · 각진 모서리. 보라(#a383ff)는 선택·재생 위치·MIDI 트랙 표시에만, 샘플은 회색 파형'],
