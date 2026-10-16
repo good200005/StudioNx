@@ -7,7 +7,7 @@
 | 브랜치 | `feature/phase1/s1-07-sample-library` (`develop`에서 만듦) |
 | 바꾼 파일 | `backend/app/models/sample.py`, `models/tag.py`, `services/sample_audio_service.py`, `services/sample_service.py`, `services/tag_service.py`, `api/v1/samples.py`, `api/v1/tags.py`, `api/v1/router.py`, `schemas/sample.py`, `schemas/tag.py`, `core/config.py`, `core/errors.py`, `.env.example`, `requirements.txt` |
 | 진행 방식 | **함수 하나씩** 구현 → 사용자 검토 → 다음. 실제 코드는 **전통 문법**(`?.`, `??` 없음), 최신 문법 버전은 함수 문서의 "최신 문법으로 쓰면" 절에 |
-| 함수별 설명 | `docs/ai-notes/backend(fastAPI_Python)/S1-07 - 샘플 라이브러리/177 ~ 192` (md, PDF) |
+| 함수별 설명 | `docs/ai-notes/backend(fastAPI_Python)/S1-07 - 샘플 라이브러리/177 ~ 192` (md, PDF), 합본 [S1-07_sample_library_api.pdf](<backend(fastAPI_Python)/S1-07 - 샘플 라이브러리/S1-07_sample_library_api.pdf>) |
 | 이전 문서 | [68_s1-06_timeline.md](68_s1-06_timeline.md) |
 
 ## 1. 실행 결과
