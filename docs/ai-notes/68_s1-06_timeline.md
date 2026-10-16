@@ -7,7 +7,8 @@
 | 브랜치 | `feature/phase1/s1-06-timeline` (`develop`에서 만듦) |
 | 바꾼 파일 | `static/js/pages/sequencer-arrange.js` (함수 34개 추가·배선), `studioNx.html` (Snap 메뉴·그립·줌 버튼), `static/css/pages/studio.css` (클립 손잡이·× 버튼·그립·줌 버튼) |
 | 진행 방식 | **함수 하나씩** 구현 → 사용자 검토 → 다음. 실제 코드는 **전통 문법**(`?.`, `??` 없음), 최신 문법 버전은 함수 문서의 "최신 문법으로 쓰면" 절에 |
-| 함수별 설명 | `docs/ai-notes/javascript/S1-06 - 타임라인/115 ~ 148` (md, PDF) |
+| 함수별 설명 | `docs/ai-notes/javascript/S1-06 - 타임라인/115 ~ 148` (md, PDF), 합본 [S1-06_timeline.pdf](<javascript/S1-06 - 타임라인/S1-06_timeline.pdf>) |
+| 시험 문서 | [72_s1-06_site_test.md](72_s1-06_site_test.md) (실제 화면 시험) |
 | 이전 문서 | [67_s1-05_audio_engine.md](67_s1-05_audio_engine.md) |
 
 ## 1. 실행 결과
@@ -91,6 +92,8 @@ S1-05로 만든 시간 계산 위에, 화면에서 클립과 트랙을 편집하
 | 함수 | 빈틈 | 고친 것 |
 |---|---|---|
 | 146 클립 분할 | 프로토타입 `sliceClip`이 오프셋을 반대로 셌습니다 | `splitClip`으로 교체하고, 오디오 조각의 오프셋을 "원본 + 왼쪽 길이"로 맞췄습니다 |
+
+화면 조작을 사람처럼 확인한 실제 화면 시험은 [72](72_s1-06_site_test.md)에 따로 정리했습니다.
 
 ## 7. 남은 일과 다음 작업이 쓰는 곳
 | 작업 | 쓰는 것 |

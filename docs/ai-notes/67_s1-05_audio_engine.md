@@ -8,6 +8,7 @@
 | 바꾼 파일 | `static/js/audio/timing.js` (새 파일), `static/js/audio/scheduler.js` (새 파일), `static/js/audio/metronome.js` (새 파일), `static/js/audio/engine.js` (새 파일), `audio-demo.html` (새 파일) |
 | 진행 방식 | **함수 하나씩** 구현 → 사용자 검토 → 다음. 실제 코드는 **전통 문법**(`?.`, `??` 없음), 최신 문법 버전은 함수 문서의 "최신 문법으로 쓰면" 절에 |
 | 함수별 설명 | `docs/ai-notes/javascript/S1-05 - 오디오 엔진 기초/104 ~ 114` (md, PDF), 합본 [S1-05_audio_engine.pdf](<javascript/S1-05 - 오디오 엔진 기초/S1-05_audio_engine.pdf>) |
+| 시험 문서 | [73_s1-05_site_test.md](73_s1-05_site_test.md) (실제 화면 시험) |
 | 이전 문서 | [66_p1-25_privacy_links.md](66_p1-25_privacy_links.md) |
 
 ## 1. 실행 결과
@@ -76,6 +77,8 @@
 | 함수 | 빈틈 | 고친 것 |
 |---|---|---|
 | 108 `Transport` | 기본 타이머가 `this.setTimer(...)`로 전역 `setInterval`을 부르면 `this`가 Transport가 되어 "Illegal invocation"이 나고, 브라우저에서 재생이 안 됐습니다 | 기본값을 `function (fn, ms) { return setInterval(fn, ms); }`로 감쌌습니다 (`fix(frontend)` 커밋) |
+
+브라우저와 실제 소리로 확인한 부분(데모 페이지 스모크, 오프라인 렌더)은 [73](73_s1-05_site_test.md)에 따로 정리했습니다.
 
 ## 7. 남은 일과 다음 작업이 쓰는 곳
 | 작업 | 쓰는 것 |
