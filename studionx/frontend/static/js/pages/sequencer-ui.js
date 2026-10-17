@@ -6,6 +6,7 @@
 
 import {
   showToast, startPlayback, pausePlayback, isPlaying, getPlayheadBar, setPlayheadBar, setDrawTemplate, addTrack,
+  addGroup, groupSelectedTracks, ungroupTracks, deleteSelectedTracks, selectedTracks, selectTrack, clearTrackSelection,
 } from './sequencer-arrange.js';
 import { openRoll } from './sequencer-roll.js';
 import {
@@ -28,6 +29,7 @@ export function initUI(options = {}) {
   initAccordionButtons();
   initAgentAndSample();
   initSpectrum();
+  initTrackMenu();
 }
 
 /* ───────── 아래 칸 (FR-2200) ───────── */
@@ -115,7 +117,7 @@ const HANDLED = new Set([
   'edit.delete', 'edit.selectAll', 'view.mixer', 'view.roll', 'view.sample', 'view.automation', 'view.files', 'view.collab',
   'view.followPage', 'view.followScroll', 'view.zoomIn', 'view.zoomOut', 'view.zoomFit', 'view.timeFormat', 'view.nyxi', 'view.nyxiDance',
   'view.tracksTaller', 'view.tracksShorter', 'view.tracksReset', 'options.triplet', 'options.metronome', 'options.countIn',
-  'track.addMidi', 'track.addAudio', 'track.addReturn', 'marker.add', 'window.close', 'help.shortcuts', 'project.save',
+  'track.addMidi', 'track.addAudio', 'track.addReturn', 'track.addGroup', 'track.groupSelected', 'marker.add', 'window.close', 'help.shortcuts', 'project.save',
 ]);
 
 /** 이 모듈이 처리하는 명령 */
@@ -134,10 +136,93 @@ const COMMANDS = {
   'track.addMidi': () => addTrack('MIDI'),
   'track.addAudio': () => addTrack('AUDIO'),
   'track.addReturn': () => addTrack('RETURN'),
+  'track.addGroup': () => { addGroup(); showToast('New group track added — select tracks and press Ctrl+G to group them'); },
+  'track.groupSelected': () => groupTracks(),
   'window.close': () => window.close(),
   'help.shortcuts': () => showToast('P B D T S C E tools · A automation · Z fit · Space play · Tab mixer · Delete remove · Ctrl+wheel zoom', 6000),
   'project.save': () => showToast('Saving needs the server — not connected yet'),
 };
+
+/* ───────── 트랙 선택 · 그룹 (FR-207 그룹 · FR-2210) ───────── */
+
+/** 선택한 트랙들을 그룹으로 (Ctrl+G · 오른쪽 클릭 메뉴 · ADD 메뉴) */
+function groupTracks() {
+  const n = selectedTracks().length;
+  const g = groupSelectedTracks();
+  if (!g) return;
+  showToast(n ? `Grouped ${n} track${n === 1 ? '' : 's'}` : 'New group track added');
+}
+
+/** 선택한 그룹 트랙 풀기 */
+function ungroupSelection() {
+  const n = ungroupTracks();
+  showToast(n ? `Ungrouped ${n} group${n === 1 ? '' : 's'}` : 'Select a group track first');
+}
+
+/** 선택한 트랙 지우기 */
+function deleteTracks() {
+  const n = selectedTracks().length;
+  if (!n) return;
+  deleteSelectedTracks();
+  showToast(`Deleted ${n} track${n === 1 ? '' : 's'}`);
+}
+
+/** 트랙 머리 오른쪽 클릭 = 작은 메뉴 (그룹으로 묶기 · 그룹 풀기 · 트랙 지우기) */
+function openTrackMenu(x, y) {
+  document.querySelector('.sq-trackmenu')?.remove();
+  const n = selectedTracks().length;
+  const hasGroup = selectedTracks().some((t) => t.classList.contains('sq-track--group'));
+  const ul = document.createElement('ul');
+  ul.className = 'sq-dropdown is-popup sq-trackmenu';
+  ul.setAttribute('role', 'menu');
+  ul.innerHTML = `
+    <li><button type="button" role="menuitem" data-act="group"${n ? '' : ' disabled'}>Group selected tracks <kbd>Ctrl+G</kbd></button></li>
+    <li><button type="button" role="menuitem" data-act="ungroup"${hasGroup ? '' : ' disabled'}>Ungroup <kbd></kbd></button></li>
+    <li role="separator"><hr></li>
+    <li><button type="button" role="menuitem" data-act="delete">Delete track <kbd>Del</kbd></button></li>`;
+  ul.style.position = 'fixed';
+  ul.style.left = `${Math.min(x, window.innerWidth - 230)}px`;
+  ul.style.top = `${Math.min(y, window.innerHeight - 150)}px`;
+  document.body.append(ul);
+  const off = (e) => { if (!ul.contains(e.target)) close(); };
+  const esc = (e) => { if (e.key === 'Escape') close(); };
+  function close() {
+    ul.remove();
+    document.removeEventListener('pointerdown', off);
+    document.removeEventListener('keydown', esc);
+  }
+  ul.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-act]');
+    if (!b) return;
+    const act = b.dataset.act;
+    close();
+    if (act === 'group') groupTracks();
+    else if (act === 'ungroup') ungroupSelection();
+    else if (act === 'delete') deleteTracks();
+  });
+  setTimeout(() => { document.addEventListener('pointerdown', off); document.addEventListener('keydown', esc); });
+}
+
+function initTrackMenu() {
+  const lanes = document.getElementById('lanes');
+  if (!lanes) return;
+  // 트랙 머리에서 오른쪽 클릭 = 그 트랙 선택 후 메뉴
+  lanes.addEventListener('contextmenu', (e) => {
+    const head = e.target.closest('.sq-track__head');
+    const track = head?.closest('.sq-track');
+    if (!track || e.target.closest('button')) return;
+    e.preventDefault();
+    if (!track.classList.contains('is-selected')) selectTrack(track);
+    openTrackMenu(e.clientX, e.clientY);
+  });
+  // Ctrl+G = 선택 트랙 그룹화 · Ctrl+Shift+G = 그룹 풀기
+  document.addEventListener('keydown', (e) => {
+    if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 'g') return;
+    if (e.target.closest?.('input, textarea, select, [contenteditable]') || document.querySelector('dialog[open]')) return;
+    e.preventDefault();
+    if (e.shiftKey) ungroupSelection(); else groupTracks();
+  });
+}
 
 function initMenus() {
   const top = document.querySelector('.sq-top');

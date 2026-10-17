@@ -7,7 +7,7 @@
 // 오토메이션 모드 · 점 찍기 · ↕ 곡선은 AI 구현 sequencer-automation.js (사용자 요청 2026-10-06) — setAutomationMode 템플릿 대신
 // 나머지 화면 버튼(메뉴 · 언어 · 왼쪽 버튼 줄 · 아래 칸 · 트랙 펼침 …)은 AI 구현 sequencer-ui.js (사용자 요청 2026-10-06) — 아래 템플릿 함수 중 화면 부분을 대신
 
-import { initArrange } from './sequencer-arrange.js';
+import { initArrange, TICKS_PER_BAR, restoreOpenPanels } from './sequencer-arrange.js';
 import { initRoll } from './sequencer-roll.js';
 import { initAutomation } from './sequencer-automation.js';
 import { initUI } from './sequencer-ui.js';
@@ -51,16 +51,56 @@ export function renderTrack(track, clips) {
   // TODO
 }
 
+/** MIDI 클립 → 미리보기 노트 목록 (피아노롤에서 바뀔 때마다 채운다) */
+const clipNotes = new WeakMap();
+
+/**
+ * MIDI 클립의 미리보기 노트를 담고 다시 그린다 (요구사항 1, 2026-10-17)
+ * @param {HTMLElement} clip
+ * @param {{pitch:number,start_tick:number,length_tick:number}[]} notes
+ */
+export function setClipNotes(clip, notes) {
+  clipNotes.set(clip, notes || []);
+  drawClipPreview(clip.querySelector('.sq-clip__preview'), clip);
+}
+
 /**
  * 클립 미리보기 그리기 (canvas.sq-clip__preview)
  * - MIDI: 노트를 실제 음높이·길이대로 작은 막대로 (FR-2196)
- * - 오디오: 파형 (samples 의 peaks 데이터)
+ * - 오디오: 파형 (samples 의 peaks 데이터) — 편곡의 drawWaveforms 가 그리므로 여기서는 건너뜀
  * - 그리면 CSS 자리 무늬는 canvas 위에 덮여 안 보임
  * @param {HTMLCanvasElement} canvas
- * @param {object} clip
+ * @param {HTMLElement} clip
  */
 export function drawClipPreview(canvas, clip) {
-  // TODO
+  if (!canvas || !clip || !clip.classList.contains('sq-clip--midi')) return;
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+  const pw = Math.max(1, Math.round(w * dpr));
+  const ph = Math.max(1, Math.round(h * dpr));
+  if (canvas.width !== pw || canvas.height !== ph) { canvas.width = pw; canvas.height = ph; }
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, pw, ph);
+  const notes = clipNotes.get(clip) || [];
+  if (w < 2 || h < 2 || !notes.length) return;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const bars = parseFloat(clip.style.getPropertyValue('--l')) || 1; // 클립 길이(마디)
+  const ticks = bars * TICKS_PER_BAR;
+  let lo = Infinity;
+  let hi = -Infinity;
+  for (const n of notes) { if (n.pitch < lo) lo = n.pitch; if (n.pitch > hi) hi = n.pitch; }
+  if (hi === lo) { lo -= 1; hi += 1; }
+  const pad = 0.12;
+  const barH = Math.max(1, Math.round(h * 0.14));
+  ctx.fillStyle = getComputedStyle(clip).getPropertyValue('--tc').trim() || 'currentColor';
+  for (const n of notes) {
+    const x = (n.start_tick / ticks) * w;
+    const bw = Math.max(1, (n.length_tick / ticks) * w);
+    const y = (1 - (n.pitch - lo) / (hi - lo)) * (1 - pad * 2) + pad;
+    ctx.fillRect(x, y * h - barH / 2, Math.min(bw, w - x), barH);
+  }
 }
 
 /**
@@ -300,3 +340,19 @@ initAutomation({ onChange: (change) => console.debug('[automation]', change.type
 
 // 화면 버튼 — 저장은 init() 구현 때 onChange 로 연결
 initUI({ onChange: (change) => console.debug('[ui]', change.type) });
+
+/**
+ * 피아노롤 노트 변화 → 그 MIDI 클립 미리보기 다시 그리기 (요구사항 1, 2026-10-17)
+ * - sequencer-roll.js 가 노트를 바꿀 때마다 'sq:roll-notes' 를 보낸다
+ */
+function initClipPreviews() {
+  document.addEventListener('sq:roll-notes', (e) => {
+    const detail = e.detail || {};
+    if (detail.clip) setClipNotes(detail.clip, detail.notes || []);
+  });
+}
+initClipPreviews();
+
+// FR-261 — 지난번에 펼쳐 둔 트랙 아코디언 상태를 되살린다
+restoreOpenPanels();
+

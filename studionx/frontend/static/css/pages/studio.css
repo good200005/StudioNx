@@ -106,9 +106,10 @@ body.sq {
   display: inline-flex; align-items: baseline; gap: 0.35rem;
   padding: 0.05rem 0.55rem; border: 1px solid var(--sq-line-2);
   font: 300 1.2rem/1 var(--font-text); color: var(--c-ink); letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;   /* 숫자 폭 고정 — 재생 중 시계가 흔들리지 않게 */
 }
 .sq-time small { font-size: 0.55rem; color: var(--c-ink-faint); letter-spacing: 0.06em; }
-.sq-time__bars { font: 600 0.72rem/1 var(--font-text); color: var(--c-ink-soft); border-left: 1px solid var(--sq-line-2); padding-left: 0.45rem; }
+.sq-time__bars { font: 600 0.72rem/1 var(--font-text); color: var(--c-ink-soft); border-left: 1px solid var(--sq-line-2); padding-left: 0.45rem; font-variant-numeric: tabular-nums; }
 .sq-spectrum { position: relative; width: 6rem; height: 1.75rem; padding: 0.15rem 0.2rem 0.55rem; display: flex; align-items: flex-end; gap: 1px; background: rgb(0 0 0 / 0.3); }
 .sq-spectrum i { flex: 1; height: var(--h); background: linear-gradient(to top, var(--sq-ok), var(--sq-accent)); }
 .sq-spectrum b { position: absolute; bottom: 0.05rem; font-size: 0.45rem; color: var(--c-ink-faint); font-weight: 600; }
