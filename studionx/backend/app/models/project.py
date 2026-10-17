@@ -37,6 +37,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.session import Base
 
 if TYPE_CHECKING:  # 타입 표시용 (실행 중에는 불러오지 않음 — 서로 불러오는 순환을 피함)
+    from app.models.pattern import Pattern
     from app.models.track import Track
 
 
@@ -79,6 +80,12 @@ class Project(Base):
     tracks: Mapped[list["Track"]] = relationship(
         back_populates="project",
         order_by="Track.order_index",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    patterns: Mapped[list["Pattern"]] = relationship(
+        back_populates="project",
+        order_by="Pattern.pattern_id",
         cascade="all, delete-orphan",
         passive_deletes=True,
     )

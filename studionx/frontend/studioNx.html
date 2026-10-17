@@ -114,6 +114,7 @@
       <li><button type="button" role="menuitem" data-command="track.addMidi">MIDI track <kbd></kbd></button></li>
       <li><button type="button" role="menuitem" data-command="track.addAudio">Audio track <kbd></kbd></button></li>
       <li><button type="button" role="menuitem" data-command="track.addGroup">Group track <kbd></kbd></button></li>
+      <li><button type="button" role="menuitem" data-command="track.groupSelected">Group selected tracks <kbd>Ctrl+G</kbd></button></li>
       <li><button type="button" role="menuitem" data-command="track.addReturn">Return track <kbd></kbd></button></li>
       <li><button type="button" role="menuitem" data-command="track.addLayer">Layer track (to selected) <kbd></kbd></button></li>
       <li role="separator"><hr></li>
@@ -791,7 +792,7 @@
       <div class="sq-panel" id="panel-roll" data-panel="roll" hidden>
         <div class="sq-bottom__head">
           <h2 id="roll-title">🎹 Piano roll — Lead #2</h2><span id="roll-track">1. Lead · Wavetable</span>
-          <button type="button" aria-pressed="true" title="Draw notes">✎</button><button type="button" data-roll-op="chop" title="Cut notes into grid steps">Chop</button><button type="button" data-roll-op="glue" title="Join touching notes of the same pitch">Glue</button><button type="button" data-roll-op="legato" title="Stretch each note to the next">Legato</button><button type="button" data-roll-op="humanize" title="Slightly vary timing and velocity">Humanize</button><button type="button" data-roll-op="quantize" title="Pull note starts 75% toward the grid">Quantize 75%</button>
+          <button type="button" aria-pressed="true" title="Draw notes (Shift+click a note to stack another on top)">✎</button><button type="button" data-roll-op="chop" title="Cut notes into grid steps">Chop</button><button type="button" data-roll-op="glue" title="Join touching notes of the same pitch">Glue</button><button type="button" data-roll-op="legato" title="Stretch each note to the next">Legato</button><button type="button" data-roll-op="humanize" title="Slightly vary timing and velocity">Humanize</button><button type="button" data-roll-op="quantize" title="Pull note starts 75% toward the grid">Quantize 75%</button>
           <span>Swing ◔ 20%</span><span>👻 Ghost: 2. Strum ▾</span>
           <!-- 모든 노트(건반 줄) 높이 — 건반 줄 경계를 끌어도 됨. 가로 확대·축소는 Ctrl+휠 -->
           <span class="sq-heightctl" role="group" aria-label="Note height"><button type="button" data-roll-height="-1" title="All notes shorter (or drag a key edge)">↕−</button><button type="button" data-roll-height="1" title="All notes taller (or drag a key edge)">↕+</button></span>

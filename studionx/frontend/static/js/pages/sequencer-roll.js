@@ -4,11 +4,12 @@
 // - 격자도 편곡과 같은 규칙(마디 → 박 → 1/16, 셋잇단, Snap Line/Off, Alt) — sequencer-arrange.js 의 gridLevelFor · snapUnitFor · gridLayers
 // - 높이는 노트 하나씩이 아니라 모든 노트(건반 줄) 함께: 건반 줄 경계 끌기 · ↕−/↕+
 // - 노트: 빈 곳 클릭 = 찍기(이어서 끌면 옮김) · 끌기 = 옮기기(가로 스냅 · 세로 음높이) · 오른쪽 끝 끌기 = 길이 · Ctrl+클릭 = 여러 선택
+//   Shift+클릭 = 기존 노트 위에 겹쳐 새로 찍기 (같은 음정 · 다른 음정 모두 겹침 허용, FR-2317)
 //   지우기 = 선택하고 Delete · Backspace (EDIT › Delete 도) · 오른쪽 클릭
 // - MIDI 클립 더블 클릭 → 아래 칸에 피아노롤 열기, ✕ 로 닫기
 // 노트 저장(PUT /patterns/{id}/notes)은 sequencer.js 구현 때 onChange 에서
 
-import { gridLevelFor, snapUnitFor, gridLayers, isTriplet, TICK, isDeleteKey, focusArea } from './sequencer-arrange.js';
+import { gridLevelFor, snapUnitFor, gridLayers, isTriplet, TICK, TICKS_PER_BAR, isDeleteKey, focusArea } from './sequencer-arrange.js';
 
 /** 1마디 기본 폭(px) — 처음 열 때 패턴 4마디가 보기 좋게 */
 const BAR_BASE = 160;
@@ -52,7 +53,13 @@ export function initRoll({ onChange = () => {} } = {}) {
     rollBars: Number(roll.dataset.rollBars) || 8,
     zoom: 1, rowH: 12, barW: BAR_BASE, level: null, rulerStep: 0,
     lastLength: 0.25,   // 새 노트 길이 = 마지막으로 찍거나 늘린 길이
-    frame: 0, opened: false,
+    frame: 0, opened: false, clip: null,
+  };
+  // 변화 알림 — 사용자 onChange 뒤에 편곡의 클립 미리보기가 다시 그려지도록 알린다 (요구사항, 2026-10-17)
+  const userChange = onChange;
+  R.onChange = (change) => {
+    if (typeof userChange === 'function') userChange(change);
+    emitRollNotes();
   };
   roll.style.setProperty('--roll-bars', R.rollBars);
   roll.style.setProperty('--roll-rows', R.high - R.low + 1);
@@ -85,6 +92,7 @@ export function openRoll(clip) {
   const bottom = document.getElementById('bottom');
   bottom.hidden = false;
   bottom.querySelectorAll('.sq-panel').forEach((p) => { p.hidden = p.id !== 'panel-roll'; });
+  R.clip = clip || null;
   if (clip) {
     document.getElementById('roll-title').textContent = `🎹 Piano roll — ${clip.querySelector('.sq-clip__name').textContent.replace(/^▤\s*/, '')}`;
     const track = clip.closest('.sq-track');
@@ -357,15 +365,24 @@ function initNoteEdit() {
     if (e.button !== 0) return;
     let note = target;
     let added = false;
-    if (!note) {
-      // 빈 곳 클릭 = 찍기 (포인터가 있는 칸의 시작, 길이는 마지막 길이)
-      const { bar, row } = point(e);
-      const pitch = R.high - row;
-      if (pitch < R.low || pitch > R.high) return;
-      note = document.createElement('span');
-      note.className = 'sq-note';
-      note.dataset.pitch = pitch;
-      note.dataset.start = clamp(snapF(bar, e.altKey), 0, R.rollBars - R.lastLength);
+    // 빈 곳 클릭 = 찍기 · Shift+클릭(노트 위) = 그 노트에 겹쳐 새로 찍기 (FR-2317 노트 겹침 허용)
+    if (!note || e.shiftKey) {
+      let pitch = null;
+      let start = null;
+      if (note) {
+        pitch = Number(note.dataset.pitch);
+        start = clamp(Number(note.dataset.start), 0, R.rollBars - R.lastLength);
+      } else {
+        const { bar, row } = point(e);
+        pitch = R.high - row;
+        if (pitch < R.low || pitch > R.high) return;
+        start = clamp(snapF(bar, e.altKey), 0, R.rollBars - R.lastLength);
+      }
+      const n = document.createElement('span');
+      n.className = 'sq-note';
+      n.dataset.pitch = pitch;
+      n.dataset.start = start;
+      note = n;
       note.dataset.length = R.lastLength;
       note.dataset.vel = 100;
       notes.append(note);
@@ -448,6 +465,24 @@ function initNoteEdit() {
 
 function noteInfo(n) {
   return { pitch: Number(n.dataset.pitch), start: Number(n.dataset.start), length: Number(n.dataset.length) };
+}
+
+/** 지금 피아노롤의 노트 전부를 저장용 모양(tick 단위)으로 모은다 (요구사항 1, 2026-10-17) */
+function rollNotes() {
+  return [...R.notes.querySelectorAll('.sq-note:not(.is-ghost)')].map((n) => ({
+    pitch: Number(n.dataset.pitch),
+    start_tick: Math.round(Number(n.dataset.start) * TICKS_PER_BAR),
+    length_tick: Math.round(Number(n.dataset.length) * TICKS_PER_BAR),
+    velocity: Number(n.dataset.vel) || 100,
+  }));
+}
+
+/** 노트가 바뀔 때마다 알린다 — sequencer.js 가 듣고 그 MIDI 클립의 미리보기를 다시 그린다 */
+function emitRollNotes() {
+  if (!R || !R.clip) return;
+  document.dispatchEvent(new CustomEvent('sq:roll-notes', {
+    detail: { clip: R.clip, notes: rollNotes(), bars: R.patternBars },
+  }));
 }
 
 /* ───────── 격자 그리기 (canvas, 편곡과 같은 방식) ───────── */

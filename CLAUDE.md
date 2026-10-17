@@ -29,6 +29,8 @@
 |---|---|
 | `docs/` | 기획·설계 문서 (PRD, DB.md, ERD, 구현 계획, 매뉴얼) + PDF |
 | `docs/_build/` | PDF·ERD 빌드 스크립트 (`build.js`, `erd.js`) |
+| `docs/page_mockups/` | 화면별 디자인 목업 (`_source/`의 HTML → PNG) |
+| `docs/screenshots/` | 실제 구동 화면 스크린샷. `YYYY-MM-DD_주제/` 폴더에 넣는다 |
 | `studionx/backend/` | FastAPI (Python 3.13, `.venv`는 `studionx/.venv`) |
 | `studionx/frontend/` | Vanilla HTML/CSS/JS — FastAPI가 정적 서빙 |
 | `studionx/frontend-reference/` | HTML/CSS 레퍼런스 (웹 비공개) |
@@ -59,6 +61,8 @@
 - 코드 블록·식별자·숫자·링크는 그대로 둔다.
 - 질문 문장은 "Q. …하나요?" 처럼 존댓말로 쓴다.
 - PDF는 고친 문서의 것만 다시 만든다 (node docs/_build/build.js pdf <이름 일부>). 사용자가 요청하지 않은 새 합본이나 전체 합본은 만들지 않는다. 다만 작업 단위가 끝날 때 그 작업의 함수 문서 합본 PDF는 만든다 (2026-10-17).
+
+**화면 이미지 저장 위치 (2026-10-17):** AI가 화면을 확인·검토하거나 사용자에게 보여 주려고 찍는 스크린샷(헤드리스 브라우저 캡처 등)은 **`docs/screenshots/YYYY-MM-DD_주제/`에 바로 저장**한다(임시 폴더에 두었다가 나중에 옮기지 않는다). 디자인 목업은 `docs/page_mockups/<화면>/`에 둔다.
 
 ## Git
 - 브랜치·커밋 규칙: `docs/Git_Manual.md`

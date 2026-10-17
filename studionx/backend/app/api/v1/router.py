@@ -3,7 +3,7 @@
 from fastapi import APIRouter
 from sqlalchemy import text
 
-from app.api.v1 import auth, dev_notes, inquiries, me, projects, samples, tags, users
+from app.api.v1 import auth, dev_notes, inquiries, me, patterns, projects, samples, tags, users
 from app.db.session import engine
 
 api_router = APIRouter()
@@ -35,4 +35,5 @@ api_router.include_router(me.router, prefix="/me", tags=["me"])
 api_router.include_router(dev_notes.router, prefix="/dev-notes", tags=["dev-notes"])
 api_router.include_router(samples.router, prefix="/samples", tags=["samples"])  # S1-07
 api_router.include_router(tags.router, prefix="/tags", tags=["tags"])  # S1-07
+api_router.include_router(patterns.router, prefix="/patterns", tags=["patterns"])  # S1-08
 # TODO(Phase 1): users, projects, inquiries ... 라우터도 같은 방식으로 추가

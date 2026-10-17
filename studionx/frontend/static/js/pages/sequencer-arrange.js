@@ -16,6 +16,7 @@ import { PPQ } from '../audio/timing.js';
 //     종류가 다른 트랙에 놓으면 새 트랙을 만들지 물어보고 그 트랙 바로 아래에 — 트랙 번호는 위치대로 다시 매김
 // 11) 도구 동작 (P Draw · B Paint · D Delete · T Mute · S Slip · C Slice · Zoom) + 단축키
 // 12) 트랙 머리 버튼 (켜기/끄기 · M · S · ● · V · 그룹 ▾) · ＋ Add Track (MIDI · Audio · Return)
+//    머리의 빈 곳 클릭 = 트랙 선택 (Ctrl = 여러 개 · Shift = 사이 모두) · Ctrl+G = 선택 트랙 그룹화 · 오른쪽 클릭 = 메뉴
 // 13) 마커 (＋ · ◀ ▶ · 빈 곳 오른쪽 클릭 · 클릭 = 이동 · 더블 클릭 = 이름 · 선택 후 Delete) · 녹음 ● · 시간 표시
 //    소리 엔진이 아직 없어서 ▶ 를 누르면 BPM 에 맞춰 화면의 재생선만 움직임. 엔진이 생기면 setPlayheadBar() 로 위치를 넘기면 됨
 // 위치·길이는 화면에만 바뀜. 저장(PATCH /clips/{id}, POST /clips)은 sequencer.js 구현 때 onChange 에서
@@ -723,7 +724,12 @@ export function createClip({ kind, name, start, length }) {
 
 /* ───────────── 1) 편곡 좌우 이동 ───────────── */
 
-function initPan({ scroll }) {
+/** 마디 눈금에서 클릭한 x → 마디 (눈금 줄 왼쪽 = 0마디, Alt 면 스냅 없이). 클릭 = 플레이헤드 옮기기 */
+function rulerBar(barEl, clientX, free, lanes) {
+  return snap((clientX - barEl.getBoundingClientRect().left) / barWidth(lanes), free);
+}
+
+function initPan({ scroll, lanes }) {
   const PAN_AREA = '.sq-ruler__bars, .sq-markers__track, .sq-track__lane, .sq-fill__lane';
   let pan = null;
 
@@ -739,6 +745,8 @@ function initPan({ scroll }) {
     pan = {
       x: e.clientX, left: scroll.scrollLeft, id: e.pointerId, moved: false,
       clear: !middle && !e.ctrlKey && !e.metaKey && !!e.target.closest('.sq-track__lane, .sq-fill__lane'),
+      // 마디 눈금을 그냥 클릭(끌지 않음) → 플레이헤드를 그 자리로 (FR-2331)
+      ruler: !middle ? e.target.closest('.sq-ruler__bars') : null,
       // Draw 도구로 빈 트랙 칸을 클릭(끌지 않음) → 그 자리에 클립 놓기
       draw: !middle && currentTool === 'draw' ? { lane: e.target.closest('.sq-track__lane'), x: e.clientX, free: e.altKey } : null,
     };
@@ -758,6 +766,7 @@ function initPan({ scroll }) {
   const end = (e) => {
     if (!pan || e.pointerId !== pan.id) return;
     if (pan.moved) scroll.releasePointerCapture(e.pointerId);
+    else if (pan.ruler) setPlayheadBar(clamp(rulerBar(pan.ruler, e.clientX, e.altKey, lanes), 0, totalBars(lanes)));
     else if (pan.draw?.lane && drawClipAt(pan.draw.lane, pan.draw.x, pan.draw.free)) { /* 놓음 */ }
     else if (pan.clear) clearSelection(scroll);   // 트랙 빈 곳을 그냥 클릭 → 선택 풀기
     scroll.classList.remove('is-panning');
@@ -2372,6 +2381,31 @@ export function toggleTrackPanel(track, keepOthers = false) {
   acc.hidden = !open;
   btn.setAttribute('aria-expanded', String(open));
   track.classList.toggle('is-open', open);
+  saveOpenPanels();
+}
+
+/** 펼쳐 둔 트랙 번호를 담아 두는 곳 (FR-261 펼침 상태 기억, 2026-10-17) */
+const PANEL_KEY = 'sq-open-tracks';
+
+/** 지금 펼쳐진 트랙 번호를 localStorage 에 담는다 (창을 닫았다 열어도 그대로) */
+function saveOpenPanels() {
+  try {
+    const ids = [...document.querySelectorAll('#tracks > .sq-track.is-open')]
+      .map((t) => t.dataset.trackId)
+      .filter(Boolean);
+    localStorage.setItem(PANEL_KEY, JSON.stringify(ids));
+  } catch { /* 저장 못 하는 환경은 그냥 넘어감 */ }
+}
+
+/** 담아 둔 펼침 상태를 되살린다 — 트랙을 그린 뒤(sequencer.js init)에 부른다 (FR-261) */
+export function restoreOpenPanels() {
+  let ids = [];
+  try { ids = JSON.parse(localStorage.getItem(PANEL_KEY) || '[]'); } catch { ids = []; }
+  if (!Array.isArray(ids) || !ids.length) return;
+  for (const id of ids) {
+    const track = document.querySelector(`#tracks > .sq-track[data-track-id="${id}"]`);
+    if (track && !track.classList.contains('is-open')) toggleTrackPanel(track, true);
+  }
 }
 
 /** 그룹 ▾ — 안쪽 트랙(data-parent)과 그 펼침을 접고 펴기 */
@@ -2478,10 +2512,151 @@ function initTrackReorder({ lanes, onChange }) {
   });
 }
 
+/* ───────────── 트랙 선택 · 그룹 (FR-207 그룹 · FR-2210) ───────────── */
+
+let groupSeq = 0;
+let trackAnchor = null;   // Shift 범위 선택의 기준 트랙
+
+/** #tracks 안의 트랙 줄 (그룹 · MASTER 포함) */
+function trackItems() {
+  const container = document.getElementById('tracks');
+  return container ? [...container.children].filter((el) => el.classList.contains('sq-track')) : [];
+}
+
+/** 지금 선택된 트랙 줄 (MASTER 는 빼고) */
+export function selectedTracks() {
+  return trackItems().filter((t) => t.classList.contains('is-selected') && !t.classList.contains('sq-track--master'));
+}
+
+/** 트랙 선택 풀기 */
+export function clearTrackSelection() {
+  trackItems().forEach((t) => t.classList.remove('is-selected'));
+  trackAnchor = null;
+}
+
+/**
+ * 트랙 한 줄 선택 — 머리의 빈 곳을 클릭할 때 부릅니다.
+ * 그냥 클릭 = 이것만 · Ctrl/Cmd = 더하고 빼기 · Shift = 기준 트랙에서 여기까지 모두
+ * @param {HTMLElement} track  클릭한 트랙 줄
+ * @param {{ ctrlKey?: boolean, metaKey?: boolean, shiftKey?: boolean }} [e]
+ */
+export function selectTrack(track, e = {}) {
+  if (!track || track.classList.contains('sq-track--master')) return;
+  const list = trackItems();
+  const multi = e.ctrlKey || e.metaKey;
+  if (e.shiftKey && trackAnchor && list.includes(trackAnchor)) {
+    const a = list.indexOf(trackAnchor);
+    const b = list.indexOf(track);
+    const lo = Math.min(a, b);
+    const hi = Math.max(a, b);
+    list.forEach((t, i) => t.classList.toggle('is-selected', i >= lo && i <= hi && !t.classList.contains('sq-track--master')));
+  } else if (multi) {
+    track.classList.toggle('is-selected');
+    trackAnchor = track;
+  } else {
+    list.forEach((t) => t.classList.toggle('is-selected', t === track));
+    trackAnchor = track;
+  }
+}
+
+/** 그룹 트랙 한 줄을 만듭니다 (이름은 "Group N") — ADD › Group track 과 선택 그룹화가 함께 씁니다 */
+function createGroupEl() {
+  const li = document.createElement('li');
+  li.className = 'sq-track sq-track--group';
+  li.dataset.trackId = `grp-${++groupSeq}`;
+  li.innerHTML = `
+            <div class="sq-track__head">
+              <button type="button" class="sq-grip" aria-label="Reorder track" title="Drag to reorder">⠿</button>
+              <button type="button" class="sq-power" aria-pressed="true" aria-label="Track on/off"></button>
+              <button type="button" class="sq-fold" aria-expanded="true" aria-label="Collapse group">▾</button>
+              <span class="sq-track__name"><b>Group ${groupSeq} <span class="sq-badge is-group">GROUP</span></b><small>0 tracks</small></span>
+              <span class="sq-msr"><button type="button" class="is-mute" aria-pressed="false" aria-label="Mute">M</button><button type="button" class="is-solo" aria-pressed="false" aria-label="Solo">S</button></span>
+              <button type="button" class="sq-track__del" aria-label="Delete track" title="Delete track">×</button>
+            </div>
+            <div class="sq-track__lane"><span class="sq-track__note">No tracks</span></div>`;
+  return li;
+}
+
+/** 그룹 머리의 "N tracks" 글자를 지금 안쪽 트랙 수에 맞춤 */
+function updateGroupCount(group) {
+  const n = document.querySelectorAll(`#tracks > .sq-track[data-parent="${group.dataset.trackId}"]`).length;
+  const small = group.querySelector('.sq-track__name small');
+  if (small) small.textContent = `${n} track${n === 1 ? '' : 's'}`;
+}
+
+/** 빈 그룹 트랙 하나를 트랙 목록 끝(리턴 · MASTER 위)에 넣습니다 */
+export function addGroup(notify = arrangeOnChange) {
+  const container = document.getElementById('tracks');
+  if (!container) return null;
+  const group = createGroupEl();
+  const before = container.querySelector('.sq-track--return, .sq-track--master');
+  if (before) before.before(group);
+  else container.append(group);
+  notify({ type: 'createTrack', track: group, kind: 'group', trackId: group.dataset.trackId });
+  return group;
+}
+
+/**
+ * 선택한 트랙들을 새 그룹으로 묶습니다 (Ctrl+G · 오른쪽 클릭 메뉴).
+ * 첫 선택 트랙 자리에 그룹 줄을 놓고 그 아래로 옮기며 data-parent · is-child 를 붙입니다.
+ * 선택이 없으면 빈 그룹을 하나 만듭니다 (ADD › Group track 과 같게).
+ * @returns {HTMLElement|null} 만든 그룹 줄
+ */
+export function groupSelectedTracks(notify = arrangeOnChange) {
+  const sel = selectedTracks();
+  if (!sel.length) return addGroup(notify);
+  const group = createGroupEl();
+  sel[0].before(group);
+  [...sel].reverse().forEach((t) => {
+    const acc = t.nextElementSibling;   // 펼침 칸은 트랙 바로 뒤에 붙어 있어 함께 옮김
+    const withAcc = acc && acc.classList.contains('sq-acc') ? acc : null;
+    group.after(t);   // 역순으로 넣어 원래 위에서 아래 차례를 지킴
+    if (withAcc) t.after(withAcc);
+    t.dataset.parent = group.dataset.trackId;
+    t.classList.add('is-child');
+  });
+  clearTrackSelection();
+  group.classList.add('is-selected');
+  trackAnchor = group;
+  updateGroupCount(group);
+  notify({ type: 'group', trackId: group.dataset.trackId, children: sel.map((t) => t.dataset.trackId) });
+  return group;
+}
+
+/** 선택한 그룹들을 풀어 안쪽 트랙을 다시 밖으로 냅니다 (오른쪽 클릭 메뉴) */
+export function ungroupTracks(notify = arrangeOnChange) {
+  const groups = selectedTracks().filter((t) => t.classList.contains('sq-track--group'));
+  if (!groups.length) return 0;
+  groups.forEach((g) => {
+    document.querySelectorAll(`#tracks > .sq-track[data-parent="${g.dataset.trackId}"]`).forEach((t) => {
+      delete t.dataset.parent;
+      t.classList.remove('is-child');
+    });
+    g.remove();
+  });
+  notify({ type: 'ungroup', trackIds: groups.map((g) => g.dataset.trackId) });
+  return groups.length;
+}
+
+/** 선택한 트랙들을 지웁니다 (오른쪽 클릭 메뉴 · Delete) — 그룹을 지우면 안쪽 트랙은 다시 밖으로 내놓습니다 */
+export function deleteSelectedTracks(notify = arrangeOnChange) {
+  selectedTracks().forEach((t) => {
+    if (t.classList.contains('sq-track--group')) {
+      document.querySelectorAll(`#tracks > .sq-track[data-parent="${t.dataset.trackId}"]`).forEach((c) => {
+        delete c.dataset.parent;
+        c.classList.remove('is-child');
+      });
+    }
+    deleteTrack(t, notify);
+  });
+}
+
 function initTrackButtons({ lanes, onChange }) {
   lanes.addEventListener('click', (e) => {
     const b = e.target.closest('button');
-    const track = b?.closest('.sq-track');
+    const track = e.target.closest('.sq-track');
+    // 머리의 빈 곳(버튼 아님) 클릭 = 트랙 선택 (Ctrl · Cmd = 여러 개, Shift = 사이 모두)
+    if (track && e.target.closest('.sq-track__head') && !b) { selectTrack(track, e); return; }
     if (!b || !track || !b.closest('.sq-track__head')) return;
     const id = track.dataset.trackId;
     if (b.matches('.sq-track__del')) { deleteTrack(track, onChange); return; }
