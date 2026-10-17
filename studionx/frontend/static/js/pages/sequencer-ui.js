@@ -8,6 +8,10 @@ import {
   showToast, startPlayback, pausePlayback, isPlaying, getPlayheadBar, setPlayheadBar, setDrawTemplate, addTrack,
 } from './sequencer-arrange.js';
 import { openRoll } from './sequencer-roll.js';
+import {
+  fetchSampleList, uploadSample, fetchSampleFileUrl, fetchSampleWaveform,
+  renameSample, setSampleTags, deleteSample, fetchTags,
+} from '../core/api.js';
 
 let onChange = () => {};
 
@@ -19,6 +23,7 @@ export function initUI(options = {}) {
   initTransportExtras();
   initHeaderChips();
   initRail();
+  initSamplePanel();
   initBottomPanels();
   initAccordionButtons();
   initAgentAndSample();
@@ -408,16 +413,18 @@ function visibleList() {
   return [...document.querySelectorAll('.sq-files .sq-filelist')].find((l) => !l.hidden);
 }
 
+/** 목록 거르기 — Samples(#file-list) 는 서버 데이터라 applySampleFilters 로, 나머지 생성 목록은 여기서 */
 function applyFilters() {
   const list = visibleList();
   if (!list) return;
-  const q = document.getElementById('file-search')?.value.trim().toLowerCase() ?? '';
-  const chip = list.id === 'file-list' ? document.querySelector('.sq-filters [aria-pressed="true"]') : null;
-  const re = chip ? FILTERS[chip.textContent.trim()] : null;
+  if (list.id === 'file-list') { applySampleFilters(); return; }
+  const searchEl = document.getElementById('file-search');
+  const q = (searchEl && searchEl.value ? searchEl.value : '').trim().toLowerCase();
   let shown = 0;
   list.querySelectorAll('.sq-file').forEach((li) => {
-    const name = li.querySelector('.sq-file__name')?.textContent ?? '';
-    const ok = (!q || name.toLowerCase().includes(q)) && (!re || re.test(name));
+    const nameEl = li.querySelector('.sq-file__name');
+    const name = nameEl ? nameEl.textContent : '';
+    const ok = !q || name.toLowerCase().includes(q);
     li.hidden = !ok;
     if (ok) shown += 1;
   });
@@ -479,31 +486,9 @@ function initRail() {
     if (li.dataset.kind) setDrawTemplate({ kind: li.dataset.kind, name: li.dataset.name, length: parseFloat(li.dataset.bars) || 1 });
     if (li.classList.contains('is-missing')) showToast('Relinking missing files needs the server');
   });
-  // 필터 칩 — 하나만, 다시 누르면 전체
-  document.querySelector('.sq-filters')?.addEventListener('click', (e) => {
-    const b = e.target.closest('button');
-    if (!b) return;
-    const on = b.getAttribute('aria-pressed') !== 'true';
-    b.parentElement.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', 'false'));
-    b.setAttribute('aria-pressed', String(on));
-    applyFilters();
-  });
-  document.getElementById('file-search')?.addEventListener('input', applyFilters);
+  // 검색·필터 · 업로드 · 드롭 존은 initSamplePanel (S1-07) 이 맡음
   document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') { e.preventDefault(); document.getElementById('file-search')?.focus(); }
-  });
-  // 업로드 · 드롭 존 — 고르기까지만 (업로드는 서버 연결 후)
-  const input = document.getElementById('upload-input');
-  document.getElementById('upload-button')?.addEventListener('click', () => input?.click());
-  input?.addEventListener('change', () => { if (input.files.length) showToast(`${input.files.length} file(s) selected — uploading needs the server`); input.value = ''; });
-  const drop = document.getElementById('drop-zone');
-  drop?.addEventListener('dragover', (e) => { if ([...e.dataTransfer.types].includes('Files')) { e.preventDefault(); drop.classList.add('is-over'); } });
-  drop?.addEventListener('dragleave', () => drop.classList.remove('is-over'));
-  drop?.addEventListener('drop', (e) => {
-    e.preventDefault();
-    drop.classList.remove('is-over');
-    const n = e.dataTransfer.files.length;
-    if (n) showToast(`${n} file(s) dropped — uploading needs the server`);
   });
   // 협업 패널 · 채팅
   document.getElementById('rail-members')?.addEventListener('click', () => toggleCollab());
@@ -527,7 +512,732 @@ function initRail() {
   });
 }
 
-/* ───────── 트랙 펼침 버튼 ───────── */
+/* ───────── 왼쪽: 샘플 라이브러리 (S1-07, FR-221~227) ─────────
+   core/api.js 의 API 함수(193~200)를 불러 목록 · 태그 · 파형 · 미리듣기 · 업로드 · 이름 · 태그 · 삭제 · 저장 용량을
+   담당합니다. 화면 함수 번호는 201~210 입니다. 선택자(#file-list, .sq-file, .sq-file__wave, .sq-filters, #drop-zone,
+   #upload-list …)는 studioNx.html · studio.css 와 맞춰 둔 이름이라 바꾸지 않습니다. */
+
+// 화면이 기억하는 값 — 목록 · 태그 · 재생 중 샘플 · 저장 용량
+const sampleState = {
+  items: [],
+  total: 0,
+  tags: [],
+  filterTag: null,     // ＋ Tag 로 고른 태그 이름 (없으면 null)
+  playingId: null,     // 재생 중인 샘플 번호 (없으면 null)
+  audio: null,         // 재생 중인 <audio> 하나 (동시에 하나만)
+  usedBytes: 0,        // 목록 file_size 합 — 남은 용량 API(FR-134)가 생기면 그 값으로 바꿈
+  limitBytes: 1024 * 1024 * 1024,
+};
+let sampleFilterTimer = 0;
+
+/**
+ * 201. 라이브러리 패널 시작 (FR-221~227)
+ * - 태그 목록(200) → 목록(193) 순서로 부르고, 하나가 실패해도 패널은 그대로 씁니다
+ * - 검색 · 필터 · 업로드 · 드롭 · 빈 목록 버튼을 모두 여기서 연결합니다
+ * (구현: AI — 2026-10-17, S1-07, 함수 하나씩 검토)
+ */
+async function initSamplePanel() {
+  const listEl = document.getElementById('file-list');
+  if (!listEl) return;
+  const uploadEl = document.getElementById('upload-list');
+  if (uploadEl) { uploadEl.textContent = ''; uploadEl.hidden = true; }   // 목업 예시 줄 비우기
+  bindSamplePanelEvents();
+  readStorageLimit();
+  try {
+    const tagRes = await fetchTags();
+    sampleState.tags = tagRes && tagRes.items ? tagRes.items : [];
+  } catch (e) {
+    sampleState.tags = [];   // 태그가 없어도 목록은 보여 줍니다
+  }
+  await loadSampleList();
+}
+
+/** 목록 불러와 그리기 — 실패해도 화면에 있던 예시 줄은 지우지 않습니다 */
+async function loadSampleList() {
+  try {
+    const res = await fetchSampleList({ size: 50 });
+    renderSampleList(res && res.items ? res.items : [], res ? res.total : 0);
+  } catch (e) {
+    if (!e || e.status !== 401) showToast('Could not load your samples');
+  }
+}
+
+/**
+ * 202. 샘플 목록 그리기 (FR-224)
+ * @param {object[]} items  SampleResponse 배열 (태그 포함)
+ * @param {number} total    서버가 알려 준 전체 개수
+ * - 한 줄마다 재생 버튼 · 아이콘 · 이름+태그 · 길이/키 · 파형 · 삭제 버튼을 만듭니다
+ * - 전부 그리면 거르기(204)를 한 번 돌려 검색·필터 상태와 맞춥니다
+ * (구현: AI — 2026-10-17, S1-07, 함수 하나씩 검토)
+ */
+function renderSampleList(items, total) {
+  const listEl = document.getElementById('file-list');
+  if (!listEl) return;
+  sampleState.items = items;
+  sampleState.total = total;
+  listEl.textContent = '';
+  items.forEach((item) => listEl.appendChild(sampleRow(item)));
+  sampleState.usedBytes = items.reduce((sum, item) => sum + (item.file_size ? item.file_size : 0), 0);
+  updateStorageBar(sampleState.usedBytes, sampleState.limitBytes);
+  applySampleFilters();
+}
+
+/** 목록 한 줄 만들기 — studioNx.html 의 li.sq-file 과 같은 모양 */
+function sampleRow(item) {
+  const li = document.createElement('li');
+  li.className = 'sq-file';
+  li.setAttribute('role', 'option');
+  li.setAttribute('aria-selected', 'false');
+  li.setAttribute('draggable', 'true');
+  li.dataset.kind = 'audio';
+  li.dataset.sampleId = String(item.sample_id);
+  li.dataset.name = item.name;
+  li.dataset.bars = String(sampleBars(item.duration_ms));
+
+  const play = document.createElement('button');
+  play.type = 'button';
+  play.className = 'sq-file__play';
+  play.setAttribute('aria-label', 'Preview ' + item.name);
+  play.textContent = '▶';
+  li.appendChild(play);
+
+  const icon = document.createElement('span');
+  icon.className = 'sq-file__icon';
+  icon.setAttribute('aria-hidden', 'true');
+  icon.textContent = sampleIcon(item);
+  li.appendChild(icon);
+
+  const title = document.createElement('span');
+  title.className = 'sq-file__title';
+  const name = document.createElement('span');
+  name.className = 'sq-file__name';
+  name.textContent = item.name;
+  title.appendChild(name);
+  const tags = document.createElement('span');
+  tags.className = 'sq-file__tags';
+  const itemTags = item.tags ? item.tags : [];
+  itemTags.forEach((tag) => {
+    const chip = document.createElement('span');
+    chip.className = tag.category === 'GENRE' ? 'sq-file__tag is-genre' : 'sq-file__tag';
+    chip.textContent = tag.name;
+    tags.appendChild(chip);
+  });
+  title.appendChild(tags);
+  li.appendChild(title);
+
+  const meta = document.createElement('span');
+  meta.className = 'sq-file__meta sq-num';
+  meta.textContent = sampleMeta(item);
+  li.appendChild(meta);
+
+  const wave = document.createElement('span');
+  wave.className = 'sq-file__wave';
+  const fill = document.createElement('i');
+  fill.style.setProperty('--p', '0%');
+  wave.appendChild(fill);
+  li.appendChild(wave);
+
+  const del = document.createElement('button');
+  del.type = 'button';
+  del.className = 'sq-file__del';
+  del.setAttribute('aria-label', 'Delete ' + item.name);
+  del.textContent = '×';
+  li.appendChild(del);
+
+  drawSampleWaveform(li);
+  return li;
+}
+
+/** 이름과 태그로 아이콘 하나 고르기 */
+function sampleIcon(item) {
+  const tags = item.tags ? item.tags.map((t) => t.name).join(' ') : '';
+  const text = (item.name + ' ' + tags).toLowerCase();
+  if (/kick|snare|hat|drum|perc|clap|tom/.test(text)) return '🥁';
+  if (/vox|vocal|voice/.test(text)) return '🎤';
+  if (/bass|sub|808/.test(text)) return '🔊';
+  if (/gtr|guitar|strum/.test(text)) return '🎸';
+  if (/pad|key|piano|chord/.test(text)) return '🎹';
+  if (/riser|sweep|fx|impact|hit|transition/.test(text)) return '✨';
+  if (/loop/.test(text)) return '🔁';
+  return '🎵';
+}
+
+/** 길이(0:05) · 조성(C) · BPM(145) 을 이어 붙인 한 줄 */
+function sampleMeta(item) {
+  const parts = [];
+  parts.push(item.duration_ms ? formatDuration(item.duration_ms) : '--:--');
+  if (item.music_key) parts.push(item.music_key);
+  if (item.bpm) parts.push(String(item.bpm));
+  return parts.join(' · ');
+}
+
+/** 밀리초 → 분:초 */
+function formatDuration(ms) {
+  const total = Math.round(ms / 1000);
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+/** 길이를 마디로 (120 BPM · 4/4 에서 1마디 = 2초) — 트랙에 끌어 놓을 때 클립 길이 */
+function sampleBars(ms) {
+  if (!ms) return 1;
+  return Math.max(0.25, Math.round((ms / 2000) * 4) / 4);
+}
+
+/**
+ * 203. 목록 줄의 파형 그리기 (FR-223) — GET /samples/{id}/waveform 의 peaks 를 캔버스에
+ * - 파형이 아직 없거나 실패하면 아무것도 하지 않아 세로 무늬(마스크)가 그대로 남습니다
+ * - 캔버스는 줄마다 한 번 만들고, 그 뒤 다시 그릴 때는 같은 캔버스를 씁니다
+ * (구현: AI — 2026-10-17, S1-07, 함수 하나씩 검토)
+ */
+async function drawSampleWaveform(row) {
+  const wave = row.querySelector('.sq-file__wave');
+  const id = row.dataset.sampleId;
+  if (!wave || !id) return;
+  let data = null;
+  try {
+    data = await fetchSampleWaveform(id);
+  } catch (e) {
+    return;
+  }
+  const peaks = data && data.peaks ? data.peaks : null;
+  if (!peaks || !peaks.length) return;
+  let canvas = wave.querySelector('canvas');
+  if (!canvas) {
+    canvas = document.createElement('canvas');
+    canvas.className = 'sq-file__wave__canvas';
+    canvas.setAttribute('aria-hidden', 'true');
+    wave.insertBefore(canvas, wave.firstChild);
+    wave.classList.add('has-wave');
+  }
+  drawPeaks(canvas, peaks, window.getComputedStyle(wave).color);
+}
+
+/** peaks([최솟값, 최댓값]) 를 캔버스에 세로 막대로 그림 (화면 배율 반영) */
+function drawPeaks(canvas, peaks, color) {
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+  if (w < 2 || h < 2) return;
+  const dpr = window.devicePixelRatio || 1;
+  const pw = Math.max(1, Math.round(w * dpr));
+  const ph = Math.max(1, Math.round(h * dpr));
+  if (canvas.width !== pw || canvas.height !== ph) { canvas.width = pw; canvas.height = ph; }
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  const mid = h / 2;
+  ctx.fillStyle = color || 'currentColor';
+  const step = peaks.length / w;
+  for (let x = 0; x < w; x++) {
+    const peak = peaks[Math.min(peaks.length - 1, Math.floor(x * step))];
+    const lo = peak && peak.length ? peak[0] : 0;
+    const hi = peak && peak.length ? peak[1] : 0;
+    const top = mid - hi * mid;
+    const bot = mid - lo * mid;
+    ctx.fillRect(x, Math.max(0, top), 1, Math.max(1, bot - top));
+  }
+}
+
+/**
+ * 204. 목록 거르기 (FR-224) — 검색어 · 필터 칩 · 고른 태그로 줄을 숨기고 개수를 셉니다
+ * - 검색어가 # 로 시작하면 태그 이름에서, 아니면 샘플 이름에서 찾습니다
+ * - 필터 칩(Drums/Bass/…)은 기존 FILTERS 정규식을 이름에 겁니다
+ * - 0건일 때 빈 목록/결과 없음을 toggleEmptyState 로 보여 줍니다
+ * (구현: AI — 2026-10-17, S1-07, 함수 하나씩 검토)
+ */
+function applySampleFilters() {
+  const listEl = document.getElementById('file-list');
+  if (!listEl) return;
+  const searchEl = document.getElementById('file-search');
+  const q = (searchEl && searchEl.value ? searchEl.value : '').trim().toLowerCase();
+  const chip = document.querySelector('.sq-filters [aria-pressed="true"]');
+  const chipName = chip && chip.textContent ? chip.textContent.trim() : '';
+  const re = FILTERS[chipName] ? FILTERS[chipName] : null;
+  const tagName = sampleState.filterTag ? sampleState.filterTag.toLowerCase() : null;
+  const byTag = q.charAt(0) === '#';
+  let shown = 0;
+  listEl.querySelectorAll('.sq-file').forEach((li) => {
+    const nameEl = li.querySelector('.sq-file__name');
+    const name = nameEl ? nameEl.textContent.toLowerCase() : '';
+    const tags = Array.prototype.map.call(li.querySelectorAll('.sq-file__tag'), (t) => t.textContent.toLowerCase());
+    let ok = true;
+    if (q) {
+      ok = byTag ? tags.some((t) => t.indexOf(q.slice(1)) !== -1) : name.indexOf(q) !== -1;
+    }
+    if (ok && re && !re.test(name)) ok = false;
+    if (ok && tagName && tags.indexOf(tagName) === -1) ok = false;
+    li.hidden = !ok;
+    if (ok) shown += 1;
+  });
+  const count = document.querySelector('.sq-files__count');
+  if (count) count.textContent = `${shown} items`;
+  toggleEmptyState(sampleState.items.length, shown);
+}
+
+/**
+ * 209. 빈 목록 · 결과 없음 상태 보이기 (FR-221·224)
+ * @param {number} total  전체 샘플 수
+ * @param {number} shown  거른 뒤 보이는 수
+ * - total 이 0이면 빈 목록, total 은 있는데 shown 이 0이면 결과 없음을 보입니다
+ * (구현: AI — 2026-10-17, S1-07, 함수 하나씩 검토)
+ */
+function toggleEmptyState(total, shown) {
+  const empty = document.getElementById('files-empty');
+  const none = document.getElementById('files-noresults');
+  if (!empty || !none) return;
+  empty.hidden = total > 0;
+  const noResults = total > 0 && shown === 0;
+  none.hidden = !noResults;
+  if (noResults) {
+    const query = document.getElementById('noresults-query');
+    const searchEl = document.getElementById('file-search');
+    if (query) query.textContent = searchEl ? searchEl.value.trim() : '';
+  }
+}
+
+/**
+ * 205. 미리듣기 켜기/끄기 (FR-224) — 줄의 ▶ 를 누르면 재생, 다시 누르면 멈춤
+ * - 한 번에 한 샘플만 재생합니다. 파형 채움(--p)은 재생 위치에 맞춰 찹니다
+ * (구현: AI — 2026-10-17, S1-07, 함수 하나씩 검토)
+ */
+async function toggleSamplePreview(row) {
+  const id = row.dataset.sampleId;
+  if (!id) return;
+  if (sampleState.playingId === id) { stopSamplePreview(); return; }
+  stopSamplePreview();
+  let url = null;
+  try {
+    url = await fetchSampleFileUrl(id);
+  } catch (e) {
+    showToast('Could not load the sample');
+    return;
+  }
+  const audio = new Audio(url);
+  sampleState.audio = audio;
+  sampleState.playingId = id;
+  row.classList.add('is-playing');
+  setSamplePlayGlyph(row, true);
+  const fill = row.querySelector('.sq-file__wave i');
+  audio.addEventListener('timeupdate', () => {
+    if (!audio.duration) return;
+    const p = Math.min(100, (audio.currentTime / audio.duration) * 100);
+    if (fill) fill.style.setProperty('--p', p.toFixed(1) + '%');
+  });
+  audio.addEventListener('ended', () => stopSamplePreview());
+  const played = audio.play();
+  if (played && played.catch) played.catch(() => stopSamplePreview());
+}
+
+/** 미리듣기 멈추기 — 재생 중 화면 상태를 되돌립니다 */
+function stopSamplePreview() {
+  const id = sampleState.playingId;
+  if (sampleState.audio) { sampleState.audio.pause(); sampleState.audio = null; }
+  sampleState.playingId = null;
+  if (id == null) return;
+  const listEl = document.getElementById('file-list');
+  const row = listEl ? listEl.querySelector('.sq-file[data-sample-id="' + id + '"]') : null;
+  if (!row) return;
+  row.classList.remove('is-playing');
+  setSamplePlayGlyph(row, false);
+  const fill = row.querySelector('.sq-file__wave i');
+  if (fill) fill.style.setProperty('--p', '0%');
+}
+
+/** 재생 버튼 글자(▶ / ❚❚)와 설명 바꾸기 */
+function setSamplePlayGlyph(row, playing) {
+  const btn = row.querySelector('.sq-file__play');
+  if (!btn) return;
+  btn.textContent = playing ? '❚❚' : '▶';
+  btn.setAttribute('aria-label', (playing ? 'Pause ' : 'Preview ') + (row.dataset.name || 'sample'));
+}
+
+/**
+ * 206. 업로드 줄 세우기 (FR-226) — 고른/떨어뜨린 파일들을 하나씩 올립니다
+ * - 파일마다 진행 줄(207)을 만들고, 진행률은 uploadSample 의 progress 로 채웁니다
+ * - 취소(×)를 누르면 AbortController 로 그 파일 업로드만 멈춥니다
+ * - 끝나면 줄을 지우고, 성공이면 목록 맨 위에 새 샘플을 넣고 저장 용량을 더합니다
+ * (구현: AI — 2026-10-17, S1-07, 함수 하나씩 검토)
+ */
+function uploadQueue(fileList) {
+  const listEl = document.getElementById('upload-list');
+  if (!listEl) return;
+  const files = Array.prototype.slice.call(fileList);
+  if (!files.length) return;
+  listEl.hidden = false;
+  files.forEach((file) => {
+    const row = renderUploadRow(file);
+    const controller = new AbortController();
+    const cancel = row.querySelector('.sq-upload-row__cancel');
+    if (cancel) cancel.addEventListener('click', () => controller.abort());
+    uploadSample(file, {
+      signal: controller.signal,
+      onProgress: (loaded, total) => setUploadProgress(row, loaded, total),
+    }).then((sample) => {
+      row.remove();
+      if (!listEl.children.length) listEl.hidden = true;
+      if (sample) {
+        prependSampleRow(sample);
+        sampleState.usedBytes += sample.file_size ? sample.file_size : 0;
+        sampleState.total += 1;
+        updateStorageBar(sampleState.usedBytes, sampleState.limitBytes);
+        applySampleFilters();
+      }
+      showToast(file.name + ' uploaded');
+    }).catch((err) => {
+      if (err && err.code === 'ABORTED') {
+        row.remove();
+      } else {
+        row.classList.add('is-error');
+        const em = row.querySelector('em');
+        if (em) em.textContent = uploadErrorMessage(err);
+      }
+      if (!listEl.children.length) listEl.hidden = true;
+    });
+  });
+}
+
+/**
+ * 207. 업로드 진행 줄 하나 만들기 (FR-226) — #upload-list 에 li.sq-upload-row 를 붙여 돌려줍니다
+ * @returns {HTMLLIElement}
+ * (구현: AI — 2026-10-17, S1-07, 함수 하나씩 검토)
+ */
+function renderUploadRow(file) {
+  const listEl = document.getElementById('upload-list');
+  const li = document.createElement('li');
+  li.className = 'sq-upload-row';
+
+  const icon = document.createElement('span');
+  icon.className = 'sq-upload-row__ic';
+  icon.setAttribute('aria-hidden', 'true');
+  icon.textContent = '🎵';
+  li.appendChild(icon);
+
+  const name = document.createElement('b');
+  name.textContent = file.name;
+  li.appendChild(name);
+
+  const state = document.createElement('em');
+  state.textContent = '0%';
+  li.appendChild(state);
+
+  const cancel = document.createElement('button');
+  cancel.type = 'button';
+  cancel.className = 'sq-upload-row__cancel';
+  cancel.setAttribute('aria-label', 'Cancel upload');
+  cancel.textContent = '×';
+  li.appendChild(cancel);
+
+  const bar = document.createElement('span');
+  bar.className = 'sq-upload-row__bar';
+  const fill = document.createElement('i');
+  fill.style.setProperty('--p', '0%');
+  bar.appendChild(fill);
+  li.appendChild(bar);
+
+  if (listEl) listEl.appendChild(li);
+  return li;
+}
+
+/** 진행률 채우기 — 바(--p)와 퍼센트 글자 */
+function setUploadProgress(row, loaded, total) {
+  const p = total ? Math.min(100, Math.round((loaded / total) * 100)) : 0;
+  const fill = row.querySelector('.sq-upload-row__bar i');
+  if (fill) fill.style.setProperty('--p', p + '%');
+  const state = row.querySelector('em');
+  if (state) state.textContent = p + '%';
+}
+
+/** 업로드 실패 이유를 짧은 말로 */
+function uploadErrorMessage(err) {
+  if (!err) return 'Upload failed';
+  if (err.code === 'STORAGE_QUOTA_EXCEEDED') return 'No space left';
+  if (err.code === 'FILE_TOO_LARGE') return 'Too large';
+  if (err.code === 'UNSUPPORTED_FILE_TYPE' || err.code === 'UNSUPPORTED_MEDIA_TYPE') return 'Unsupported format';
+  if (err.code === 'NETWORK_ERROR') return 'Network error';
+  return err.message ? err.message : 'Upload failed';
+}
+
+/** 업로드 성공 샘플을 목록 맨 위에 끼워 넣기 */
+function prependSampleRow(sample) {
+  const listEl = document.getElementById('file-list');
+  if (!listEl) return;
+  if (!sample.tags) sample.tags = [];
+  sampleState.items.unshift(sample);
+  listEl.insertBefore(sampleRow(sample), listEl.firstChild);
+}
+
+/**
+ * 208. 저장 용량 표시 (FR-227) — "620 MB / 1 GB" 글자와 --p 막대를 바꿉니다
+ * @param {number} usedBytes  쓴 양
+ * @param {number} limitBytes 최대 (화면에 있던 값에서 읽음, 기본 1 GB)
+ * (구현: AI — 2026-10-17, S1-07, 함수 하나씩 검토)
+ */
+function updateStorageBar(usedBytes, limitBytes) {
+  const storage = document.getElementById('storage');
+  if (!storage) return;
+  const label = document.querySelector('#storage .sq-storage__val');
+  const bar = document.querySelector('#storage .sq-storage__bar i');
+  const limit = limitBytes ? limitBytes : sampleState.limitBytes;
+  const pct = limit ? Math.min(100, (usedBytes / limit) * 100) : 0;
+  if (label) label.textContent = formatBytes(usedBytes) + ' / ' + formatBytes(limit);
+  if (bar) bar.style.setProperty('--p', pct.toFixed(1) + '%');
+}
+
+/** 바이트 → 12 MB · 1 GB 처럼 읽기 좋게 */
+function formatBytes(bytes) {
+  if (bytes == null) return '—';
+  const mb = bytes / (1024 * 1024);
+  if (mb >= 1024) return (mb / 1024).toFixed(1).replace(/\.0$/, '') + ' GB';
+  if (mb >= 1) return Math.round(mb) + ' MB';
+  return Math.round(bytes / 1024) + ' KB';
+}
+
+/** 한 글자 수(620 MB · 1 GB) → 바이트 */
+function parseBytes(text) {
+  const m = /([\d.]+)\s*(GB|MB|KB|B)/i.exec(text ? text : '');
+  if (!m) return 0;
+  const n = parseFloat(m[1]);
+  const unit = m[2].toUpperCase();
+  if (unit === 'GB') return n * 1024 * 1024 * 1024;
+  if (unit === 'MB') return n * 1024 * 1024;
+  if (unit === 'KB') return n * 1024;
+  return n;
+}
+
+/** 화면에 적힌 저장 한도(… / 1 GB)를 읽어 둠 — 남은 용량 API(FR-134)가 없어 표기값을 씁니다 */
+function readStorageLimit() {
+  const label = document.querySelector('#storage .sq-storage__val');
+  if (!label) return;
+  const parts = label.textContent.split('/');
+  if (parts.length === 2) {
+    const limit = parseBytes(parts[1]);
+    if (limit) sampleState.limitBytes = limit;
+  }
+}
+
+/**
+ * 210. 이름 · 태그 인라인 편집 (FR-225) — 줄을 더블 클릭하면 아래에 편집 상자를 엽니다
+ * - 이름은 글자칸, 태그는 /tags 목록의 누름 버튼으로 고릅니다
+ * - Save → 바뀐 것만 renameSample(197)·setSampleTags(198)로 보내고 줄을 다시 그립니다
+ * (구현: AI — 2026-10-17, S1-07, 함수 하나씩 검토)
+ */
+function startSampleEdit(row) {
+  const id = row.dataset.sampleId;
+  const listEl = document.getElementById('file-list');
+  if (!id || !listEl) return;
+  const existing = listEl.querySelector('.sq-file-edit');
+  if (existing) existing.remove();
+  const item = findSampleItem(id);
+  if (!item) return;
+
+  const box = document.createElement('li');
+  box.className = 'sq-file-edit';
+  box.dataset.sampleId = id;
+
+  const nameInput = document.createElement('input');
+  nameInput.type = 'text';
+  nameInput.className = 'sq-file-edit__name';
+  nameInput.maxLength = 200;
+  nameInput.value = item.name;
+  nameInput.setAttribute('aria-label', 'Sample name');
+  box.appendChild(nameInput);
+
+  const tagWrap = document.createElement('div');
+  tagWrap.className = 'sq-file-edit__tags';
+  const itemTagIds = (item.tags ? item.tags : []).map((t) => String(t.tag_id));
+  sampleState.tags.forEach((t) => {
+    const tagId = String(t.tag_id);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'sq-file-edit__tag';
+    box.dataset.sampleId = id;
+    btn.dataset.tagId = tagId;
+    btn.setAttribute('aria-pressed', itemTagIds.indexOf(String(t.tag_id)) !== -1 ? 'true' : 'false');
+    btn.textContent = t.name;
+    btn.addEventListener('click', () => btn.setAttribute('aria-pressed', btn.getAttribute('aria-pressed') === 'true' ? 'false' : 'true'));
+    tagWrap.appendChild(btn);
+  });
+  if (!sampleState.tags.length) {
+    const none = document.createElement('span');
+    none.className = 'sq-file-edit__none';
+    none.textContent = 'No tags available';
+    tagWrap.appendChild(none);
+  }
+  box.appendChild(tagWrap);
+
+  const actions = document.createElement('div');
+  actions.className = 'sq-file-edit__actions';
+  const cancel = document.createElement('button');
+  cancel.type = 'button';
+  cancel.className = 'sq-link';
+  cancel.textContent = 'Cancel';
+  cancel.addEventListener('click', () => box.remove());
+  const save = document.createElement('button');
+  save.type = 'button';
+  save.className = 'sq-upload sq-file-edit__save';
+  save.textContent = 'Save';
+  save.addEventListener('click', () => saveSampleEdit(row, box, item));
+  actions.appendChild(cancel);
+  actions.appendChild(save);
+  box.appendChild(actions);
+
+  row.after(box);
+  nameInput.focus();
+  nameInput.select();
+}
+
+/** 편집 상자의 값을 서버로 보내고 줄을 다시 그림 */
+async function saveSampleEdit(row, box, item) {
+  const save = box.querySelector('.sq-file-edit__save');
+  const nameEl = box.querySelector('.sq-file-edit__name');
+  const name = (nameEl && nameEl.value ? nameEl.value : '').trim();
+  const tagIds = Array.prototype.map.call(box.querySelectorAll('.sq-file-edit__tag[aria-pressed="true"]'), (b) => Number(b.dataset.tagId));
+  const currentIds = (item.tags ? item.tags : []).map((t) => String(t.tag_id)).sort().join(',');
+  const nextIds = tagIds.map((n) => String(n)).sort().join(',');
+  if (save) save.disabled = true;
+  try {
+    let updated = item;
+    if (name && name !== item.name) updated = await renameSample(item.sample_id, name);
+    if (currentIds !== nextIds) updated = await setSampleTags(item.sample_id, tagIds);
+    replaceSampleRow(row, updated ? updated : item);
+    box.remove();
+    showToast('Sample updated');
+  } catch (err) {
+    showToast(err && err.message ? err.message : 'Could not update the sample');
+    if (save) save.disabled = false;
+  }
+}
+
+/** 목록의 한 줄을 새 값으로 갈아 끼우기 */
+function replaceSampleRow(row, item) {
+  const idx = sampleState.items.findIndex((s) => String(s.sample_id) === String(item.sample_id));
+  if (idx !== -1) sampleState.items[idx] = item;
+  const fresh = sampleRow(item);
+  fresh.setAttribute('aria-selected', row.getAttribute('aria-selected') ? row.getAttribute('aria-selected') : 'false');
+  row.replaceWith(fresh);
+  applySampleFilters();
+}
+
+/** 샘플 번호로 목록 값 찾기 */
+function findSampleItem(id) {
+  return sampleState.items.find((s) => String(s.sample_id) === String(id)) || null;
+}
+
+/** 줄의 × 로 샘플 지우기 (FR-225) — 확인 후 deleteSample(199) */
+function removeSample(row) {
+  const id = row.dataset.sampleId;
+  const item = findSampleItem(id);
+  if (!id || !item) return;
+  if (!window.confirm('Delete "' + item.name + '"?')) return;
+  deleteSample(id).then(() => {
+    if (sampleState.playingId === id) stopSamplePreview();
+    const idx = sampleState.items.findIndex((s) => String(s.sample_id) === String(id));
+    if (idx !== -1) sampleState.items.splice(idx, 1);
+    sampleState.total = Math.max(0, sampleState.total - 1);
+    sampleState.usedBytes = Math.max(0, sampleState.usedBytes - (item.file_size ? item.file_size : 0));
+    updateStorageBar(sampleState.usedBytes, sampleState.limitBytes);
+    row.remove();
+    applySampleFilters();
+    showToast(item.name + ' deleted');
+  }).catch((err) => {
+    showToast(err && err.message ? err.message : 'Could not delete the sample');
+  });
+}
+
+/** ＋ Tag 버튼으로 태그 필터 돌리기 — 없음 → 태그1 → 태그2 … → 없음 */
+function cycleTagFilter(btn) {
+  const order = [null].concat(sampleState.tags.map((t) => t.name));
+  const idx = order.indexOf(sampleState.filterTag);
+  const next = order[(idx + 1) % order.length];
+  sampleState.filterTag = next;
+  btn.setAttribute('aria-pressed', next ? 'true' : 'false');
+  btn.textContent = next ? '#' + next : '＋ Tag';
+  applySampleFilters();
+}
+
+/** 태그 필터 지우기 */
+function clearTagFilter() {
+  sampleState.filterTag = null;
+  const btn = document.querySelector('.sq-filters__tag');
+  if (btn) { btn.setAttribute('aria-pressed', 'false'); btn.textContent = '＋ Tag'; }
+}
+
+/** 라이브러리 패널의 모든 버튼 연결 (201 에서 한 번) */
+function bindSamplePanelEvents() {
+  const listEl = document.getElementById('file-list');
+  if (listEl) {
+    listEl.addEventListener('click', (e) => {
+      const del = e.target.closest('.sq-file__del');
+      if (del) { removeSample(del.closest('.sq-file')); return; }
+      const play = e.target.closest('.sq-file__play');
+      if (play) { toggleSamplePreview(play.closest('.sq-file')); return; }
+    });
+    listEl.addEventListener('dblclick', (e) => {
+      const row = e.target.closest('.sq-file');
+      if (!row) return;
+      if (e.target.closest('.sq-file__title') || e.target.closest('.sq-file__tags')) startSampleEdit(row);
+    });
+  }
+
+  const searchEl = document.getElementById('file-search');
+  if (searchEl) {
+    searchEl.addEventListener('input', () => {
+      window.clearTimeout(sampleFilterTimer);
+      sampleFilterTimer = window.setTimeout(() => applySampleFilters(), 150);
+    });
+  }
+
+  const filters = document.querySelector('.sq-filters');
+  if (filters) {
+    filters.addEventListener('click', (e) => {
+      const tagBtn = e.target.closest('.sq-filters__tag');
+      if (tagBtn) { cycleTagFilter(tagBtn); return; }
+      const b = e.target.closest('button');
+      if (!b) return;
+      const on = b.getAttribute('aria-pressed') !== 'true';
+      b.parentElement.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', 'false'));
+      b.setAttribute('aria-pressed', String(on));
+      applySampleFilters();
+    });
+  }
+
+  const input = document.getElementById('upload-input');
+  const uploadBtn = document.getElementById('upload-button');
+  const emptyBtn = document.getElementById('empty-upload');
+  if (uploadBtn && input) uploadBtn.addEventListener('click', () => input.click());
+  if (emptyBtn && input) emptyBtn.addEventListener('click', () => input.click());
+  if (input) {
+    input.addEventListener('change', () => {
+      if (input.files && input.files.length) uploadQueue(input.files);
+      input.value = '';
+    });
+  }
+
+  const drop = document.getElementById('drop-zone');
+  if (drop) {
+    drop.addEventListener('dragover', (e) => {
+      if ([...e.dataTransfer.types].indexOf('Files') !== -1) { e.preventDefault(); drop.classList.add('is-over'); }
+    });
+    drop.addEventListener('dragleave', () => drop.classList.remove('is-over'));
+    drop.addEventListener('drop', (e) => {
+      e.preventDefault();
+      drop.classList.remove('is-over');
+      if (e.dataTransfer.files.length) uploadQueue(e.dataTransfer.files);
+    });
+  }
+
+  const clearBtn = document.getElementById('clear-search');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      if (searchEl) searchEl.value = '';
+      clearTagFilter();
+      applySampleFilters();
+    });
+  }
+}
+
+
 
 function rebuildFlows(chain) {
   // 카드 사이에만 → (＋ 는 마지막 뒤)
