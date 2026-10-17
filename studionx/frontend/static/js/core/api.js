@@ -168,3 +168,194 @@ export const api = {
   patch: (path, body, options) => apiFetch(path, { ...options, method: 'PATCH', body }),
   delete: (path, options) => apiFetch(path, { ...options, method: 'DELETE' }),
 };
+
+/* ───────── 샘플 라이브러리 (S1-07, FR-221~227) ─────────
+   시퀀서 왼쪽 라이브러리 패널이 부르는 함수들. 서버 경로·응답 모양은
+   backend/app/api/v1/samples.py · tags.py · schemas/sample.py · schemas/tag.py 와 같습니다.
+   대부분은 api.get/post... 를 그대로 감싸고, 업로드(진행률)와 파일(미리듣기)만 따로 처리합니다. */
+
+/**
+ * 내 라이브러리 목록 (FR-224) — GET /samples?query=&tag=&page=&size=
+ * @param {object} [params]
+ * @param {string} [params.query]  이름에 이 글자가 든 것만 (빈 값이면 전부)
+ * @param {number} [params.tag]    이 태그 번호가 붙은 것만
+ * @param {number} [params.page]   1부터
+ * @param {number} [params.size]   한 쪽에 받을 개수 (기본 10, 최대 50)
+ * @returns {Promise<{ items: object[], total: number, page: number, size: number }>}
+ * (구현: AI — 2026-10-17, S1-07, 함수 하나씩 검토)
+ */
+export async function fetchSampleList(params = {}) {
+  const qs = new URLSearchParams();
+  if (params.query) qs.set('query', params.query);
+  if (params.tag != null) qs.set('tag', String(params.tag));
+  if (params.page != null) qs.set('page', String(params.page));
+  if (params.size != null) qs.set('size', String(params.size));
+  const tail = qs.toString();
+  return api.get('/samples' + (tail ? '?' + tail : ''));
+}
+
+/**
+ * 샘플 하나의 파형 데이터 (FR-223) — GET /samples/{id}/waveform
+ * @param {number|string} sampleId
+ * @returns {Promise<{ peaks: number[][] }>}  peaks = [최솟값, 최댓값] 쌍의 배열
+ * (구현: AI — 2026-10-17, S1-07, 함수 하나씩 검토)
+ */
+export async function fetchSampleWaveform(sampleId) {
+  return api.get('/samples/' + encodeURIComponent(sampleId) + '/waveform');
+}
+
+/**
+ * 샘플 이름 바꾸기 (FR-225) — PATCH /samples/{id} { name }
+ * @param {number|string} sampleId
+ * @param {string} name
+ * @returns {Promise<object>}  바뀐 샘플 한 줄 (붙어 있는 태그 포함)
+ * (구현: AI — 2026-10-17, S1-07, 함수 하나씩 검토)
+ */
+export async function renameSample(sampleId, name) {
+  return api.patch('/samples/' + encodeURIComponent(sampleId), { name: name });
+}
+
+/**
+ * 샘플 태그 설정 (FR-225) — PUT /samples/{id}/tags { tag_ids }
+ * @param {number|string} sampleId
+ * @param {number[]} tagIds  이 목록이 태그의 전부가 됨 (빈 목록이면 모두 뗌)
+ * @returns {Promise<object>}  바뀐 샘플 한 줄 (새로 붙은 태그 포함)
+ * (구현: AI — 2026-10-17, S1-07, 함수 하나씩 검토)
+ */
+export async function setSampleTags(sampleId, tagIds) {
+  return api.put('/samples/' + encodeURIComponent(sampleId) + '/tags', { tag_ids: tagIds });
+}
+
+/**
+ * 샘플 소프트 삭제 (FR-225) — DELETE /samples/{id}
+ * @param {number|string} sampleId
+ * @returns {Promise<null>}  성공하면 204 라 null
+ * (구현: AI — 2026-10-17, S1-07, 함수 하나씩 검토)
+ */
+export async function deleteSample(sampleId) {
+  return api.delete('/samples/' + encodeURIComponent(sampleId));
+}
+
+/**
+ * 태그 목록 (FR-224) — GET /tags
+ * @returns {Promise<{ items: { tag_id: number, name: string, category: string }[] }>}
+ * (구현: AI — 2026-10-17, S1-07, 함수 하나씩 검토)
+ */
+export async function fetchTags() {
+  return api.get('/tags');
+}
+
+// 미리듣기 주소는 한 번 만들면 창을 닫을 때까지 씀 — 샘플 번호 → objectURL
+const sampleFileUrls = new Map();
+
+/**
+ * 샘플 오디오 미리듣기 주소 (FR-224) — GET /samples/{id}/file 을 blob 으로 받아 objectURL 로 돌려줌
+ * @param {number|string} sampleId
+ * @returns {Promise<string>}  <audio src> 에 넣을 수 있는 주소
+ *
+ * - Access Token 은 메모리에만 있어서 <audio src="/samples/…/file"> 처럼 바로 걸 수 없습니다.
+ *   그래서 토큰을 붙여 받은 뒤 blob → objectURL 로 바꿔 줍니다. 같은 번호는 다시 받지 않습니다.
+ * - 401 이면 재발급 후 한 번만 다시 받습니다.
+ * (구현: AI — 2026-10-17, S1-07, 함수 하나씩 검토)
+ */
+export async function fetchSampleFileUrl(sampleId) {
+  const key = String(sampleId);
+  const hit = sampleFileUrls.get(key);
+  if (hit) return hit;
+
+  if (!accessToken) await refreshAccessToken();
+
+  const send = () => {
+    const headers = { Accept: '*/*' };
+    if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+    return fetch(`${API_BASE}/samples/${encodeURIComponent(key)}/file`, {
+      headers: headers,
+      credentials: 'same-origin',
+    });
+  };
+
+  let res = await send();
+  if (res.status === 401 && (await refreshAccessToken())) res = await send();
+  if (!res.ok) throw await toApiError(res);
+
+  const url = URL.createObjectURL(await res.blob());
+  sampleFileUrls.set(key, url);
+  return url;
+}
+
+/** 업로드 실패 응답(XHR) → ApiError. fetch 용 toApiError 와 같은 모양을 씀 */
+function xhrError(xhr) {
+  let data = null;
+  try {
+    data = xhr.responseText ? JSON.parse(xhr.responseText) : null;
+  } catch {
+    data = null;
+  }
+  const e = data && data.error;
+  if (e && e.code) {
+    return new ApiError(xhr.status, e.code, e.message == null ? '' : e.message, e.details == null ? null : e.details);
+  }
+  return new ApiError(xhr.status, 'INTERNAL_ERROR', 'Something went wrong. Please try again.');
+}
+
+/**
+ * 샘플 업로드 (FR-221·226) — POST /samples (multipart, file)
+ * @param {File} file
+ * @param {object} [options]
+ * @param {(loaded: number, total: number) => void} [options.onProgress]  진행률 (FR-226)
+ * @param {AbortSignal} [options.signal]  취소용 — 취소하면 code 'ABORTED' 로 실패
+ * @returns {Promise<object>}  올린 샘플 한 줄 (SampleResponse)
+ *
+ * - 진행률을 받으려고 fetch 대신 XMLHttpRequest 를 씁니다(fetch 는 업로드 진행률을 주지 않음).
+ * - 401 이면 재발급 후 한 번만 다시 보냅니다. 실패 응답 모양은 apiFetch 와 같습니다.
+ * (구현: AI — 2026-10-17, S1-07, 함수 하나씩 검토)
+ */
+export function uploadSample(file, options = {}) {
+  const signal = options.signal;
+  const onProgress = options.onProgress;
+  return new Promise((resolve, reject) => {
+    if (signal && signal.aborted) {
+      reject(new ApiError(0, 'ABORTED', 'Upload cancelled.'));
+      return;
+    }
+    if (!accessToken) refreshAccessToken().then(() => send(false));
+
+    function send(retried) {
+      const form = new FormData();
+      form.append('file', file, file.name);
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `${API_BASE}/samples`);
+      xhr.withCredentials = true;
+      if (accessToken) xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
+      xhr.setRequestHeader('Accept', 'application/json');
+      if (xhr.upload && onProgress) {
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable) onProgress(e.loaded, e.total);
+        });
+      }
+      xhr.addEventListener('load', () => {
+        if (xhr.status === 401 && !retried) {
+          refreshAccessToken().then((ok) => (ok ? send(true) : reject(xhrError(xhr))));
+          return;
+        }
+        if (xhr.status >= 200 && xhr.status < 300) {
+          let data = null;
+          try {
+            data = xhr.responseText ? JSON.parse(xhr.responseText) : null;
+          } catch {
+            data = null;
+          }
+          resolve(data);
+        } else {
+          reject(xhrError(xhr));
+        }
+      });
+      xhr.addEventListener('error', () => reject(new ApiError(0, 'NETWORK_ERROR', 'Network error. Please try again.')));
+      xhr.addEventListener('abort', () => reject(new ApiError(0, 'ABORTED', 'Upload cancelled.')));
+      if (signal) signal.addEventListener('abort', () => xhr.abort());
+      xhr.send(form);
+    }
+
+    if (accessToken) send(false);
+  });
+}
