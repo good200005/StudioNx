@@ -97,7 +97,7 @@ class PluginPreset(Base):
     name: Mapped[str] = mapped_column(String(100))
     params: Mapped[dict[str, Any]] = mapped_column(JSON)
     source: Mapped[PresetSource] = mapped_column(
-        Enum(PresetSource), server_default=PresetSource.SYSTEM
+        Enum(PresetSource), server_default=PresetSource.USER
     )
     created_at: Mapped[datetime] = mapped_column(
         DATETIME(fsp=3), server_default=text("CURRENT_TIMESTAMP(3)")

@@ -22,8 +22,8 @@ def get_plugin(db: Session, plugin_id: int) -> Plugin | None:
 
 def require_plugin(db: Session, plugin_id: int) -> Plugin:
     p = get_plugin(db, plugin_id)
-    if not p:
-        raise AppError(ErrorCode.NOT_FOUND, "Plugin not found")
+    if p is None:
+        raise AppError(ErrorCode.NOT_FOUND, 404, "Plugin not found.")
     return p
 
 

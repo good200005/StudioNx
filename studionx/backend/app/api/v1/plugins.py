@@ -9,7 +9,7 @@ from app.schemas.common import ErrorResponse
 from app.schemas.plugin import PluginListResponse, PluginPresetResponse, PluginResponse
 from app.services import plugin_service
 
-router = APIRouter(prefix="/plugins", tags=["plugins"])
+router = APIRouter(tags=["plugins"])
 
 
 @router.get(
@@ -36,11 +36,7 @@ def get_plugin(
     db: Db,
     current_user: CurrentUser,
 ):
-    p = plugin_service.get_plugin(db, plugin_id)
-    if not p:
-        from app.core.errors import AppError, ErrorCode
-
-        raise AppError(ErrorCode.NOT_FOUND, "Plugin not found")
+    p = plugin_service.require_plugin(db, plugin_id)
     return PluginResponse.model_validate(p)
 
 

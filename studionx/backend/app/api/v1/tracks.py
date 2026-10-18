@@ -1,4 +1,8 @@
-"""트랙/디바이스 API — S1-09 (FR-251·263·264·265~269)."""
+"""트랙/디바이스 API — S1-09 (FR-251·263·264·265~269).
+
+트랙 목록·만들기·수정·삭제와 그 안의 악기·이펙트·연결선 CRUD 를 제공한다.
+권한·404 처리는 track_service 에 맡기고, 여기는 요청 모양과 상태 코드만 정한다.
+"""
 
 from typing import Annotated
 
@@ -26,6 +30,14 @@ from app.services import track_service
 
 router = APIRouter(tags=["tracks"])
 
+NOT_FOUND_404 = {404: {"model": ErrorResponse}}
+WRITE_RESPONSES = {
+    400: {"model": ErrorResponse},
+    401: {"model": ErrorResponse},
+    403: {"model": ErrorResponse},
+    404: {"model": ErrorResponse},
+}
+
 
 @router.get(
     "/projects/{project_id}/tracks",
@@ -41,7 +53,7 @@ def list_tracks(
     db: Db,
     current_user: CurrentUser,
 ):
-    items = track_service.list_tracks(db, project_id, current_user.user_id)
+    items = track_service.list_tracks(db, current_user, project_id)
     return TrackListResponse(
         items=[TrackResponse.model_validate(t) for t in items], total=len(items)
     )
@@ -51,12 +63,7 @@ def list_tracks(
     "/projects/{project_id}/tracks",
     response_model=TrackResponse,
     status_code=status.HTTP_201_CREATED,
-    responses={
-        400: {"model": ErrorResponse},
-        401: {"model": ErrorResponse},
-        403: {"model": ErrorResponse},
-        404: {"model": ErrorResponse},
-    },
+    responses=WRITE_RESPONSES,
 )
 def create_track(
     project_id: Annotated[int, Path(ge=1)],
@@ -64,10 +71,10 @@ def create_track(
     db: Db,
     current_user: CurrentUser,
 ):
-    t = track_service.create_track(
+    track = track_service.create_track(
         db,
+        current_user,
         project_id,
-        current_user.user_id,
         name=req.name,
         track_type=req.track_type,
         color=req.color,
@@ -80,7 +87,7 @@ def create_track(
         order_index=req.order_index,
         parent_track_id=req.parent_track_id,
     )
-    return TrackResponse.model_validate(t)
+    return TrackResponse.model_validate(track)
 
 
 @router.get(
@@ -89,7 +96,7 @@ def create_track(
     responses={
         401: {"model": ErrorResponse},
         403: {"model": ErrorResponse},
-        404: {"model": ErrorResponse},
+        **NOT_FOUND_404,
     },
 )
 def get_track(
@@ -97,19 +104,14 @@ def get_track(
     db: Db,
     current_user: CurrentUser,
 ):
-    t = track_service.require_track(db, track_id, current_user.user_id)
-    return TrackResponse.model_validate(t)
+    track = track_service.require_track(db, current_user, track_id)
+    return TrackResponse.model_validate(track)
 
 
 @router.patch(
     "/tracks/{track_id}",
     response_model=TrackResponse,
-    responses={
-        400: {"model": ErrorResponse},
-        401: {"model": ErrorResponse},
-        403: {"model": ErrorResponse},
-        404: {"model": ErrorResponse},
-    },
+    responses=WRITE_RESPONSES,
 )
 def update_track(
     track_id: Annotated[int, Path(ge=1)],
@@ -118,8 +120,8 @@ def update_track(
     current_user: CurrentUser,
 ):
     data = req.model_dump(exclude_unset=True)
-    t = track_service.update_track(db, track_id, current_user.user_id, **data)
-    return TrackResponse.model_validate(t)
+    track = track_service.update_track(db, current_user, track_id, **data)
+    return TrackResponse.model_validate(track)
 
 
 @router.delete(
@@ -128,7 +130,7 @@ def update_track(
     responses={
         401: {"model": ErrorResponse},
         403: {"model": ErrorResponse},
-        404: {"model": ErrorResponse},
+        **NOT_FOUND_404,
     },
 )
 def delete_track(
@@ -136,7 +138,7 @@ def delete_track(
     db: Db,
     current_user: CurrentUser,
 ):
-    track_service.delete_track(db, track_id, current_user.user_id)
+    track_service.delete_track(db, current_user, track_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -146,7 +148,7 @@ def delete_track(
     responses={
         401: {"model": ErrorResponse},
         403: {"model": ErrorResponse},
-        404: {"model": ErrorResponse},
+        **NOT_FOUND_404,
     },
 )
 def list_instruments(
@@ -154,20 +156,15 @@ def list_instruments(
     db: Db,
     current_user: CurrentUser,
 ):
-    t = track_service.require_track(db, track_id, current_user.user_id)
-    return [TrackInstrumentResponse.model_validate(i) for i in t.instruments]
+    instruments = track_service.list_instruments(db, current_user, track_id)
+    return [TrackInstrumentResponse.model_validate(i) for i in instruments]
 
 
 @router.post(
     "/tracks/{track_id}/instruments",
     response_model=TrackInstrumentResponse,
     status_code=status.HTTP_201_CREATED,
-    responses={
-        400: {"model": ErrorResponse},
-        401: {"model": ErrorResponse},
-        403: {"model": ErrorResponse},
-        404: {"model": ErrorResponse},
-    },
+    responses=WRITE_RESPONSES,
 )
 def add_instrument(
     track_id: Annotated[int, Path(ge=1)],
@@ -177,8 +174,8 @@ def add_instrument(
 ):
     inst = track_service.add_instrument(
         db,
+        current_user,
         track_id,
-        current_user.user_id,
         plugin_id=req.plugin_id,
         slot_index=req.slot_index,
         params=req.params,
@@ -193,12 +190,7 @@ def add_instrument(
 @router.patch(
     "/tracks/{track_id}/instruments/{instrument_id}",
     response_model=TrackInstrumentResponse,
-    responses={
-        400: {"model": ErrorResponse},
-        401: {"model": ErrorResponse},
-        403: {"model": ErrorResponse},
-        404: {"model": ErrorResponse},
-    },
+    responses=WRITE_RESPONSES,
 )
 def update_instrument(
     track_id: Annotated[int, Path(ge=1)],
@@ -207,9 +199,10 @@ def update_instrument(
     db: Db,
     current_user: CurrentUser,
 ):
-    _ = track_service.require_track(db, track_id, current_user.user_id)
     data = req.model_dump(exclude_unset=True)
-    inst = track_service.update_instrument(db, instrument_id, current_user.user_id, **data)
+    inst = track_service.update_instrument(
+        db, current_user, track_id, instrument_id, **data
+    )
     return TrackInstrumentResponse.model_validate(inst)
 
 
@@ -219,7 +212,7 @@ def update_instrument(
     responses={
         401: {"model": ErrorResponse},
         403: {"model": ErrorResponse},
-        404: {"model": ErrorResponse},
+        **NOT_FOUND_404,
     },
 )
 def remove_instrument(
@@ -228,8 +221,7 @@ def remove_instrument(
     db: Db,
     current_user: CurrentUser,
 ):
-    _ = track_service.require_track(db, track_id, current_user.user_id)
-    track_service.remove_instrument(db, instrument_id, current_user.user_id)
+    track_service.remove_instrument(db, current_user, track_id, instrument_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -239,7 +231,7 @@ def remove_instrument(
     responses={
         401: {"model": ErrorResponse},
         403: {"model": ErrorResponse},
-        404: {"model": ErrorResponse},
+        **NOT_FOUND_404,
     },
 )
 def list_effects(
@@ -247,20 +239,15 @@ def list_effects(
     db: Db,
     current_user: CurrentUser,
 ):
-    t = track_service.require_track(db, track_id, current_user.user_id)
-    return [TrackPluginResponse.model_validate(p) for p in t.plugins]
+    effects = track_service.list_effects(db, current_user, track_id)
+    return [TrackPluginResponse.model_validate(p) for p in effects]
 
 
 @router.post(
     "/tracks/{track_id}/plugins",
     response_model=TrackPluginResponse,
     status_code=status.HTTP_201_CREATED,
-    responses={
-        400: {"model": ErrorResponse},
-        401: {"model": ErrorResponse},
-        403: {"model": ErrorResponse},
-        404: {"model": ErrorResponse},
-    },
+    responses=WRITE_RESPONSES,
 )
 def add_effect(
     track_id: Annotated[int, Path(ge=1)],
@@ -270,8 +257,8 @@ def add_effect(
 ):
     tp = track_service.add_effect(
         db,
+        current_user,
         track_id,
-        current_user.user_id,
         plugin_id=req.plugin_id,
         slot_index=req.slot_index,
         node_x=req.node_x,
@@ -285,12 +272,7 @@ def add_effect(
 @router.patch(
     "/tracks/{track_id}/plugins/{track_plugin_id}",
     response_model=TrackPluginResponse,
-    responses={
-        400: {"model": ErrorResponse},
-        401: {"model": ErrorResponse},
-        403: {"model": ErrorResponse},
-        404: {"model": ErrorResponse},
-    },
+    responses=WRITE_RESPONSES,
 )
 def update_effect(
     track_id: Annotated[int, Path(ge=1)],
@@ -299,9 +281,8 @@ def update_effect(
     db: Db,
     current_user: CurrentUser,
 ):
-    _ = track_service.require_track(db, track_id, current_user.user_id)
     data = req.model_dump(exclude_unset=True)
-    tp = track_service.update_effect(db, track_plugin_id, current_user.user_id, **data)
+    tp = track_service.update_effect(db, current_user, track_id, track_plugin_id, **data)
     return TrackPluginResponse.model_validate(tp)
 
 
@@ -311,7 +292,7 @@ def update_effect(
     responses={
         401: {"model": ErrorResponse},
         403: {"model": ErrorResponse},
-        404: {"model": ErrorResponse},
+        **NOT_FOUND_404,
     },
 )
 def remove_effect(
@@ -320,8 +301,7 @@ def remove_effect(
     db: Db,
     current_user: CurrentUser,
 ):
-    _ = track_service.require_track(db, track_id, current_user.user_id)
-    track_service.remove_effect(db, track_plugin_id, current_user.user_id)
+    track_service.remove_effect(db, current_user, track_id, track_plugin_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -331,7 +311,7 @@ def remove_effect(
     responses={
         401: {"model": ErrorResponse},
         403: {"model": ErrorResponse},
-        404: {"model": ErrorResponse},
+        **NOT_FOUND_404,
     },
 )
 def list_links(
@@ -339,7 +319,7 @@ def list_links(
     db: Db,
     current_user: CurrentUser,
 ):
-    links = track_service.list_links(db, track_id, current_user.user_id)
+    links = track_service.list_links(db, current_user, track_id)
     return [TrackPluginLinkResponse.model_validate(lnk) for lnk in links]
 
 
@@ -347,12 +327,7 @@ def list_links(
     "/tracks/{track_id}/links",
     response_model=TrackPluginLinkResponse,
     status_code=status.HTTP_201_CREATED,
-    responses={
-        400: {"model": ErrorResponse},
-        401: {"model": ErrorResponse},
-        403: {"model": ErrorResponse},
-        404: {"model": ErrorResponse},
-    },
+    responses=WRITE_RESPONSES,
 )
 def add_link(
     track_id: Annotated[int, Path(ge=1)],
@@ -362,8 +337,8 @@ def add_link(
 ):
     link = track_service.add_link(
         db,
+        current_user,
         track_id,
-        current_user.user_id,
         from_track_plugin_id=req.from_track_plugin_id,
         from_port=req.from_port,
         to_track_plugin_id=req.to_track_plugin_id,
@@ -379,7 +354,7 @@ def add_link(
     responses={
         401: {"model": ErrorResponse},
         403: {"model": ErrorResponse},
-        404: {"model": ErrorResponse},
+        **NOT_FOUND_404,
     },
 )
 def remove_link(
@@ -388,6 +363,5 @@ def remove_link(
     db: Db,
     current_user: CurrentUser,
 ):
-    _ = track_service.require_track(db, track_id, current_user.user_id)
-    track_service.remove_link(db, link_id, current_user.user_id)
+    track_service.remove_link(db, current_user, track_id, link_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
