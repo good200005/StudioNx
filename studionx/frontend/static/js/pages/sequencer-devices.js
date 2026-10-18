@@ -12,7 +12,7 @@
 // - 믹서 칸과 아래 칸 믹서 줄: 볼륨 · 팬 · M · S · ● 저장 (FR-252)
 //
 // 맡지 않는 것
-// - Connect to Another 링크 저장 · 표시(track_plugin_links) → S1-10 (FR-247)
+// - Connect to Another 링크 저장 · 표시(track_plugin_links) → S1-10 (FR-2197)
 // - 갈래(패처) 보드 → FR-265~ 뒤 작업, 클립 · 패턴 불러오기 → S1-10
 // - 소리(Web Audio)와 미터의 진짜 값 → S1-11. 여기서는 재생 중일 때만 흉내 낸 미터를 흔듦
 //
@@ -433,7 +433,7 @@ export function renderCells(acc, track) {
   if (conn) {
     const h3 = conn.querySelector(':scope > h3');
     if (h3) h3.textContent = 'CONNECT TO ANOTHER';
-    setCellBody(conn, '<p class="sq-cell__hint">Linking this track to another one is saved in the next work unit (S1-10, FR-247)</p>');
+    setCellBody(conn, '<p class="sq-cell__hint">Linking this track to another one is saved in the next work unit (S1-10, FR-2197)</p>');
   }
   wireControls(acc, track);
   startMeters();
