@@ -800,3 +800,78 @@ body.sq {
 .sq.is-no-side { grid-template-columns: var(--sq-rail-w) 0 minmax(0, 1fr); }
 .sq.is-no-dance .sq-nyxi img { animation: none !important; }
 .sq-filelist .sq-file[hidden] { display: none; }
+
+/* ───────── 악기·이펙트 칸 — S1-09 화면 (FR-241~252 · 2181~2189, sequencer-devices.js) ─────────
+   Nyxi 카드(아트 자리·이름·바이패스·핵심 파라미터·프리셋 이름·미니 미터), 파라미터 자동 UI,
+   플러그인 고르기 창, 상세 설정 모달, 끌 수 있는 노브·페이더·팬 */
+/* 카드 — 실제 플러그인 카드 (아트 자리가 위에 붙고, 아래에 프리셋 이름과 미니 미터) */
+.sq-fx--dev { width: 9.2rem; display: flex; flex-direction: column; padding-bottom: 0.35rem; }
+.sq-fx__art { height: 2.1rem; display: grid; place-items: center; overflow: hidden; border-bottom: 1px solid var(--sq-line);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--c-violet) 44%, var(--sq-panel-2)), var(--sq-panel-2));
+  color: #fff; font: 700 0.68rem/1 var(--font-display); letter-spacing: 0.14em; }
+.sq-fx__art img { width: 100%; height: 100%; object-fit: cover; }
+.sq-fx__del { margin-left: 0.2rem; color: var(--c-ink-faint); font-size: 0.6rem; }
+.sq-fx__del:hover { color: var(--sq-accent); }
+.sq-fx__preset { display: block; padding: 0 0.4rem; font-size: 0.55rem; color: var(--c-ink-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sq-fx__mini { display: flex; gap: 2px; height: 0.85rem; margin: 0.3rem 0.4rem 0; }
+.sq-fx__mini i { flex: 1; position: relative; background: rgb(0 0 0 / 0.4); }
+.sq-fx__mini i::after { content: ""; position: absolute; inset: auto 0 0 0; height: var(--m, 40%); background: linear-gradient(#ffd166, #7ee08a); }
+.sq-fx.is-dev-sel { outline: 1px solid var(--sq-accent); outline-offset: -1px; }
+.sq-fx__note, .sq-dev-empty { padding: 0.4rem; font-size: 0.58rem; line-height: 1.5; color: var(--c-ink-faint); }
+.sq-dev-empty { display: grid; gap: 0.3rem; }
+.sq-dev-empty button { padding: 0.3rem; border: 1px dashed var(--sq-line-2); color: var(--c-ink-soft); font: inherit; }
+.sq-dev-empty button:hover { border-color: var(--sq-accent); color: var(--c-ink); }
+.sq-cell__hint { padding: 0.3rem 0.5rem; font-size: 0.56rem; color: var(--c-ink-faint); }
+/* 끌 수 있는 조작 — 노브 · 페이더 · 팬 · 레이어 볼륨 */
+.sq-knob[role="slider"], .sq-fader, .sq-pan i, .sq-irow__vol, .sq-irow__pan { cursor: ns-resize; touch-action: none; }
+.sq-knob[role="slider"]:focus-visible, .sq-fader:focus-visible, .sq-pan i:focus-visible { outline: 1px solid var(--sq-accent); outline-offset: 2px; }
+.sq-knob__val { min-width: 2.4rem; text-align: center; font-size: 0.55rem; color: var(--c-ink-soft); }
+.sq-fader.is-drag i, .sq-knob.is-drag i { background: var(--sq-accent); }
+/* 플러그인 고르기 창 (FR-244) */
+.sq-picker { width: 34rem; }
+.sq-picker__search { width: 100%; height: 1.6rem; padding: 0 0.4rem; border: 1px solid var(--sq-line-2); background: var(--sq-panel-2); color: var(--c-ink); font: inherit; font-size: 0.68rem; }
+.sq-picker__list { display: grid; gap: 0.3rem; max-height: 19rem; overflow-y: auto; margin: 0; padding: 0; list-style: none; }
+.sq-plug { display: grid; grid-template-columns: 2.6rem minmax(0, 1fr) auto; align-items: center; gap: 0.5rem; width: 100%; padding: 0.35rem; border: 1px solid var(--sq-line-2); background: var(--sq-panel-2); color: inherit; text-align: left; font: inherit; }
+.sq-plug:hover, .sq-plug:focus-visible { border-color: var(--sq-accent); }
+.sq-plug__art { height: 2rem; display: grid; place-items: center; color: #fff; font: 700 0.6rem/1 var(--font-display); letter-spacing: 0.12em;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--c-violet) 45%, var(--sq-panel)), var(--sq-panel)); }
+.sq-plug__name { font-weight: 600; font-size: 0.72rem; }
+.sq-plug__sub { font-size: 0.58rem; color: var(--c-ink-faint); }
+.sq-plug__badge, .sq-dmodal__badge { padding: 0.1rem 0.3rem; border: 1px solid var(--sq-line-2); font-size: 0.5rem; letter-spacing: 0.1em; color: var(--c-ink-faint); }
+.sq-picker__empty { padding: 0.5rem; font-size: 0.65rem; color: var(--c-ink-faint); }
+/* 상세 설정 모달 (FR-2187) — 그룹 탭 · 파라미터 · 프리셋 · A/B */
+.sq-dmodal { width: 40rem; }
+.sq-dmodal__art { width: 2.6rem; height: 2.1rem; display: grid; place-items: center; color: #fff; font: 700 0.6rem/1 var(--font-display); letter-spacing: 0.12em;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--c-violet) 45%, var(--sq-panel-2)), var(--sq-panel-2)); }
+.sq-dmodal__sub { font-size: 0.6rem; color: var(--c-ink-faint); }
+.sq-dmodal .sq-dialog__head h2 { font-size: 0.86rem; }
+.sq-dmodal .sq-dialog__head button { margin-left: 0; }
+.sq-dmodal .sq-dialog__head .sq-dmodal__close { margin-left: auto; }
+.sq-tabs { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.sq-tabs button { padding: 0.2rem 0.6rem; border: 1px solid var(--sq-line-2); color: var(--c-ink-soft); font: inherit; font-size: 0.62rem; }
+.sq-tabs button.is-on { border-color: var(--sq-accent); background: color-mix(in srgb, var(--c-violet) 22%, transparent); color: var(--c-ink); }
+.sq-params { display: grid; grid-template-columns: repeat(auto-fill, minmax(6.6rem, 1fr)); gap: 0.4rem; max-height: 20rem; overflow-y: auto; padding: 0.2rem; }
+.sq-param { display: grid; justify-items: center; gap: 0.2rem; padding: 0.45rem 0.3rem; border: 1px solid var(--sq-line); background: var(--sq-panel-2); font-size: 0.58rem; color: var(--c-ink-faint); }
+.sq-param__name { text-align: center; font-size: 0.58rem; color: var(--c-ink-soft); }
+.sq-param select { width: 100%; height: 1.5rem; border: 1px solid var(--sq-line-2); background: var(--sq-panel); color: var(--c-ink); font: inherit; font-size: 0.62rem; }
+.sq-switch { width: 1.9rem; height: 1rem; position: relative; border: 1px solid var(--sq-line-2); background: rgb(0 0 0 / 0.3); }
+.sq-switch::after { content: ""; position: absolute; top: 1px; bottom: 1px; left: 1px; width: 0.75rem; background: var(--c-ink-faint); }
+.sq-switch[aria-pressed="true"] { border-color: var(--sq-accent); }
+.sq-switch[aria-pressed="true"]::after { left: auto; right: 1px; background: var(--c-violet); }
+.sq-dmodal .sq-dialog__foot label { gap: 0.3rem; }
+.sq-dmodal .sq-dialog__foot select { height: 1.5rem; border: 1px solid var(--sq-line-2); background: var(--sq-panel-2); color: var(--c-ink); font: inherit; font-size: 0.62rem; }
+/* 아래 칸 믹서 줄 — 실제 트랙 */
+.sq-strip.is-live .sq-fader { cursor: ns-resize; }
+.sq-strip__sub { font-size: 0.55rem; color: var(--c-ink-faint); }
+/* 칸 안쪽 감싸개 — 머리(h3) 아래를 남는 높이만큼 채움 (JS 가 setCellBody 로 넣음) */
+.sq-cell__body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+/* 악기 카드 여러 장 — 옆으로 흐르고, 넘치면 아래로 스크롤 */
+.sq-istack--cards { flex: 1; min-height: 0; display: flex; flex-flow: row wrap; gap: 0.35rem; padding: 0.4rem; align-content: flex-start; overflow-y: auto; }
+.sq-istack--cards > .sq-dev-empty { align-content: flex-start; }
+/* 카드 이름 · 이펙트 카드 아래 미터 자리 · 악기 카드 아래 겹 볼륨 · 팬 · 솔로 줄 */
+.sq-fx__name { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 0.62rem; }
+.sq-fx__mix { display: flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.4rem 0; }
+.sq-fx__mix .sq-irow__vol { flex: 1; }
+.sq-fx__mix .sq-irow__pan, .sq-fx__mix .sq-irow__solo { flex: none; }
+.sq-irow__db { font-size: 0.55rem; }
+#device-save.is-dirty { outline: 1px solid var(--c-violet); outline-offset: 1px; }

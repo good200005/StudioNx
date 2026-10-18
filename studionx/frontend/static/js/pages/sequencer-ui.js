@@ -1343,6 +1343,8 @@ function initAccordionButtons() {
   lanes.addEventListener('click', (e) => {
     const b = e.target.closest('button');
     if (!b || !b.closest('.sq-acc')) return;
+    // 실제 트랙(.is-live)의 칸은 sequencer-devices.js 가 맡는다 — 여기 예시 배선은 건너뛴다 (2026-10-18)
+    if (b.closest('.sq-acc').classList.contains('is-live')) return;
     if (b.matches('.sq-fx__power')) {
       const on = b.getAttribute('aria-pressed') !== 'true';
       b.setAttribute('aria-pressed', String(on));
@@ -1378,6 +1380,7 @@ function initAccordionButtons() {
   lanes.addEventListener('dragstart', (e) => {
     const fx = e.target.closest?.('.sq-fx');
     if (!fx) return;
+    if (fx.closest('.sq-acc.is-live')) return;   // 실제 트랙의 카드 끌기는 sequencer-devices.js 가 맡는다
     dragFx = fx;
     fx.classList.add('is-dragging');
     e.dataTransfer.setData('text/plain', 'fx');
@@ -1406,6 +1409,7 @@ function initAccordionButtons() {
     const route = e.target.closest('.sq-route');
     if (!route) return;
     const acc = route.closest('.sq-acc');
+    if (acc && acc.classList.contains('is-live')) return;   // 실제 트랙의 칸은 sequencer-devices.js 가 맡는다
     const [type, num, plugin] = route.querySelectorAll('select, input');
     const on = type.value === 'connected' && num.value;   // 값은 언어와 상관없이 고정 (value 속성)
     plugin.disabled = type.value !== 'connected';
