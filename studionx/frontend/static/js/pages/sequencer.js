@@ -11,6 +11,7 @@ import { initArrange, TICKS_PER_BAR, restoreOpenPanels } from './sequencer-arran
 import { initRoll } from './sequencer-roll.js';
 import { initAutomation } from './sequencer-automation.js';
 import { initUI } from './sequencer-ui.js';
+import { initDevices } from './sequencer-devices.js';
 
 /** 1박 = 960 tick (DB.md 와 같음) */
 export const PPQ = 960;
@@ -355,4 +356,8 @@ initClipPreviews();
 
 // FR-261 — 지난번에 펼쳐 둔 트랙 아코디언 상태를 되살린다
 restoreOpenPanels();
+
+// 악기·이펙트 칸 (S1-09 화면) — ?projectId= 가 있으면 서버 값으로 그리고, 고친 값을 저장한다.
+// initUI 뒤에 두어야 편곡 쪽 배선이 먼저 서 있는 상태에서 값을 읽는다 (2026-10-18)
+initDevices({ onChange: (change) => console.debug('[devices]', change.type) });
 

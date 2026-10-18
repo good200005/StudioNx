@@ -965,6 +965,43 @@
     </form>
   </dialog>
 
+  <!-- 플러그인 고르기 창 (S1-09 화면, FR-244) — sequencer-devices.js 가 목록을 채웁니다 -->
+  <dialog class="sq-dialog sq-picker" id="plugin-picker" aria-labelledby="plugin-picker-title">
+    <header class="sq-dialog__head">
+      <h2 id="plugin-picker-title">Choose an instrument</h2>
+      <button type="button" data-picker="close" aria-label="Close">✕</button>
+    </header>
+    <div class="sq-dialog__body">
+      <input class="sq-picker__search" id="picker-search" type="search" placeholder="Search plugins…" aria-label="Search plugins">
+      <ul class="sq-picker__list" id="picker-list"></ul>
+    </div>
+    <footer class="sq-dialog__foot"><span id="picker-note">Plugins come from the Plugins table (FR-244)</span><button type="button" class="sq-dialog__btn" data-picker="close">Cancel</button></footer>
+  </dialog>
+
+  <!-- 상세 설정 모달 (S1-09 화면, FR-2181·2187) — 카드를 클릭하면 열립니다 (그룹 탭 · 전체 파라미터 · 프리셋 · A/B) -->
+  <dialog class="sq-dialog sq-dmodal" id="device-modal" aria-labelledby="device-title">
+    <header class="sq-dialog__head">
+      <span class="sq-dmodal__art" id="device-art" aria-hidden="true">EQ</span>
+      <h2 id="device-title">Device</h2>
+      <span class="sq-dmodal__sub" id="device-sub"></span>
+      <span class="sq-tabs" id="device-ab" role="group" aria-label="Compare A / B">
+        <button type="button" data-ab="A" class="is-on" aria-pressed="true">A</button><button type="button" data-ab="B" aria-pressed="false">B</button>
+      </span>
+      <button type="button" class="sq-dmodal__close" data-modal="close" aria-label="Close">✕</button>
+    </header>
+    <div class="sq-dialog__body">
+      <div class="sq-tabs" id="device-tabs" role="tablist" aria-label="Parameter groups"></div>
+      <div class="sq-params" id="device-params"></div>
+    </div>
+    <footer class="sq-dialog__foot">
+      <label>Preset <select id="device-preset"></select></label>
+      <button type="button" class="sq-dialog__btn" id="device-preset-apply">Apply</button>
+      <span class="sq-dmodal__badge" id="device-state">Saved</span>
+      <button type="button" class="sq-dialog__btn" id="device-reset">Reset</button>
+      <button type="button" class="sq-dialog__btn is-go" id="device-save">Save</button>
+    </footer>
+  </dialog>
+
   <script type="module" src="static/js/pages/sequencer.js"></script>
 </body>
 </html>
