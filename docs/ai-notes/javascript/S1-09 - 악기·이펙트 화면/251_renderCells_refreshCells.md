@@ -50,7 +50,7 @@ export function renderCells(acc, track) {
   if (conn) {
     const h3 = conn.querySelector(':scope > h3');
     if (h3) h3.textContent = 'CONNECT TO ANOTHER';
-    setCellBody(conn, '<p class="sq-cell__hint">Linking this track to another one is saved in the next work unit (S1-10, FR-247)</p>');
+    setCellBody(conn, '<p class="sq-cell__hint">Linking this track to another one is saved in the next work unit (S1-10, FR-2197)</p>');
   }
   wireControls(acc, track);
   startMeters();
@@ -84,7 +84,7 @@ function refreshCells(track) {
 | 선택 | 이유 |
 |---|---|
 | 트랙 종류로 가름 | AUDIO 트랙에 악기 카드 자리를 만들면 빈 칸처럼 보입니다 |
-| Connect 칸을 예고로 | 링크 저장은 다음 작업이라 빈 칸 대신 설명을 둡니다 (FR-247) |
+| Connect 칸을 예고로 | 링크 저장은 다음 작업이라 빈 칸 대신 설명을 둡니다 (FR-2197) |
 | `refreshCells` 를 나눔 | 구조가 바뀔 때만 전체를 다시 그리고, 노브 값만 바뀔 때는 그리지 않습니다 |
 | 줄 아래 글도 함께 | 악기를 붙이거나 떼면 이름 글이 바뀌어야 합니다 |
 
