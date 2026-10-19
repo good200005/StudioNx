@@ -50,6 +50,17 @@ let dragCard = null;
 let dragging = null;
 /** 미터 흔들기 타이머 */
 let meterTimer = 0;
+/** 저장·이력을 알리는 곳 (S1-10) — sequencer.js 가 setDeviceNotifier 로 연결합니다 */
+let notify = function () {};
+
+/**
+ * 장치를 바꿨다고 알리는 곳 연결 (273 · S1-10)
+ * 부르는 곳: sequencer.js init() — 되돌리기 이력과 저장 표시가 이 알림을 받습니다.
+ * @param {(change: object) => void} fn
+ */
+export function setDeviceNotifier(fn) {
+  notify = typeof fn === 'function' ? fn : function () {};
+}
 
 /* ───────────────────────── 시작 · 모드 (243) ───────────────────────── */
 
@@ -164,6 +175,29 @@ function syncTrackSubs() {
     if (small) small.textContent = trackInfo(track).sub;
   });
   renderMixerStrips();
+}
+
+/**
+ * 프로젝트 전체 응답으로 트랙 · 장치를 한 번에 채우기 (273 · S1-10, FR-254)
+ * 부르는 곳: sequencer.js loadProject — GET /projects/{id}/full 의 tracks 를 그대로 넘깁니다.
+ * 트랙만 읽고 장치를 다시 묻지 않으므로 화면을 열 때 서버 요청이 한 번입니다.
+ * @param {{ tracks?: object[] }} data
+ */
+export function applyFullProject(data) {
+  const list = (data && data.tracks) || [];
+  tracks = list;
+  active = true;
+  list.forEach(function (track) {
+    devices[track.track_id] = {
+      instruments: track.instruments || [],
+      effects: track.effects || [],
+    };
+  });
+  renderTracks();
+  // FR-261 — 담아 둔 펼침 상태를 새 트랙 줄에 다시 적용하고, 펼친 칸은 바로 채웁니다
+  restoreOpenPanels();
+  Array.prototype.forEach.call(document.querySelectorAll('#tracks > .sq-track.is-open'), ensureLiveCells);
+  syncTrackSubs();
 }
 
 /* ───────────────────────── 트랙 그리기 (FR-251·252) ───────────────────────── */
@@ -291,8 +325,8 @@ function stripInfo(track) {
   return { title: title, sub: sub, fx: d.effects.length };
 }
 
-/** track_id 로 트랙 찾기 */
-function trackById(id) {
+/** track_id 로 트랙 찾기 (295 · 273에서 이력용으로도 씀) */
+export function trackById(id) {
   for (let i = 0; i < tracks.length; i += 1) {
     if (String(tracks[i].track_id) === String(id)) return tracks[i];
   }
@@ -1017,6 +1051,14 @@ export async function addDevice(track, kind, plugin) {
     list.push(saved);
     refreshCells(track);
     showToast((kind === 'INSTRUMENT' ? 'Instrument' : 'Effect') + ' added: ' + plugin.name);
+    notify({
+      type: 'deviceAdd',
+      trackId: track.track_id,
+      kind: kind,
+      deviceId: deviceId(saved, kind),
+      label: (kind === 'INSTRUMENT' ? 'Add ' : 'Add effect ') + plugin.name,
+      snapshot: deviceSnapshot(saved),
+    });
   } catch (err) {
     warn(err);
   }
@@ -1042,25 +1084,65 @@ function tailSlot(list) {
 }
 
 /**
- * 장치 고치기 (FR-245) — PATCH /tracks/{id}/instruments/{iid} · /tracks/{id}/plugins/{pid}
+ * 장치 고치기 (FR-245 · 273) — PATCH /tracks/{id}/instruments/{iid} · /tracks/{id}/plugins/{pid}
+ * 저장한 뒤 지금 값이 담긴 알림을 보내되, options.silent 면 보내지 않습니다 (순서 바꾸기의 잔걸음).
  * @param {object} track
  * @param {string} kind
  * @param {object} device
  * @param {object} patch  { params, is_bypassed, is_solo, volume_db, pan, slot_index … }
+ * @param {{ silent?: boolean }} [options]
  * @returns {Promise<object|null>} 저장된 줄
  */
-export async function updateDevice(track, kind, device, patch) {
+export async function updateDevice(track, kind, device, patch, options) {
+  const opts = options || {};
+  const before = {};
+  Object.keys(patch || {}).forEach(function (key) { before[key] = device[key]; });
   try {
     const path = kind === 'INSTRUMENT'
       ? '/tracks/' + track.track_id + '/instruments/' + device.track_instrument_id
       : '/tracks/' + track.track_id + '/plugins/' + device.track_plugin_id;
     const saved = await api.patch(path, patch);
     Object.assign(device, saved);
+    if (!opts.silent) {
+      notify({
+        type: 'deviceUpdate',
+        trackId: track.track_id,
+        kind: kind,
+        deviceId: deviceId(device, kind),
+        label: 'Change ' + deviceName(device),
+        before: before,
+        after: Object.assign({}, patch),
+      });
+    }
     return saved;
   } catch (err) {
     warn(err);
     return null;
   }
+}
+
+/** 장치 줄의 번호 (273) — 악기는 track_instrument_id, 이펙트는 track_plugin_id */
+function deviceId(device, kind) {
+  return kind === 'INSTRUMENT' ? device.track_instrument_id : device.track_plugin_id;
+}
+
+/** 장치 이름 (273) — 플러그인 표에서 찾고, 없으면 이름 비슷한 것 */
+function deviceName(device) {
+  const plugin = pluginById(device.plugin_id);
+  return plugin ? plugin.name : 'device';
+}
+
+/** 장치 한 벌을 그대로 베껴 두기 (273) — 떼기를 되돌릴 때 그대로 다시 붙입니다 */
+function deviceSnapshot(device) {
+  return {
+    plugin_id: device.plugin_id,
+    slot_index: device.slot_index,
+    params: JSON.parse(JSON.stringify(device.params || {})),
+    is_bypassed: !!device.is_bypassed,
+    is_solo: !!device.is_solo,
+    volume_db: device.volume_db,
+    pan: device.pan,
+  };
 }
 
 /**
@@ -1087,6 +1169,14 @@ export async function removeDevice(track, kind, device) {
     refreshCells(track);
     if (modal && modal.device === device) closeDeviceModal();
     showToast(name + ' removed');
+    notify({
+      type: 'deviceRemove',
+      trackId: track.track_id,
+      kind: kind,
+      deviceId: deviceId(device, kind),
+      label: 'Remove ' + name,
+      snapshot: deviceSnapshot(device),
+    });
   } catch (err) {
     warn(err);
   }
@@ -1108,25 +1198,151 @@ export async function moveEffect(track, from, to) {
   const movedId = ids.splice(from, 1)[0];
   ids.splice(to, 0, movedId);
   try {
-    await updateDevice(track, 'EFFECT', list[from], { slot_index: OPEN_SLOT });
+    await updateDevice(track, 'EFFECT', list[from], { slot_index: OPEN_SLOT }, { silent: true });
     if (to > from) {
       for (let i = from + 1; i <= to; i += 1) {
-        await updateDevice(track, 'EFFECT', byId(list, ids[i]), { slot_index: i - 1 });
+        await updateDevice(track, 'EFFECT', byId(list, ids[i]), { slot_index: i - 1 }, { silent: true });
       }
     } else {
       for (let i = from - 1; i >= to; i -= 1) {
-        await updateDevice(track, 'EFFECT', byId(list, ids[i]), { slot_index: i + 1 });
+        await updateDevice(track, 'EFFECT', byId(list, ids[i]), { slot_index: i + 1 }, { silent: true });
       }
     }
-    await updateDevice(track, 'EFFECT', byId(list, movedId), { slot_index: to });
+    await updateDevice(track, 'EFFECT', byId(list, movedId), { slot_index: to }, { silent: true });
     await loadDevices(track);
     refreshCells(track);
     showToast('Effect order changed');
+    notify({ type: 'deviceMove', trackId: track.track_id, kind: 'EFFECT', from: from, to: to, label: 'Change effect order' });
   } catch (err) {
     warn(err);
     await loadDevices(track).catch(function () {});
     refreshCells(track);
   }
+}
+
+/* ───────────────────────── 되돌리기 도우미 (273 · S1-10, FR-255) ─────────────────────────
+   되돌리기·다시 하기가 부르는 낮은 단계 함수들입니다. 화면 알림(showToast)과 물어보기 창 없이
+   서버만 고치고 칸을 다시 그립니다. 부르는 곳: sequencer.js 의 이력 한 단계(undo · redo). */
+
+/**
+ * 트랙 안 장치 하나 찾기 (273)
+ * @param {number|string} trackId
+ * @param {string} kind
+ * @param {number|string} id  track_instrument_id | track_plugin_id
+ * @returns {object|null}
+ */
+export function deviceById(trackId, kind, id) {
+  const d = devices[trackId];
+  if (!d) return null;
+  const list = kind === 'INSTRUMENT' ? d.instruments : d.effects;
+  for (let i = 0; i < list.length; i += 1) {
+    if (String(deviceId(list[i], kind)) === String(id)) return list[i];
+  }
+  return null;
+}
+
+/**
+ * 장치 값 되돌리기 (273) — PATCH 한 벌을 그대로 다시 넣습니다 (고치기의 undo · redo)
+ * @param {number|string} trackId
+ * @param {string} kind
+ * @param {number|string} id
+ * @param {object} patch
+ * @returns {Promise<object|null>}
+ */
+export async function reapplyDevice(trackId, kind, id, patch) {
+  const track = trackById(trackId);
+  if (!track || !patch || !Object.keys(patch).length) return null;
+  const device = deviceById(trackId, kind, id);
+  if (!device) {
+    await loadDevices(track).catch(function () {});
+    refreshCells(track);
+    return null;
+  }
+  const saved = await updateDevice(track, kind, device, patch);
+  refreshCells(track);
+  return saved;
+}
+
+/**
+ * 장치 떼기 (273) — 붙이기를 되돌릴 때 (물어보기 창 없음, 알림 없음)
+ * @param {number|string} trackId
+ * @param {string} kind
+ * @param {number|string} id
+ */
+export async function dropDevice(trackId, kind, id) {
+  const track = trackById(trackId);
+  const device = deviceById(trackId, kind, id);
+  if (!track || !device) return;
+  try {
+    const path = kind === 'INSTRUMENT'
+      ? '/tracks/' + trackId + '/instruments/' + id
+      : '/tracks/' + trackId + '/plugins/' + id;
+    await api.delete(path);
+    const d = devices[trackId];
+    if (d) {
+      const list = kind === 'INSTRUMENT' ? d.instruments : d.effects;
+      const at = list.indexOf(device);
+      if (at >= 0) list.splice(at, 1);
+    }
+    refreshCells(track);
+    if (modal && modal.device === device) closeDeviceModal();
+  } catch (err) {
+    warn(err);
+  }
+}
+
+/**
+ * 장치 다시 붙이기 (273) — 떼기를 되돌릴 때 베껴 둔 값 그대로 POST (알림 없음)
+ * @param {number|string} trackId
+ * @param {string} kind
+ * @param {object} snapshot  deviceSnapshot 이 담아 둔 한 벌
+ * @returns {Promise<object|null>} 새로 만들어진 줄
+ */
+export async function restoreDevice(trackId, kind, snapshot) {
+  const track = trackById(trackId);
+  if (!track || !snapshot) return null;
+  const body = {
+    plugin_id: snapshot.plugin_id,
+    slot_index: snapshot.slot_index,
+    params: snapshot.params || {},
+  };
+  if (kind === 'INSTRUMENT') body.is_solo = !!snapshot.is_solo;
+  else body.is_bypassed = !!snapshot.is_bypassed;
+  try {
+    const path = kind === 'INSTRUMENT'
+      ? '/tracks/' + trackId + '/instruments'
+      : '/tracks/' + trackId + '/plugins';
+    const saved = await api.post(path, body);
+    const d = devices[trackId] || { instruments: [], effects: [] };
+    devices[trackId] = d;
+    const list = kind === 'INSTRUMENT' ? d.instruments : d.effects;
+    list.push(saved);
+    // 악기 줄의 볼륨 · 팬도 원래 값으로 (만들기 요청에 없는 칸)
+    if (kind === 'INSTRUMENT' && (snapshot.volume_db !== undefined || snapshot.pan !== undefined)) {
+      await updateDevice(track, kind, saved, {
+        volume_db: snapshot.volume_db === undefined ? saved.volume_db : snapshot.volume_db,
+        pan: snapshot.pan === undefined ? saved.pan : snapshot.pan,
+      }, { silent: true });
+    }
+    refreshCells(track);
+    return saved;
+  } catch (err) {
+    warn(err);
+    return null;
+  }
+}
+
+/**
+ * 이펙트 순서 되돌리기 (273) — 자리(0부터) 두 개를 받아 다시 옮깁니다 (순서 바꾸기의 undo · redo)
+ * @param {number|string} trackId
+ * @param {number} from
+ * @param {number} to
+ */
+export async function moveEffectSlots(trackId, from, to) {
+  const track = trackById(trackId);
+  if (!track) return;
+  await moveEffect(track, from, to);
+  refreshCells(track);
 }
 
 /** 목록에서 id 로 찾기 */
