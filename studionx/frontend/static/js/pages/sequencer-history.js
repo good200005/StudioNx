@@ -54,6 +54,7 @@ export function pushHistory(entry) {
 
 /**
  * 되돌리기 (270) — 가장 최근 동작 한 단계를 물립니다
+ * undo 가 Promise 를 돌려주면 끝날 때까지 applying 을 켜 두어, 그 사이에 오는 알림이 이력을 더럽히지 않게 합니다 (2026-10-19)
  * @returns {boolean} 되돌렸으면 true
  */
 export function undo() {
@@ -63,13 +64,21 @@ export function undo() {
   }
   const entry = stack[at - 1];
   applying = true;
-  try {
-    entry.undo();
-  } finally {
+  const done = function () {
     applying = false;
+    at -= 1;
+    notifyState();
+  };
+  try {
+    const result = entry.undo();
+    if (result && typeof result.then === 'function') {
+      result.then(done, done);
+    } else {
+      done();
+    }
+  } catch (err) {
+    done();
   }
-  at -= 1;
-  notifyState();
   return true;
 }
 
@@ -84,13 +93,21 @@ export function redo() {
   }
   const entry = stack[at];
   applying = true;
-  try {
-    entry.redo();
-  } finally {
+  const done = function () {
     applying = false;
+    at += 1;
+    notifyState();
+  };
+  try {
+    const result = entry.redo();
+    if (result && typeof result.then === 'function') {
+      result.then(done, done);
+    } else {
+      done();
+    }
+  } catch (err) {
+    done();
   }
-  at += 1;
-  notifyState();
   return true;
 }
 

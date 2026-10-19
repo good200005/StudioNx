@@ -913,7 +913,7 @@ export function wireControls(scope, track) {
         commit: function (v) {
           const next = withDefaults(plugin, device.params);
           next[item.key] = v;
-          device.params = next;
+          // device.params 를 미리 바꾸면 updateDevice 의 before 가 새 값을 담아 Undo 가 틀려집니다 — 갱신은 Object.assign(device, saved) 가 합니다 (2026-10-19)
           updateDevice(track, card.dataset.deviceKind, device, { params: next }).catch(warn);
         },
       });
@@ -931,7 +931,7 @@ export function wireControls(scope, track) {
           if (out) out.textContent = fmtDb(v);
         },
         commit: function (v) {
-          device.volume_db = v;
+          // device 를 미리 바꾸지 않습니다 — before 가 옛 값을 담도록 (2026-10-19)
           updateDevice(track, card.dataset.deviceKind, device, { volume_db: v }).catch(warn);
         },
       });
@@ -944,7 +944,7 @@ export function wireControls(scope, track) {
         pixels: 80,
         render: function (v) { el.style.setProperty('--p', panDeg(v) + 'deg'); },
         commit: function (v) {
-          device.pan = v;
+          // device 를 미리 바꾸지 않습니다 — before 가 옛 값을 담도록 (2026-10-19)
           updateDevice(track, card.dataset.deviceKind, device, { pan: v }).catch(warn);
         },
       });
@@ -1247,9 +1247,10 @@ export function deviceById(trackId, kind, id) {
  * @param {string} kind
  * @param {number|string} id
  * @param {object} patch
+ * @param {{ silent?: boolean }} [options]  되돌리는 중에는 화면 알림을 보내지 않습니다
  * @returns {Promise<object|null>}
  */
-export async function reapplyDevice(trackId, kind, id, patch) {
+export async function reapplyDevice(trackId, kind, id, patch, options) {
   const track = trackById(trackId);
   if (!track || !patch || !Object.keys(patch).length) return null;
   const device = deviceById(trackId, kind, id);
@@ -1258,7 +1259,7 @@ export async function reapplyDevice(trackId, kind, id, patch) {
     refreshCells(track);
     return null;
   }
-  const saved = await updateDevice(track, kind, device, patch);
+  const saved = await updateDevice(track, kind, device, patch, options);
   refreshCells(track);
   return saved;
 }

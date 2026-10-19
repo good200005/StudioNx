@@ -19,6 +19,7 @@ undo()  → stack[at-1].undo()  → at -= 1
 redo()  → stack[at].redo()    → at += 1
         ↓
 applying = true 동안에는 새 이력을 쌓지 않습니다
+undo · redo 가 Promise 를 돌려주면 끝날 때까지 applying 을 켜 둡니다 (서버 저장이 끝난 뒤 풉니다)
 ```
 
 ## 2. 언제 쓰나
@@ -57,9 +58,12 @@ export function undo() {
   if (!canUndo()) { toast('Nothing to undo'); return false; }
   const entry = stack[at - 1];
   applying = true;
-  try { entry.undo(); } finally { applying = false; }
-  at -= 1;
-  notifyState();
+  const done = function () { applying = false; at -= 1; notifyState(); };
+  try {
+    const result = entry.undo();
+    if (result && typeof result.then === 'function') result.then(done, done);
+    else done();
+  } catch (err) { done(); }
   return true;
 }
 
@@ -67,9 +71,12 @@ export function redo() {
   if (!canRedo()) { toast('Nothing to redo'); return false; }
   const entry = stack[at];
   applying = true;
-  try { entry.redo(); } finally { applying = false; }
-  at += 1;
-  notifyState();
+  const done = function () { applying = false; at += 1; notifyState(); };
+  try {
+    const result = entry.redo();
+    if (result && typeof result.then === 'function') result.then(done, done);
+    else done();
+  } catch (err) { done(); }
   return true;
 }
 ```
@@ -78,7 +85,8 @@ export function redo() {
 | 식 | 뜻 |
 |---|---|
 | `stack.slice(0, at)` | 되돌린 자리 뒤는 버립니다. 새로 바꾼 것을 기록하면 이전 되돌림 경로가 사라집니다 |
-| `applying = true` + `finally` | undo 를 실행하는 동안에 들어오는 알림(새 저장)을 무시합니다. 실패해도 반드시 풉니다 |
+| `applying = true` + `done()` | undo 를 실행하는 동안에 들어오는 알림(새 저장)을 무시합니다. 실패해도 반드시 풉니다 |
+| `result.then(done, done)` | 디바이스 고치기는 서버 PATCH 라서 Promise 를 돌려줍니다. 그 저장이 끝난 뒤에 `applying` 을 풀고 위치를 옮깁니다. 저장 중에 오는 알림이 이력을 더럽히지 않습니다 (2026-10-19) |
 | `stack.length > HISTORY_LIMIT` | 100단계를 넘기면 가장 오래된 것부터 버립니다 |
 | `notifyState()` | 메뉴의 `edit.undo` · `edit.redo` 항목을 지금 상태에 맞게 켜고 끕니다 |
 
@@ -87,7 +95,7 @@ export function redo() {
 |---|---|
 | undo/redo 를 클로저로 담음 | 같은 동작을 다시 만들지 않고, 이전 값·이후 값을 함께 담습니다 |
 | 100단계로 제한 | FR-255 가 최소 100단계를 요구합니다. 메모리에 과하지 않게 상한을 둡니다 |
-| `applying` 깃발 | undo 가 만든 알림이 다시 pushHistory 로 들어가면 이력이 어긋납니다 |
+| `applying` 깃발 | undo 가 만든 알림이 다시 pushHistory 로 들어가면 이력이 어긋납니다. 디바이스 고치기는 저장이 서버로 다녀오는 동안에도 켜 두어야 하므로, Promise 가 끝난 뒤에 풉니다 (2026-10-19) |
 | `canUndo()` · `canRedo()` 를 export | 시험과 메뉴가 현재 상태를 알 수 있습니다 |
 | `historyLabels()` 는 시험용 | 어느 순서로 쌓였는지 눈으로 확인할 수 있습니다 |
 

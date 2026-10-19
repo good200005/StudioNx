@@ -139,6 +139,28 @@ body.sq {
 .sq-dropdown hr { border: 0; border-top: 1px solid var(--sq-line); margin: 0.2rem 0; }
 .sq-dropdown__note { padding: 0.3rem 0.55rem 0.15rem; border-top: 1px solid var(--sq-line); margin-top: 0.2rem; color: var(--c-ink-faint); font-size: 0.65rem; }
 
+/* 커맨드 팔레트 (Ctrl+P, JS 269) */
+.sq-palette {
+  position: fixed; z-index: 80; top: 18%; left: 50%; transform: translateX(-50%);
+  width: min(30rem, 92vw); background: var(--sq-panel); border: 1px solid var(--sq-line-2);
+  box-shadow: 0 1rem 3rem rgb(0 0 0 / 0.6);
+}
+.sq-palette[hidden] { display: none; }
+.sq-palette__input {
+  width: 100%; box-sizing: border-box; padding: 0.55rem 0.7rem;
+  background: var(--sq-panel-2); border: 0; border-bottom: 1px solid var(--sq-line);
+  color: var(--c-ink); font: inherit; outline: none;
+}
+.sq-palette__list { max-height: 16rem; overflow-y: auto; margin: 0; padding: 0.2rem; list-style: none; }
+.sq-palette__list li {
+  display: flex; justify-content: space-between; gap: 1rem;
+  padding: 0.32rem 0.55rem; color: var(--c-ink); cursor: pointer; font-size: 0.78rem;
+}
+.sq-palette__list li[aria-selected="true"] { background: var(--sq-sel); }
+.sq-palette__list li:hover { background: var(--sq-line); }
+.sq-palette__list kbd { color: var(--c-ink-faint); font: inherit; font-size: 0.68rem; }
+.sq-palette__empty { color: var(--c-ink-faint); cursor: default; }
+
 /* ───────────────────────── 왼쪽 버튼 줄 ───────────────────────── */
 .sq-rail {
   grid-row: 2; display: flex; flex-direction: column; align-items: center; gap: 0.15rem;

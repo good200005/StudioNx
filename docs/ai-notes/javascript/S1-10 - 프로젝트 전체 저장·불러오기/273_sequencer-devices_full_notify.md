@@ -51,11 +51,12 @@ export function applyFullProject(data) {
   restoreOpenPanels();
 }
 
-export function reapplyDevice(trackId, kind, deviceId, patch) {
+export function reapplyDevice(trackId, kind, deviceId, patch, options) {
   const track = trackById(trackId);
   const device = deviceById(track, kind, deviceId);
   if (!track || !device) return false;
-  updateDevice(track, kind, device, patch, { silent: true });
+  // options 를 그대로 updateDevice 에 넘겨 되돌리는 중에는 알림을 보내지 않습니다 (2026-10-19)
+  updateDevice(track, kind, device, patch, options);
   return true;
 }
 

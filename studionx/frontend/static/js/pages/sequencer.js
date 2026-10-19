@@ -201,8 +201,8 @@ export function handleChange(change) {
     case 'deviceUpdate':
       pushHistory({
         label: change.label || 'Change device',
-        undo: () => reapplyDevice(change.trackId, change.kind, change.deviceId, change.before),
-        redo: () => reapplyDevice(change.trackId, change.kind, change.deviceId, change.after),
+        undo: () => reapplyDevice(change.trackId, change.kind, change.deviceId, change.before, { silent: true }),
+        redo: () => reapplyDevice(change.trackId, change.kind, change.deviceId, change.after, { silent: true }),
       });
       markDirty('device');
       break;
@@ -356,16 +356,6 @@ export function openBottom(name) {
  * - 항목 클릭 → runCommand(button.dataset.command) — 단축키·커맨드 팔레트·오른쪽 클릭 메뉴와 같은 명령 (FR-2169)
  */
 export function initMenus() {
-  // TODO
-}
-
-/**
- * 명령 실행 — 메뉴 data-command · 단축키 · 커맨드 팔레트가 모두 이것을 부름
- * - 'edit.undo', 'track.addReturn', 'view.automation' … (studioNx.html 의 data-command 목록)
- * - 예: COMMANDS = { 'view.mixer': () => openBottom('mixer'), 'view.automation': () => setAutomationMode(!on), … }
- * @param {string} command
- */
-export function runCommand(command) {
   // TODO
 }
 
@@ -598,5 +588,5 @@ restoreOpenPanels();
 
 // 악기·이펙트 칸 (S1-09 화면) — ?projectId= 가 있으면 서버 값으로 그리고, 고친 값을 저장한다.
 // initUI 뒤에 두어야 편곡 쪽 배선이 먼저 서 있는 상태에서 값을 읽는다 (2026-10-18)
-initDevices({ onChange: (change) => console.debug('[devices]', change.type) });
+initDevices({ onChange: (change) => handleChange(change) });
 
