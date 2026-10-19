@@ -18,11 +18,12 @@ from app.models.project import MemberRole
 from app.schemas.pattern import (
     NoteItem,
     NotesSaveRequest,
+    PatternCreateRequest,
     PatternListResponse,
     PatternResponse,
     PatternUpdateRequest,
 )
-from app.services import project_service
+from app.services import clip_service, project_service
 
 
 def _note_item(note: MidiNote) -> NoteItem:
@@ -146,3 +147,34 @@ def update_pattern(
     db.commit()
     db.refresh(pattern)
     return to_response(pattern, _notes(db, pattern.pattern_id))
+
+
+def create_pattern(db: Session, user: User, data: PatternCreateRequest) -> PatternResponse:
+    """새 빈 패턴 만들기 (FR-2196). OWNER·EDITOR 만. 노트는 나중에 피아노롤로 채운다."""
+    project, member = project_service.get_membership(db, data.project_id, user)
+    project_service.require_role(member, MemberRole.OWNER, MemberRole.EDITOR)
+    pattern = Pattern(
+        project_id=project.project_id,
+        name=data.name,
+        color=data.color,
+        length_tick=data.length_tick,
+        swing=data.swing,
+    )
+    db.add(pattern)
+    db.commit()
+    db.refresh(pattern)
+    return to_response(pattern, [])
+
+
+def delete_pattern(db: Session, user: User, pattern_id: int) -> None:
+    """패턴 삭제 (FR-2196). OWNER·EDITOR 만. 클립이 쓰고 있으면 400 으로 막는다.
+
+    클립이 가리키는 패턴을 지우면 그 클립이 빈 껍데기가 되므로, 마지막 클립을 지운
+    화면이 패턴 정리를 이어서 할 수 있게 남은 클립이 없을 때만 지운다.
+    """
+    pattern, _project, member = _find(db, user, pattern_id)
+    project_service.require_role(member, MemberRole.OWNER, MemberRole.EDITOR)
+    if clip_service.pattern_is_used(db, pattern.pattern_id):
+        raise AppError(ErrorCode.BAD_REQUEST, 400, "Pattern is used by clips.")
+    db.delete(pattern)
+    db.commit()

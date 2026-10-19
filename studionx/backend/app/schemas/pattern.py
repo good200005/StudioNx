@@ -80,6 +80,19 @@ class PatternUpdateRequest(BaseModel):
         return value
 
 
+class PatternCreateRequest(BaseModel):
+    """POST /patterns — 새 빈 패턴을 만든다. 노트는 나중에 피아노롤로 채운다."""
+
+    project_id: int = Field(ge=1)
+    name: PatternName
+    color: (
+        Annotated[str, StringConstraints(strip_whitespace=True, max_length=PATTERN_COLOR_MAX)]
+        | None
+    ) = None
+    length_tick: Annotated[int, Field(ge=1)] = 3840
+    swing: Annotated[Decimal, Field(ge=0, le=1, decimal_places=2)] = Decimal("0.00")
+
+
 class PatternResponse(BaseModel):
     """패턴 한 건 — 목록·상세·노트 저장 응답이 모두 이 모양을 쓴다."""
 

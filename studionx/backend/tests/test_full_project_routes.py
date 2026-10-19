@@ -14,20 +14,24 @@ from app.core.security import create_access_token
 from app.db.session import get_db
 from app.main import app
 from app.models import (
+    Clip,
     MidiNote,
     Pattern,
     Plugin,
     Project,
     ProjectMember,
     Track,
+    TrackConnection,
     TrackInstrument,
     TrackPlugin,
     TrackPluginLink,
     User,
 )
+from app.models.clip import ClipType
 from app.models.plugin import PluginType
 from app.models.project import MemberRole
 from app.models.track import TrackType
+from app.models.track_connection import ConnectionTarget
 
 FULL_URL = "/api/v1/projects/{}/full"
 
@@ -39,7 +43,7 @@ PROJECT_KEYS = {
 TRACK_KEYS = {
     "track_id", "project_id", "name", "track_type", "order_index", "color", "volume_db", "pan",
     "is_muted", "is_solo", "is_enabled", "parent_track_id", "frozen_sample_id", "routing_mode",
-    "assignee_id", "locked_by", "locked_at", "instruments", "effects", "links",
+    "assignee_id", "locked_by", "locked_at", "instruments", "effects", "links", "connections",
 }
 PATTERN_KEYS = {
     "pattern_id", "project_id", "name", "color", "length_tick", "swing", "updated_at", "notes",
@@ -48,7 +52,17 @@ NOTE_KEYS = {
     "note_id", "pitch", "start_tick", "length_tick", "velocity", "channel", "release_velocity",
     "is_muted", "probability", "velocity_deviation",
 }
-EMPTY_LATER = ("clips", "markers", "tempo_changes", "meter_changes")
+CLIP_KEYS = {
+    "clip_id", "track_id", "clip_type", "sample_id", "pattern_id", "name", "start_tick",
+    "length_tick", "offset_tick", "gain_db", "is_looped", "fade_in_tick", "fade_out_tick",
+    "fade_in_curve", "fade_out_curve", "warp_mode", "warp_markers", "pitch_semitones",
+    "is_reversed", "updated_at",
+}
+CONNECTION_KEYS = {
+    "connection_id", "from_track_id", "to_track_id", "target", "to_track_plugin_id", "to_port",
+    "also_play", "volume_db", "pan", "is_solo",
+}
+EMPTY_LATER = ("markers", "tempo_changes", "meter_changes")
 
 
 def test_full_route_registered():
@@ -157,6 +171,31 @@ def add_note(db, pattern, pitch, start_tick, length_tick=480):
     return note
 
 
+def add_midi_clip(db, track, pattern, start_tick, length_tick=3840, name="Bass line"):
+    clip = Clip(
+        track_id=track.track_id,
+        clip_type=ClipType.MIDI,
+        pattern_id=pattern.pattern_id,
+        name=name,
+        start_tick=start_tick,
+        length_tick=length_tick,
+    )
+    db.add(clip)
+    db.flush()
+    return clip
+
+
+def add_connection(db, from_track, to_track):
+    connection = TrackConnection(
+        from_track_id=from_track.track_id,
+        to_track_id=to_track.track_id,
+        target=ConnectionTarget.PLUGIN,
+    )
+    db.add(connection)
+    db.flush()
+    return connection
+
+
 def get(client, user, project_id):
     res = client.get(FULL_URL.format(project_id), headers=auth(user))
     assert res.status_code == 200
@@ -174,11 +213,12 @@ def test_full_returns_project_tracks_and_patterns(client, db):
 
     data = get(client, user, project.project_id)
 
-    assert set(data) == {"project", "tracks", "patterns", *EMPTY_LATER}
+    assert set(data) == {"project", "tracks", "patterns", "clips", *EMPTY_LATER}
     assert set(data["project"]) == PROJECT_KEYS
     assert data["project"]["title"] == "Full Basic"
     assert data["project"]["my_role"] == "OWNER"
     assert data["project"]["member_count"] == 1
+    assert data["clips"] == []  # 클립이 없으면 빈 목록
     for key in EMPTY_LATER:  # 모델·API 가 아직 없는 표는 빈 목록
         assert data[key] == []
 
@@ -188,6 +228,7 @@ def test_full_returns_project_tracks_and_patterns(client, db):
     assert set(data["tracks"][1]) == TRACK_KEYS
     assert data["tracks"][1]["instruments"] == []
     assert data["tracks"][1]["effects"] == []
+    assert data["tracks"][1]["connections"] == []
 
     assert len(data["patterns"]) == 1
     pattern_data = data["patterns"][0]
@@ -298,3 +339,32 @@ def test_full_needs_login(client, db):
     user = add_user(db, "full_nologin")
     project = add_project(db, user)
     assert client.get(FULL_URL.format(project.project_id)).status_code == 401
+
+
+def test_full_includes_clips_and_connections(client, db):
+    user = add_user(db, "full_clips")
+    project = add_project(db, user)
+    bass = add_track(db, project, "Bass Synth", order_index=1)
+    keys = add_track(db, project, "Keys", order_index=2)
+    pattern = add_pattern(db, project, "Bass line")
+    add_note(db, pattern, pitch=40, start_tick=0)
+    clip = add_midi_clip(db, bass, pattern, start_tick=1920)
+    add_connection(db, keys, bass)
+
+    data = get(client, user, project.project_id)
+
+    assert len(data["clips"]) == 1
+    clip_data = data["clips"][0]
+    assert set(clip_data) == CLIP_KEYS
+    assert clip_data["clip_id"] == clip.clip_id
+    assert clip_data["track_id"] == bass.track_id
+    assert (clip_data["clip_type"], clip_data["pattern_id"]) == ("MIDI", pattern.pattern_id)
+    assert clip_data["start_tick"] == 1920
+
+    by_name = {t["name"]: t for t in data["tracks"]}
+    assert by_name["Bass Synth"]["connections"] == []
+    conns = by_name["Keys"]["connections"]
+    assert len(conns) == 1
+    assert set(conns[0]) == CONNECTION_KEYS
+    assert conns[0]["to_track_id"] == bass.track_id
+    assert conns[0]["target"] == "PLUGIN"

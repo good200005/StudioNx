@@ -11,9 +11,10 @@
 // - 상세 설정 모달: 그룹 탭 · 전체 파라미터 · 프리셋 · A/B 비교 · 초기화 (FR-2187·246)
 // - 믹서 칸과 아래 칸 믹서 줄: 볼륨 · 팬 · M · S · ● 저장 (FR-252)
 //
+// - Connect to Another 저장 · 표시(track_connections)와 타임라인 클립 · 패턴 그리기 → S1-10a (FR-2196·2197)
+//
 // 맡지 않는 것
-// - Connect to Another 링크 저장 · 표시(track_plugin_links) → S1-10 (FR-2197)
-// - 갈래(패처) 보드 → FR-265~ 뒤 작업, 클립 · 패턴 불러오기 → S1-10
+// - 갈래(패처) 보드 → FR-265~ 뒤 작업
 // - 소리(Web Audio)와 미터의 진짜 값 → S1-11. 여기서는 재생 중일 때만 흉내 낸 미터를 흔듦
 //
 // 두 가지 모드 (2026-10-18 결정)
@@ -23,7 +24,7 @@
 //   페이더만 화면에서 움직임(저장 없음). 카드 ＋ 를 누르면 안내 알림만 띄움
 
 import { api, ApiError } from '../core/api.js';
-import { showToast, isPlaying, restoreOpenPanels } from './sequencer-arrange.js';
+import { showToast, isPlaying, restoreOpenPanels, createClip, ticksToBars, TICKS_PER_BAR } from './sequencer-arrange.js';
 
 /** 순서를 바꿀 때 옮기는 카드를 잠깐 비켜 두는 빈 칸 번호 (UQ(track_id, slot_index) 를 피하려고) */
 const OPEN_SLOT = 100;
@@ -38,6 +39,14 @@ let plugins = [];
 let tracks = [];
 /** trackId -> { instruments: [], effects: [] } — 트랙을 펼칠 때 한 번 읽고, 고치면 다시 읽음 */
 const devices = {};
+/** 나가는 연결 한 건 (S1-10a FR-2197) — from_track_id -> track_connections 줄 (UNIQUE(from_track_id) 라 최대 하나) */
+let connections = {};
+/** 들어오는 연결 (FR-2197) — to_track_id -> [연결] (여러 트랙이 한 트랙으로 보낼 수 있음) */
+let connectionsByTarget = {};
+/** 프로젝트의 모든 클립 (S1-10a FR-2196) — GET /full 의 clips */
+let clips = [];
+/** patternId -> 패턴(노트 포함) — MIDI 클립 미리보기와 이름에 씀 (S1-10a FR-2196) */
+const patternsById = {};
 /** pluginId -> [preset] — 프리셋 목록 (FR-246) */
 const presets = {};
 /** 열려 있는 상세 모달 상태 */
@@ -88,7 +97,7 @@ export function initDevices(options) {
       renderTracks();
       // FR-261 — 예시 줄을 갈아 끼운 뒤라, 담아 둔 펼침 상태를 실제 트랙 줄에 다시 적용합니다
       restoreOpenPanels();
-      Array.prototype.forEach.call(document.querySelectorAll('#tracks > .sq-track.is-open'), ensureLiveCells);
+      refreshOpenCells();
       // 트랙 줄 · 믹서 줄의 악기 이름을 바로 보여 주기 위해 값을 미리 모읍니다
       preloadDevices(tracks).then(syncTrackSubs);
     })
@@ -172,7 +181,7 @@ function syncTrackSubs() {
     const row = rowOf(track);
     if (!row) return;
     const small = row.querySelector('.sq-track__name small');
-    if (small) small.textContent = trackInfo(track).sub;
+    if (small) small.innerHTML = connectionBadge(track) + esc(trackInfo(track).sub);
   });
   renderMixerStrips();
 }
@@ -193,11 +202,49 @@ export function applyFullProject(data) {
       effects: track.effects || [],
     };
   });
+  indexConnections(list);
+  indexPatterns((data && data.patterns) || []);
+  indexClips((data && data.clips) || []);
   renderTracks();
   // FR-261 — 담아 둔 펼침 상태를 새 트랙 줄에 다시 적용하고, 펼친 칸은 바로 채웁니다
   restoreOpenPanels();
-  Array.prototype.forEach.call(document.querySelectorAll('#tracks > .sq-track.is-open'), ensureLiveCells);
+  refreshOpenCells();
   syncTrackSubs();
+}
+
+/**
+ * 나가는 연결을 트랙별로 담기 (S1-10a FR-2197) — GET /full 의 각 트랙 connections 를 폅니다.
+ * track_connections 는 UNIQUE(from_track_id) 라 트랙마다 최대 한 건이고, 받는 트랙 쪽은 여러 건일 수 있어
+ * 들어오는 목록(connectionsByTarget)도 함께 만듭니다 (트랙 줄에 ⇠N 을 붙이기 위해).
+ * @param {object[]} list 트랙 목록 (각 트랙에 connections 가 있음)
+ */
+function indexConnections(list) {
+  connections = {};
+  connectionsByTarget = {};
+  (list || []).forEach(function (track) {
+    const out = track.connections || [];
+    if (out.length) connections[track.track_id] = out[0];
+    out.forEach(function (c) {
+      if (!connectionsByTarget[c.to_track_id]) connectionsByTarget[c.to_track_id] = [];
+      connectionsByTarget[c.to_track_id].push(c);
+    });
+  });
+}
+
+/** 패턴(노트 포함)을 번호로 담기 (S1-10a) — MIDI 클립 이름 · 미리보기에 씀 */
+function indexPatterns(list) {
+  (list || []).forEach(function (pattern) { patternsById[pattern.pattern_id] = pattern; });
+}
+
+/** 프로젝트의 모든 클립을 담기 (S1-10a FR-2196) */
+function indexClips(list) {
+  clips = (list || []).slice();
+}
+
+/** 한 트랙의 클립 (시작 tick 순) */
+function clipsFor(track) {
+  return clips.filter(function (c) { return String(c.track_id) === String(track.track_id); })
+    .sort(function (a, b) { return a.start_tick - b.start_tick; });
 }
 
 /* ───────────────────────── 트랙 그리기 (FR-251·252) ───────────────────────── */
@@ -245,6 +292,8 @@ export function renderTracks() {
   });
 
   renderMixerStrips();
+  // 캔버스 크기는 줄이 화면에 붙은 뒤에야 잡히므로, 다음 그리기 틱에 MIDI 미리보기를 그립니다
+  if (typeof window !== 'undefined') window.requestAnimationFrame(drawClipPreviews);
 }
 
 /** 예시 화면의 MASTER 줄을 실제 트랙 값에 맞추기 (data-track-id · 이름 · ⏻ · M) */
@@ -286,12 +335,136 @@ export function buildTrackRow(track, i, master) {
     + (master ? '' : '<button type="button" class="sq-grip" aria-label="Reorder track" title="Drag to reorder">⠿</button>')
     + '<button type="button" class="sq-power" aria-pressed="' + String(track.is_enabled !== false) + '" aria-label="Track on/off"></button>'
     + '<button type="button" class="sq-expand" aria-expanded="false" aria-label="Open track">V</button>'
-    + '<span class="sq-track__name"><b>' + esc(num + track.name) + ' ' + badge + '</b><small>' + esc(info.sub) + '</small></span>'
+    + '<span class="sq-track__name"><b>' + esc(num + track.name) + ' ' + badge + '</b><small>' + connectionBadge(track) + esc(info.sub) + '</small></span>'
     + '<span class="sq-msr"><button type="button" class="is-mute" aria-pressed="' + String(!!track.is_muted) + '" aria-label="Mute">M</button>'
     + (master ? '' : '<button type="button" class="is-solo" aria-pressed="' + String(!!track.is_solo) + '" aria-label="Solo">S</button>')
     + (master || track.track_type === 'RETURN' ? '' : '<button type="button" class="is-arm" aria-pressed="false" aria-label="Record arm">●</button>')
     + '</span>\n            </div>\n            <div class="sq-track__lane"><span class="sq-track__note">' + esc(info.note) + '</span></div>';
+  // 클립 (S1-10a FR-2196) — 서버에서 온 클립을 이 트랙 레인에 그립니다 (그룹 · 리턴 · MASTER 는 클립 없음)
+  const lane = li.querySelector('.sq-track__lane');
+  const holdsClips = track.track_type === 'MIDI' || track.track_type === 'AUDIO';
+  if (lane && !master && holdsClips) {
+    clipsFor(track).forEach(function (c) { lane.append(clipElement(track, c)); });
+  }
   return li;
+}
+
+/* ───────────────────────── 클립 · 연결 그리기 (S1-10a FR-2196·2197) ───────────────────────── */
+
+/** 트랙 표시 번호 — 목록 순서 + 1 (buildTrackRow 의 '1. ' 와 같은 번호) */
+function trackNumber(track) {
+  return (track && track.order_index != null ? track.order_index : 0) + 1;
+}
+
+/** 표시 번호(N) → 트랙 (MASTER 제외한 순서 기준) */
+function trackByNumber(n) {
+  const want = Number(n) - 1;
+  if (!isFinite(want)) return null;
+  for (let i = 0; i < tracks.length; i += 1) {
+    if (tracks[i].track_type !== 'MASTER' && tracks[i].order_index === want) return tracks[i];
+  }
+  return null;
+}
+
+/** track_id → 표시 번호 (없으면 물음표) */
+function trackNumberOf(id) {
+  const track = trackById(id);
+  return track ? String(trackNumber(track)) : '?';
+}
+
+/** 연결이 가리키는 대상 글자 — 'Instruments (layer)' 또는 이펙트 이름 */
+function connectionTargetLabel(c) {
+  if (!c || c.target !== 'PLUGIN' || !c.to_track_plugin_id) return 'Instruments (layer)';
+  const d = devices[c.to_track_id];
+  if (d) {
+    const found = d.effects.filter(function (e) { return e.track_plugin_id === c.to_track_plugin_id; })[0];
+    const p = found ? pluginById(found.plugin_id) : null;
+    if (p) return p.name;
+  }
+  return 'Plugin #' + c.to_track_plugin_id;
+}
+
+/** 트랙 이름 줄에 붙일 연결 표시 (FR-2197) — 나가면 →N, 들어오면 ⇠X (여러 개면 이어 붙임) */
+function connectionBadge(track) {
+  const parts = [];
+  const out = connections[track.track_id];
+  if (out) {
+    const title = 'Sends to Track ' + trackNumberOf(out.to_track_id) + ' › ' + connectionTargetLabel(out);
+    parts.push('<span class="sq-link" title="' + esc(title) + '">→' + trackNumberOf(out.to_track_id) + '</span>');
+  }
+  (connectionsByTarget[track.track_id] || []).forEach(function (c) {
+    parts.push('<span class="sq-link" title="Layer from Track ' + trackNumberOf(c.from_track_id) + '">⇠' + trackNumberOf(c.from_track_id) + '</span>');
+  });
+  return parts.join('');
+}
+
+/** 서버 클립 한 건 → 편곡 클립 요소 (번호를 달아 두어 저장·삭제가 이어짐) */
+function clipElement(track, c) {
+  const kind = c.clip_type === 'AUDIO' ? 'audio' : 'midi';
+  const el = createClip({
+    kind: kind,
+    name: clipName(c),
+    start: ticksToBars(c.start_tick),
+    length: ticksToBars(c.length_tick),
+    clipId: c.clip_id,
+    patternId: c.pattern_id,
+    sampleId: c.sample_id,
+  });
+  if (c.offset_tick) el.style.setProperty('--o', ticksToBars(c.offset_tick));
+  if (kind === 'midi' && c.pattern_id && patternsById[c.pattern_id]) {
+    const p = patternsById[c.pattern_id];
+    el.__notes = p.notes || [];
+    if (p.length_tick) el.__patternBars = Math.max(1, ticksToBars(p.length_tick));
+  }
+  return el;
+}
+
+/** 클립 이름 — 저장된 이름이 없으면 패턴 이름 또는 'Sample #N' */
+function clipName(c) {
+  if (c.name) return c.name;
+  if (c.pattern_id) {
+    const p = patternsById[c.pattern_id];
+    return p ? p.name : 'Pattern #' + c.pattern_id;
+  }
+  return 'Sample #' + c.sample_id;
+}
+
+/** MIDI 클립 미리보기 다시 그리기 (FR-2196) — __notes 의 노트를 음높이·길이대로 작은 막대로 */
+function drawMidiPreview(clip) {
+  const notes = clip.__notes;
+  const canvas = clip.querySelector('.sq-clip__preview');
+  if (!canvas || !notes) return;
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+  const pw = Math.max(1, Math.round(w * dpr));
+  const ph = Math.max(1, Math.round(h * dpr));
+  if (canvas.width !== pw || canvas.height !== ph) { canvas.width = pw; canvas.height = ph; }
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, pw, ph);
+  if (w < 2 || h < 2 || !notes.length) return;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const ticks = (parseFloat(clip.style.getPropertyValue('--l')) || 1) * TICKS_PER_BAR;
+  let lo = Infinity;
+  let hi = -Infinity;
+  for (let i = 0; i < notes.length; i += 1) { if (notes[i].pitch < lo) lo = notes[i].pitch; if (notes[i].pitch > hi) hi = notes[i].pitch; }
+  if (hi === lo) { lo -= 1; hi += 1; }
+  const pad = 0.12;
+  const barH = Math.max(1, Math.round(h * 0.14));
+  ctx.fillStyle = getComputedStyle(clip).getPropertyValue('--tc').trim() || 'currentColor';
+  for (let i = 0; i < notes.length; i += 1) {
+    const n = notes[i];
+    const x = (n.start_tick / ticks) * w;
+    const bw = Math.max(1, (n.length_tick / ticks) * w);
+    const y = (1 - (n.pitch - lo) / (hi - lo)) * (1 - pad * 2) + pad;
+    ctx.fillRect(x, y * h - barH / 2, Math.min(bw, w - x), barH);
+  }
+}
+
+/** 레이아웃이 그린 뒤 모든 MIDI 클립 미리보기를 다시 그리기 (캔버스 크기가 붙은 뒤에야 됨) */
+function drawClipPreviews() {
+  Array.prototype.forEach.call(document.querySelectorAll('#lanes .sq-clip--midi'), drawMidiPreview);
 }
 
 /** 트랙 줄 아래 작은 글 — 악기 이름 (+ 겹 수) 또는 트랙 종류 */
@@ -396,6 +569,14 @@ export function ensureLiveCells(track) {
   return acc;
 }
 
+/** 지금 펼쳐 둔 트랙 줄(.is-open)의 칸을 다시 채우기 — 줄 DOM 이 아니라 트랙 값으로 부릅니다 */
+export function refreshOpenCells() {
+  Array.prototype.forEach.call(document.querySelectorAll('#tracks > .sq-track.is-open'), function (row) {
+    const track = trackById(row.dataset.trackId);
+    if (track) ensureLiveCells(track);
+  });
+}
+
 /** 트랙의 펼침 칸(.sq-acc) 찾기 */
 function accOf(track) {
   const row = rowOf(track);
@@ -467,10 +648,117 @@ export function renderCells(acc, track) {
   if (conn) {
     const h3 = conn.querySelector(':scope > h3');
     if (h3) h3.textContent = 'CONNECT TO ANOTHER';
-    setCellBody(conn, '<p class="sq-cell__hint">Linking this track to another one is saved in the next work unit (S1-10, FR-2197)</p>');
+    setCellBody(conn, connectHtml(track));
   }
   wireControls(acc, track);
   startMeters();
+}
+
+/* ───────────────────────── Connect to Another (FR-2197) ───────────────────────── */
+
+/** Connect to Another 칸 그리기 — 지금 연결 값을 셀렉트에 채웁니다 (None/Connected · Track · Plugin) */
+function connectHtml(track) {
+  const c = connections[track.track_id] || null;
+  const on = !!c;
+  return '<div class="sq-route' + (on ? ' is-live' : '') + '">'
+    + '<label>Connect</label>'
+    + '<select class="sq-route__type" aria-label="Connect">'
+    + '<option value="none"' + (on ? '' : ' selected') + '>None</option>'
+    + '<option value="connected"' + (on ? ' selected' : '') + '>Connected</option></select>'
+    + '<label>Track</label>'
+    + '<input class="sq-route__track" type="number" min="1" placeholder="—"'
+    + (on ? ' value="' + trackNumberOf(c.to_track_id) + '"' : '') + '>'
+    + '<label>Plugin</label>'
+    + '<select class="sq-route__plugin"' + (on ? '' : ' disabled') + '>'
+    + pluginOptionsHtml(on ? c.to_track_id : null, on ? c : null) + '</select>'
+    + '</div>';
+}
+
+/** Plugin 셀렉트의 option 들 — 'Instruments (layer)' + 대상 트랙의 이펙트 (고른 것 표시) */
+function pluginOptionsHtml(targetId, c) {
+  const opts = [{ value: 'instruments', label: 'Instruments (layer)' }];
+  const d = targetId ? devices[targetId] : null;
+  if (d) {
+    d.effects.forEach(function (e) {
+      const p = pluginById(e.plugin_id);
+      opts.push({ value: String(e.track_plugin_id), label: p ? p.name : 'Plugin #' + e.plugin_id });
+    });
+  } else if (c && c.to_track_plugin_id) {
+    opts.push({ value: String(c.to_track_plugin_id), label: connectionTargetLabel(c) });
+  }
+  const picked = c && c.target === 'PLUGIN' && c.to_track_plugin_id ? String(c.to_track_plugin_id) : 'instruments';
+  return opts.map(function (o) {
+    return '<option value="' + esc(o.value) + '"' + (o.value === picked ? ' selected' : '') + '>' + esc(o.label) + '</option>';
+  }).join('');
+}
+
+/** Track 번호가 바뀌면 그 트랙의 이펙트로 Plugin 칸을 다시 채움 (저장은 change 에서) */
+function refillPluginOptions(route, track) {
+  const num = route.querySelector('.sq-route__track');
+  const plugin = route.querySelector('.sq-route__plugin');
+  if (!num || !plugin) return;
+  const target = trackByNumber(num.value);
+  const conn = connections[track.track_id];
+  const c = target && conn && conn.to_track_id === target.track_id ? conn : null;
+  plugin.innerHTML = pluginOptionsHtml(target ? target.track_id : null, c);
+}
+
+/**
+ * Connect to Another 값을 서버에 저장 (FR-2197) — Connected 면 PUT, None 이면 DELETE.
+ * 부르는 곳: wireCells 의 change 처리. 저장 뒤 트랙 줄 배지를 다시 그립니다.
+ * @param {HTMLElement} acc   펼침 칸(.sq-acc)
+ * @param {object} track
+ */
+export async function updateConnection(acc, track) {
+  const route = acc.querySelector('.sq-route');
+  if (!route) return;
+  const type = route.querySelector('.sq-route__type');
+  const num = route.querySelector('.sq-route__track');
+  const plugin = route.querySelector('.sq-route__plugin');
+  const on = !!type && type.value === 'connected' && !!num && num.value;
+  if (!on) {
+    try {
+      await api.delete('/tracks/' + track.track_id + '/connection');
+      delete connections[track.track_id];
+      refreshConnections();
+      notify({ type: 'connection', trackId: track.track_id, on: false });
+    } catch (err) {
+      if (!(err instanceof ApiError && err.status === 404)) warn(err);
+    }
+    return;
+  }
+  const target = trackByNumber(num.value);
+  if (!target) { showToast('No track with that number'); return; }
+  const value = plugin ? plugin.value : 'instruments';
+  const instruments = !value || value === 'instruments';
+  const body = {
+    to_track_id: target.track_id,
+    target: instruments ? 'INSTRUMENTS' : 'PLUGIN',
+  };
+  if (!instruments) body.to_track_plugin_id = Number(value);
+  try {
+    const saved = await api.put('/tracks/' + track.track_id + '/connection', body);
+    connections[track.track_id] = saved;
+    refreshConnections();
+    notify({ type: 'connection', trackId: track.track_id, on: true, toTrackId: target.track_id });
+  } catch (err) {
+    warn(err);
+    showToast(errText(err));
+  }
+}
+
+/** 연결이 바뀐 뒤 트랙 목록을 다시 그려 →N · ⇠X 와 칸을 새 값에 맞춤 */
+function refreshConnections() {
+  connectionsByTarget = {};
+  Object.keys(connections).forEach(function (key) {
+    const c = connections[key];
+    if (!connectionsByTarget[c.to_track_id]) connectionsByTarget[c.to_track_id] = [];
+    connectionsByTarget[c.to_track_id].push(c);
+  });
+  renderTracks();
+  restoreOpenPanels();
+  refreshOpenCells();
+  syncTrackSubs();
 }
 
 /** 고친 뒤 그 트랙의 칸만 다시 그리기 (구조가 바뀔 때 — 붙이기 · 떼기 · 순서 · 프리셋) */
@@ -480,7 +768,7 @@ function refreshCells(track) {
   const row = rowOf(track);
   if (row) {
     const small = row.querySelector('.sq-track__name small');
-    if (small) small.textContent = trackInfo(track).sub;
+    if (small) small.innerHTML = connectionBadge(track) + esc(trackInfo(track).sub);
   }
   renderMixerStrips();
 }
@@ -505,8 +793,24 @@ function effectsHtml(track) {
     parts.push(cardHtml('EFFECT', track, d));
   });
   parts.push('<li><button type="button" class="sq-fx-add is-dev-add" data-kind="EFFECT" aria-label="Add effect after the last one">＋</button></li>');
+  // FR-2197 — 이 트랙이 다른 트랙으로 보내면 이펙트 사슬 끝에 '→ sends to …' 를 붙입니다
+  const out = connections[track.track_id];
+  if (out) parts.push('<li class="sq-flow" aria-hidden="true">→</li>', sendtoHtml(out));
   return '<ol class="sq-chain">' + parts.join('') + '</ol>'
     + '<p class="sq-cell__hint">Parallel branches and the PATCHER board come later (FR-265)</p>';
+}
+
+/** 이펙트 칸 끝의 '→ sends to Track N › …' (FR-2197) */
+function sendtoHtml(c) {
+  const label = 'Track ' + trackNumberOf(c.to_track_id) + ' › ' + connectionTargetLabel(c);
+  return '<li class="sq-sendto">→ sends to <b>' + esc(label) + '</b>'
+    + '<span>then uses Track ' + trackNumberOf(c.to_track_id) + '’s effects and mixer</span></li>';
+}
+
+/** 믹서 칸 위 OFF 덮개 (FR-2197) — 보내는 트랙은 자기 이펙트·믹서 대신 받는 트랙 것을 씁니다 */
+function offHtml(c) {
+  return '<div class="sq-off"><b>OFF</b>Connected to<br>Track ' + trackNumberOf(c.to_track_id) + ' ›<br>'
+    + esc(connectionTargetLabel(c)) + '</div>';
 }
 
 /** slot_index 순서로 */
@@ -603,7 +907,9 @@ function mixerHtml(track) {
       ? '<span class="sq-pan">L<i></i>R</span>'
       : '<span class="sq-pan">L<i role="slider" tabindex="0" data-live="track-pan" aria-label="Pan" style="--p:' + panDeg(Number(track.pan || 0)) + 'deg"></i>R</span>'
         + '<span class="sq-sends" title="Sends come with the mixer work unit">A<i style="--a:40deg"></i>B<i style="--a:-10deg"></i></span>')
-    + '</div>';
+    + '</div>'
+    // FR-2197 — 다른 트랙으로 보내면 이 트랙의 믹서 대신 받는 트랙 것을 씁니다 (OFF 덮개)
+    + (connections[track.track_id] ? offHtml(connections[track.track_id]) : '');
 }
 
 /** 아래 칸 믹서 — 실제 트랙마다 줄 하나, MASTER 는 끝에 */
@@ -1638,6 +1944,35 @@ function wireCells(lanes, onChange) {
       return;
     }
     onChange({ type: 'deviceClick' });
+  });
+  // Connect to Another (FR-2197) — 실제 트랙 칸(.is-live)의 셀렉트만 여기서 저장합니다
+  lanes.addEventListener('input', function (e) {
+    const route = e.target.closest && e.target.closest('.sq-route');
+    if (!route || !route.classList.contains('is-live') || !e.target.classList.contains('sq-route__track')) return;
+    const acc = route.closest('.sq-acc');
+    const row = acc && acc.previousElementSibling;
+    const track = row && row.classList.contains('sq-track') ? trackById(row.dataset.trackId) : null;
+    if (track) refillPluginOptions(route, track);
+  });
+  lanes.addEventListener('change', function (e) {
+    const route = e.target.closest && e.target.closest('.sq-route');
+    if (!route) return;
+    const acc = route.closest('.sq-acc');
+    if (!acc || !acc.classList.contains('is-live')) return;   // 데모 칸은 sequencer-ui.js 가 맡습니다
+    const row = acc.previousElementSibling;
+    const track = row && row.classList.contains('sq-track') ? trackById(row.dataset.trackId) : null;
+    if (!track) return;
+    if (e.target.classList.contains('sq-route__type')) {
+      const on = e.target.value === 'connected';
+      const num = route.querySelector('.sq-route__track');
+      const plugin = route.querySelector('.sq-route__plugin');
+      if (plugin) plugin.disabled = !on;
+      route.classList.toggle('is-live', on);
+      if (on && num && !num.value) num.focus();
+      return;
+    }
+    // Track 번호 · Plugin 을 고르면 서버에 저장
+    window.setTimeout(function () { updateConnection(acc, track); }, 0);
   });
   wireChainDrag(lanes);
 }
