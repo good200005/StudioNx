@@ -66,7 +66,7 @@ def api(method, path, params=None, body=None):
             time.sleep(2 * (attempt + 1))
 
 
-PLAN_ID = re.compile(r"^\[?(E[123C]|S[123]-\d{2}|C-\d{2}|P1-\d{2}|FIX-\d{2})\b")  # FIX-NN: 계획에 없는 수정 작업
+PLAN_ID = re.compile(r"^\[?(E[123C]|S[123]-\d{2}[a-z]?|C-\d{2}|P1-\d{2}|FIX-\d{2})\b")  # FIX-NN: 계획에 없는 수정 작업
 PARENT_IN_DESC = re.compile(r"상위 작업:\s*(E[123C]|S[123]-\d{2}|C-\d{2})")
 EPIC_SUMMARY = {"1단계": "E1", "2단계": "E2", "3단계": "E3", "병행": "EC"}
 
