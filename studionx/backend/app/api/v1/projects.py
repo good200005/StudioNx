@@ -22,6 +22,11 @@ from fastapi import APIRouter, Query, status
 
 from app.api.deps import CurrentUser, Db
 from app.schemas.common import ErrorResponse
+from app.schemas.full_project import (
+    FullProjectInfo,
+    FullProjectResponse,
+    FullProjectSettingsUpdateRequest,
+)
 from app.schemas.project import (
     PROJECT_PAGE_SIZE_MAX,
     ProjectCreateRequest,
@@ -30,7 +35,7 @@ from app.schemas.project import (
     ProjectSort,
     ProjectUpdateRequest,
 )
-from app.services import project_service
+from app.services import full_project_service, project_service
 
 router = APIRouter()
 
@@ -74,6 +79,36 @@ def read_project(project_id: int, user: CurrentUser, db: Db) -> ProjectItem:
     """
     project, member = project_service.get_membership(db, project_id, user)
     return project_service.to_item(db, project, member)
+
+
+@router.get("/{project_id}/full", response_model=FullProjectResponse, responses=NOT_FOUND)
+def read_full_project(project_id: int, user: CurrentUser, db: Db) -> FullProjectResponse:
+    """프로젝트 전체 — 트랙·악기·이펙트·연결선·패턴·노트를 한 번에 (FR-254).
+
+    시퀀서가 화면을 열 때 부르는 요청이다. 멤버만 (VIEWER 포함), 없거나 남의 것은 404.
+    clips · markers · tempo_changes · meter_changes 는 그 모델이 아직 없어 빈 목록으로 나간다.
+    """
+    return full_project_service.get_full_project(db, user, project_id)
+
+
+@router.patch(
+    "/{project_id}/settings",
+    response_model=FullProjectInfo,
+    responses={**NOT_FOUND, **FORBIDDEN},
+)
+def update_project_settings(
+    project_id: int,
+    data: FullProjectSettingsUpdateRequest,
+    user: CurrentUser,
+    db: Db,
+) -> FullProjectInfo:
+    """곡 전체 설정(BPM·박자·Key·스케일·샘플레이트·마스터) 저장 (FR-253) — OWNER·EDITOR.
+
+    시퀀서의 Ctrl+S 수동 저장과 자동 저장이 바뀐 칸만 보내는 곳이다.
+    """
+    project, member = project_service.get_membership(db, project_id, user)
+    project = project_service.update_settings(db, project, member, data)
+    return full_project_service.project_info(db, project, member)
 
 
 @router.patch(

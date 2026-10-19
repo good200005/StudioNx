@@ -9,6 +9,7 @@ import {
   addGroup, groupSelectedTracks, ungroupTracks, deleteSelectedTracks, selectedTracks, selectTrack, clearTrackSelection,
 } from './sequencer-arrange.js';
 import { openRoll } from './sequencer-roll.js';
+import { registerCommands, runCommand } from './sequencer-commands.js';
 import {
   fetchSampleList, uploadSample, fetchSampleFileUrl, fetchSampleWaveform,
   renameSample, setSampleTags, deleteSample, fetchTags,
@@ -19,6 +20,7 @@ let onChange = () => {};
 /** @param {{ onChange?: (change: object) => void }} [options] */
 export function initUI(options = {}) {
   onChange = options.onChange ?? onChange;
+  registerCommands(COMMANDS, { group: 'view' });
   initMenus();
   initLanguage();
   initTransportExtras();
@@ -140,7 +142,6 @@ const COMMANDS = {
   'track.groupSelected': () => groupTracks(),
   'window.close': () => window.close(),
   'help.shortcuts': () => showToast('P B D T S C E tools · A automation · Z fit · Space play · Tab mixer · Delete remove · Ctrl+wheel zoom', 6000),
-  'project.save': () => showToast('Saving needs the server — not connected yet'),
 };
 
 /* ───────── 트랙 선택 · 그룹 (FR-207 그룹 · FR-2210) ───────── */
@@ -249,14 +250,15 @@ function initMenus() {
     btn.addEventListener('click', () => (openBtn === btn ? close() : open(btn)));
     btn.addEventListener('pointerenter', () => { if (openBtn && openBtn !== btn) open(btn); });   // 열린 채 옆 메뉴로
   });
-  // 항목 누르기 → 명령 실행 후 닫기
+  // 항목 누르기 → 명령 실행 후 닫기 (isTrusted: 프로그램이 만든 클릭은 무시 — 공용 레지스트리가 다시 불러 무한 재귀 방지)
   top.addEventListener('click', (e) => {
+    if (!e.isTrusted) return;
     const item = e.target.closest('.sq-dropdown [data-command]');
     if (!item || !item.closest('[data-menu]')) return;
     const cmd = item.dataset.command;
-    COMMANDS[cmd]?.();
+    const ok = runCommand(cmd);
     if (item.getAttribute('role') === 'menuitemcheckbox' && !cmd.startsWith('options.triplet')) item.setAttribute('aria-checked', String(item.getAttribute('aria-checked') !== 'true'));
-    if (!HANDLED.has(cmd)) showToast(`${item.firstChild.textContent.trim()} — not available yet`);
+    if (!ok && !HANDLED.has(cmd)) showToast(`${item.firstChild.textContent.trim()} — not available yet`);
     onChange({ type: 'command', command: cmd });
     close();
   });

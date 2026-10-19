@@ -7,36 +7,258 @@
 // 오토메이션 모드 · 점 찍기 · ↕ 곡선은 AI 구현 sequencer-automation.js (사용자 요청 2026-10-06) — setAutomationMode 템플릿 대신
 // 나머지 화면 버튼(메뉴 · 언어 · 왼쪽 버튼 줄 · 아래 칸 · 트랙 펼침 …)은 AI 구현 sequencer-ui.js (사용자 요청 2026-10-06) — 아래 템플릿 함수 중 화면 부분을 대신
 
-import { initArrange, TICKS_PER_BAR, restoreOpenPanels } from './sequencer-arrange.js';
+import { initArrange, TICKS_PER_BAR, restoreOpenPanels, showToast } from './sequencer-arrange.js';
 import { initRoll } from './sequencer-roll.js';
 import { initAutomation } from './sequencer-automation.js';
 import { initUI } from './sequencer-ui.js';
-import { initDevices } from './sequencer-devices.js';
+import {
+  initDevices, readProjectId, applyFullProject, setDeviceNotifier,
+  trackById, reapplyDevice, dropDevice, restoreDevice, moveEffectSlots,
+} from './sequencer-devices.js';
+import { api, ApiError } from '../core/api.js';
+import { requireLogin } from '../core/auth.js';
+import { initPalette, runCommand as runRegistered } from './sequencer-commands.js';
+import { initHistory, pushHistory, undo, redo, clearHistory } from './sequencer-history.js';
+import { initSave, setProjectId, queueSettings, markDirty } from './sequencer-save.js';
 
 /** 1박 = 960 tick (DB.md 와 같음) */
 export const PPQ = 960;
 
 /**
- * 시작
- * - projectId = new URLSearchParams(location.search).get('projectId') — 없으면 myProject.html 로
- * - requireLogin() (core/auth.js) 후 loadProject(projectId)
- * - initMenus() · initRail() · initTracks() · initBottom() · initShortcuts() · initDropZone() · initLanguage()
+ * 시작 (272)
+ * - projectId = readProjectId() — 없으면 예시 화면 그대로 (S1-09 결정, 데모 모드)
+ * - 로그인 확인(requireLogin) → loadProject(projectId) 로 서버 값 채우기
+ * - 명령 레지스트리 · 되돌리기 · 저장 · 단축키를 먼저 세워 두고, 화면 모듈의 onChange 를 한 곳(handleChange)으로 모음
  */
 export async function init() {
-  // TODO
+  initHistory({ toast: showToast });
+  initSave({ toast: showToast });
+  initPalette({ toast: showToast });
+  initShortcuts();
+  setDeviceNotifier(handleChange);
+
+  const projectId = readProjectId();
+  if (!projectId) return;                    // 예시 화면: 숫자·트랙을 그대로 두고 저장도 하지 않습니다
+  setProjectId(projectId);
+  if (!(await requireLogin())) return;        // 로그인 안 됐으면 home.html 로 보냄
+  try {
+    await loadProject(projectId);
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 401) return;   // api.js 재발급 실패 → requireLogin 흐름
+    showToast('Could not open this project — showing the example screen');
+    if (window.console) console.warn('[sequencer]', err);
+  }
 }
 
 /**
- * 프로젝트 전체 불러와 그리기
- * - GET /api/v1/projects/{id}/full → { project, tracks, clips, patterns, markers, tempo_changes, meter_changes }
- * - 예시로 들어 있는 #tracks 의 li.sq-track 들을 지우고 renderTrack() 로 다시 채움
- * - 상단 BPM(#bpm) · 박자 · Key(#key) · 마커 줄 · 루프 구간도 채움
- * - 실패하면 (2026-10-06 결정) 404 → location.replace('errors/404.html'), 403 → errors/403.html, 500 이상 → errors/500.html
- *   401 은 api.js 재발급 실패 → requireLogin() 흐름
+ * 프로젝트 전체 불러와 그리기 (272 · FR-254)
+ * - GET /api/v1/projects/{id}/full 한 번으로 프로젝트 · 트랙(+악기·이펙트·연결선) · 패턴(+노트)을 받습니다
+ * - 상단 BPM(#bpm) · Key(#key) · 박자, 트랙 줄과 펼침 칸은 applyFullProject 가 맡습니다
+ * - 실패: 404 → errors/404.html, 403 → errors/403.html, 그 밖(500 등) → errors/500.html
  * @param {number|string} projectId
+ * @returns {Promise<object>} 서버 응답
  */
 export async function loadProject(projectId) {
-  // TODO
+  let data;
+  try {
+    data = await api.get('/projects/' + encodeURIComponent(projectId) + '/full');
+  } catch (err) {
+    if (err instanceof ApiError) {
+      if (err.status === 404) { location.replace('errors/404.html'); return null; }
+      if (err.status === 403) { location.replace('errors/403.html'); return null; }
+      if (err.status >= 500) { location.replace('errors/500.html'); return null; }
+    }
+    throw err;
+  }
+  setProjectId(projectId);
+  clearHistory();
+  applyProjectInfo(data.project);
+  applyPatterns(data.patterns);
+  applyFullProject(data);
+  if (window.console) console.debug('[sequencer] loaded', projectId, data.tracks.length, 'tracks');
+  return data;
+}
+
+/* ───────── 서버 값 → 화면 (272) ───────── */
+
+/** 서버가 준 패턴 — 노트까지 담고 있습니다 (피아노롤·클립 미리보기가 나중에 씁니다) */
+const patternsById = {};
+
+/**
+ * 프로젝트 칸을 상단에 채우기 (272) — BPM · Key · 박자 · 마스터
+ * @param {object} project
+ */
+function applyProjectInfo(project) {
+  if (!project) return;
+  applyBpm(project.bpm);
+  applyKey(project.music_key);
+  setText('#pattern-select', null);                       // 패턴은 applyPatterns 가 채웁니다
+  setText('.sq-global--meter .sq-global__head small', project.time_sig_num + '/' + project.time_sig_den);
+  document.body.dataset.sampleRate = String(project.sample_rate || '');
+  document.body.dataset.revision = String(project.revision || '');
+}
+
+/** BPM 을 화면·상태에 넣기 (272) — 칩 · 몸통 --bpm · Nyxi 말풍선 */
+function applyBpm(value) {
+  const bpm = Number(value);
+  if (!Number.isFinite(bpm) || bpm <= 0) return;
+  const chip = document.getElementById('bpm');
+  if (chip) chip.textContent = bpm.toFixed(3);
+  document.body.style.setProperty('--bpm', bpm);
+  Array.prototype.forEach.call(document.querySelectorAll('.sq-nyxi span'), function (span) {
+    span.textContent = '♪ ' + Math.round(bpm) + ' BPM';
+  });
+  setText('.sq-global--tempo .sq-global__head small', Math.round(bpm) + ' BPM');
+}
+
+/** Key 를 화면에 넣기 (272) — Key 칩과 피아노롤 속성 */
+function applyKey(value) {
+  if (!value) return;
+  setText('#key', 'Key: ' + value + ' ▾');
+  const dd = Array.prototype.filter.call(
+    document.querySelectorAll('.sq-roll__props div'),
+    function (div) { return div.querySelector('dt') && div.querySelector('dt').textContent === 'Scale'; },
+  )[0];
+  const scale = dd ? dd.querySelector('dd') : null;
+  if (scale) scale.textContent = value;
+}
+
+/**
+ * 패턴 목록을 왼쪽 PATTERNS 목록에 채우기 (272 · FR-254)
+ * @param {object[]} patterns
+ */
+function applyPatterns(patterns) {
+  const list = document.getElementById('pattern-list');
+  const items = patterns || [];
+  items.forEach(function (pattern) { patternsById[pattern.pattern_id] = pattern; });
+  if (!list) return;
+  const bars = function (pattern) {
+    const value = Math.round((pattern.length_tick || 0) / TICKS_PER_BAR * 100) / 100;
+    return value > 0 ? value : 1;
+  };
+  list.innerHTML = items.map(function (pattern, i) {
+    return '<li class="sq-file sq-pattern" role="option" aria-selected="false" draggable="true"'
+      + ' data-kind="midi" data-name="' + escapeAttr(pattern.name) + '"'
+      + ' data-bars="' + bars(pattern) + '" data-color="' + (((i) % 5) + 1) + '"'
+      + ' data-pattern-id="' + pattern.pattern_id + '">'
+      + '<span>▤</span><span class="sq-file__name">' + escapeAttr(pattern.name) + '</span>'
+      + '<span class="sq-file__meta sq-num">' + bars(pattern) + ' bar</span></li>';
+  }).join('');
+  const first = items[0];
+  if (first) setText('#pattern-select', 'Pattern: ' + first.name + ' ▾');
+  if (window.console) console.debug('[sequencer] patterns', items.length);
+}
+
+/** 서버가 준 패턴 하나 (272) — 피아노롤·미리보기가 노트를 꺼내 씁니다 */
+export function patternById(id) {
+  return patternsById[id] || null;
+}
+
+/* ───────── 화면 모듈의 onChange → 이력 · 저장 (272 · FR-2169 · FR-255) ───────── */
+
+/** 상단 값의 지금 상태 — 되돌리기(undo)가 이전 값으로 되돌립니다 */
+const song = { bpm: null, music_key: null };
+
+/**
+ * 화면 모듈이 보낸 변화 한 건 처리하기 (272)
+ * - 값이 바뀌면 이력 한 단계를 쌓고, 곡 설정이면 저장 대기열에 담습니다
+ * - 되돌리기·다시 하기를 실행하는 중이면 history 쪽에서 무시됩니다
+ * @param {{ type: string }} change
+ */
+export function handleChange(change) {
+  if (!change || !change.type) return;
+  switch (change.type) {
+    case 'bpm': {
+      const before = song.bpm;
+      song.bpm = Number(change.bpm);
+      pushHistory({ label: 'BPM ' + song.bpm, undo: () => applyBpmChange(before), redo: () => applyBpmChange(song.bpm) });
+      queueSettings({ bpm: change.bpm });
+      break;
+    }
+    case 'key': {
+      const before = song.music_key;
+      song.music_key = change.key;
+      pushHistory({ label: 'Key ' + change.key, undo: () => applyKeyChange(before), redo: () => applyKeyChange(change.key) });
+      queueSettings({ music_key: change.key });
+      break;
+    }
+    case 'deviceAdd':
+      pushHistory({
+        label: change.label || 'Add device',
+        undo: () => dropDevice(change.trackId, change.kind, change.deviceId),
+        redo: () => restoreDevice(change.trackId, change.kind, change.snapshot),
+      });
+      markDirty('device');
+      break;
+    case 'deviceRemove':
+      pushHistory({
+        label: change.label || 'Remove device',
+        undo: () => restoreDevice(change.trackId, change.kind, change.snapshot),
+        redo: () => dropDevice(change.trackId, change.kind, change.deviceId),
+      });
+      markDirty('device');
+      break;
+    case 'deviceUpdate':
+      pushHistory({
+        label: change.label || 'Change device',
+        undo: () => reapplyDevice(change.trackId, change.kind, change.deviceId, change.before, { silent: true }),
+        redo: () => reapplyDevice(change.trackId, change.kind, change.deviceId, change.after, { silent: true }),
+      });
+      markDirty('device');
+      break;
+    case 'deviceMove':
+      pushHistory({
+        label: change.label || 'Change effect order',
+        undo: () => moveEffectSlots(change.trackId, change.to, change.from),
+        redo: () => moveEffectSlots(change.trackId, change.from, change.to),
+      });
+      markDirty('device');
+      break;
+    case 'trackState':
+      markDirty('track');
+      break;
+    default:
+      break;
+  }
+}
+
+/** BPM 되돌리기·다시 하기 (272) — 화면도 값도 함께 되돌립니다 */
+function applyBpmChange(value) {
+  if (value === null || value === undefined) return;
+  song.bpm = Number(value);
+  applyBpm(song.bpm);
+  queueSettings({ bpm: song.bpm });
+}
+
+/** Key 되돌리기·다시 하기 (272) */
+function applyKeyChange(value) {
+  if (!value) return;
+  song.music_key = value;
+  applyKey(value);
+  queueSettings({ music_key: value });
+}
+
+/** 화면 글자 하나 바꾸기 (272) */
+function setText(selector, text) {
+  const el = document.querySelector(selector);
+  if (el && text !== null && text !== undefined) el.textContent = text;
+}
+
+/** 패턴 이름처럼 화면에 넣을 글자 다듬기 (272) */
+function escapeAttr(text) {
+  return String(text).replace(/[&<>"']/g, function (ch) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+  });
+}
+
+/**
+ * 명령 실행 (272 · FR-2169) — 메뉴 · 단축키 · 커맨드 팔레트 · Nyxi 액션이 모두 이 함수를 부릅니다
+ * 실제 처리는 sequencer-commands.js 의 레지스트리가 맡습니다.
+ * @param {string} command
+ * @returns {boolean} 처리했으면 true
+ */
+export function runCommand(command) {
+  return runRegistered(command);
 }
 
 /**
@@ -134,16 +356,6 @@ export function openBottom(name) {
  * - 항목 클릭 → runCommand(button.dataset.command) — 단축키·커맨드 팔레트·오른쪽 클릭 메뉴와 같은 명령 (FR-2169)
  */
 export function initMenus() {
-  // TODO
-}
-
-/**
- * 명령 실행 — 메뉴 data-command · 단축키 · 커맨드 팔레트가 모두 이것을 부름
- * - 'edit.undo', 'track.addReturn', 'view.automation' … (studioNx.html 의 data-command 목록)
- * - 예: COMMANDS = { 'view.mixer': () => openBottom('mixer'), 'view.automation': () => setAutomationMode(!on), … }
- * @param {string} command
- */
-export function runCommand(command) {
   // TODO
 }
 
@@ -283,12 +495,29 @@ export function initBottom() {
 }
 
 /**
- * 단축키 (FR-2249)
- * - Space 재생/멈춤, Tab 믹서, A 오토메이션 모드, P/B/D/T/S/C/E 도구, V 펼침, Esc 닫기
- * - 입력칸(input·select·textarea)에 커서가 있으면 무시
+ * 단축키 (272 · FR-2249 · FR-253 · FR-255)
+ * - Ctrl+S 저장, Ctrl+Z 되돌리기, Ctrl+Shift+Z · Ctrl+Y 다시 하기, Ctrl+P 커맨드 팔레트
+ * - Space 재생 · Tab 믹서 · A 오토메이션 · P/B/D/T/S/C/E 도구 · V 펼침 · Esc 닫기는
+ *   각 모듈(sequencer-ui.js · sequencer-arrange.js)이 이미 받고 있습니다
+ * - 입력칸(input·select·textarea)에 커서가 있거나 창(dialog)이 떠 있으면 무시
  */
 export function initShortcuts() {
-  // TODO
+  document.addEventListener('keydown', function (event) {
+    if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
+    if (event.target.closest && event.target.closest('input, textarea, select, [contenteditable]')) return;
+    if (document.querySelector('dialog[open]')) return;
+    const key = event.key.toLowerCase();
+    if (key === 's' && !event.shiftKey) {
+      event.preventDefault();
+      runRegistered('project.save');
+    } else if (key === 'z' && !event.shiftKey) {
+      event.preventDefault();
+      undo();
+    } else if ((key === 'z' && event.shiftKey) || key === 'y') {
+      event.preventDefault();
+      redo();
+    }
+  });
 }
 
 /**
@@ -330,17 +559,17 @@ export function updateTransport(state) {
 
 init();
 
-// 편곡 드래그 — 저장은 init() 구현 때 onChange 로 연결 (예: change.type === 'move' → PATCH /clips/{id})
-initArrange({ onChange: (change) => console.debug('[arrange]', change.type, change.trackId, change.start, change.length) });
+// 편곡 드래그 — 이력·저장은 S1-10 의 handleChange 가 맡습니다 (클립 저장은 클립 표가 생긴 뒤)
+initArrange({ onChange: (change) => handleChange(change) });
 
-// 피아노롤 — 노트 저장은 init() 구현 때 onChange 로 연결 (예: PUT /patterns/{id}/notes)
-initRoll({ onChange: (change) => console.debug('[roll]', change.type, change.pitch, change.start, change.length) });
+// 피아노롤 — 노트 변화 알림 (이력·저장 연결은 패턴 저장 작업에서)
+initRoll({ onChange: (change) => handleChange(Object.assign({}, change, { type: 'note' })) });
 
-// 오토메이션 — 점 저장은 init() 구현 때 onChange 로 연결 (예: PUT /automation-lanes/{id}/points)
-initAutomation({ onChange: (change) => console.debug('[automation]', change.type, change.on ?? JSON.stringify(change.points)) });
+// 오토메이션 — 점 저장은 오토메이션 표가 생긴 뒤 (S2-04)
+initAutomation({ onChange: (change) => handleChange(Object.assign({}, change, { type: 'automation' })) });
 
-// 화면 버튼 — 저장은 init() 구현 때 onChange 로 연결
-initUI({ onChange: (change) => console.debug('[ui]', change.type) });
+// 화면 버튼 — 곡 설정(BPM · Key)은 이력·저장 대기열로, 나머지는 표시만
+initUI({ onChange: (change) => handleChange(change) });
 
 /**
  * 피아노롤 노트 변화 → 그 MIDI 클립 미리보기 다시 그리기 (요구사항 1, 2026-10-17)
@@ -359,5 +588,5 @@ restoreOpenPanels();
 
 // 악기·이펙트 칸 (S1-09 화면) — ?projectId= 가 있으면 서버 값으로 그리고, 고친 값을 저장한다.
 // initUI 뒤에 두어야 편곡 쪽 배선이 먼저 서 있는 상태에서 값을 읽는다 (2026-10-18)
-initDevices({ onChange: (change) => console.debug('[devices]', change.type) });
+initDevices({ onChange: (change) => handleChange(change) });
 

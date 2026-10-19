@@ -27,6 +27,7 @@ from app.core.errors import AppError, ErrorCode
 from app.models import Project, ProjectMember, ProjectSession, Track, User
 from app.models.project import MemberRole
 from app.models.track import TrackType
+from app.schemas.full_project import FullProjectSettingsUpdateRequest
 from app.schemas.project import (
     ProjectCreateRequest,
     ProjectItem,
@@ -233,6 +234,25 @@ def update_project(
         setattr(project, name, value)
     db.commit()
     db.refresh(project)  # 새 updated_at 읽기
+    return project
+
+
+def update_settings(
+    db: Session,
+    project: Project,
+    member: ProjectMember,
+    data: FullProjectSettingsUpdateRequest,
+) -> Project:
+    """곡 전체 설정(BPM·박자·Key·스케일·샘플레이트·마스터 설정) 수정 (FR-253) — OWNER·EDITOR 만.
+
+    보낸 칸만 바꾸고 보내지 않은 칸은 그대로 둔다 (exclude_unset). 화면(시퀀서)은
+    Ctrl+S 수동 저장과 자동 저장 때 바뀐 칸만 보낸다. updated_at 은 DB 가 자동으로 갱신한다.
+    """
+    require_role(member, MemberRole.OWNER, MemberRole.EDITOR)
+    for name, value in data.model_dump(exclude_unset=True).items():
+        setattr(project, name, value)
+    db.commit()
+    db.refresh(project)
     return project
 
 

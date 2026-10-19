@@ -137,7 +137,11 @@ def test_same_slot_twice_is_rejected(db, track, plugin):
 
 
 def test_deleting_track_deletes_device_rows(db, track, plugin):
-    """트랙을 지우면 악기·이펙트·연결선이 DB CASCADE 로 함께 사라진다."""
+    """트랙을 지우면 악기·이펙트·연결선이 DB CASCADE 로 함께 사라진다.
+
+    세는 범위를 지운 트랙으로 좁힌다. 개발용 DB 에 다른 트랙의 장치가 남아 있어도
+    (예: S1-09 화면 시험 프로젝트) 이 시험이 흔들리지 않게 하기 위해서다.
+    """
     inst = TrackInstrument(track_id=track.track_id, plugin_id=plugin.plugin_id, params={})
     fx_a = TrackPlugin(track_id=track.track_id, plugin_id=plugin.plugin_id, slot_index=0, params={})
     fx_b = TrackPlugin(track_id=track.track_id, plugin_id=plugin.plugin_id, slot_index=1, params={})
@@ -152,11 +156,12 @@ def test_deleting_track_deletes_device_rows(db, track, plugin):
     )
     db.flush()
 
+    track_id = track.track_id
     db.delete(track)
     db.flush()
 
     counts = [
-        db.scalar(select(func.count()).select_from(model))
+        db.scalar(select(func.count()).select_from(model).where(model.track_id == track_id))
         for model in (TrackInstrument, TrackPlugin, TrackPluginLink)
     ]
     assert counts == [0, 0, 0]
