@@ -241,6 +241,77 @@ function indexClips(list) {
   clips = (list || []).slice();
 }
 
+/** 패턴의 노트 (S1-11a) — 서버가 준 값. MIDI 클립 재생이 피아노롤에서 고치지 않은 클립의 노트를 읽을 때 씀 */
+export function patternNotes(patternId) {
+  const p = patternsById[patternId];
+  return p && p.notes ? p.notes : [];
+}
+
+/**
+ * 재생용 악기 층 목록 (S1-11a FR-241·242) — 트랙에 붙은 악기를 플러그인 정의(param_schema)와 함께 돌려줌
+ * @param {number|string} trackId
+ * @returns {Array<{id:number, plugin_code:string, schema:Array, params:object|null, volume_db:number, pan:number, is_enabled:boolean}>}
+ */
+export function playbackInstruments(trackId) {
+  const d = devices[trackId];
+  if (!d) return [];
+  return (d.instruments || []).map(function (inst) {
+    const plugin = pluginById(inst.plugin_id);
+    return {
+      id: inst.track_instrument_id,
+      plugin_code: plugin ? plugin.code : '',
+      schema: plugin && plugin.param_schema ? plugin.param_schema : [],
+      params: inst.params || null,
+      volume_db: Number(inst.volume_db) || 0,
+      pan: Number(inst.pan) || 0,
+      is_enabled: inst.is_enabled !== false,
+    };
+  });
+}
+
+/**
+ * 재생용 이펙트 목록 (S1-11a FR-243) — 트랙에 붙은 이펙트를 플러그인 정의(param_schema)와 함께 돌려줌
+ * @param {number|string} trackId
+ * @returns {Array<{id:number, plugin_code:string, schema:Array, params:object, is_bypassed:boolean, slot_index:number}>}
+ */
+export function playbackEffects(trackId) {
+  const d = devices[trackId];
+  if (!d) return [];
+  return (d.effects || []).map(function (fx) {
+    const plugin = pluginById(fx.plugin_id);
+    return {
+      id: fx.track_plugin_id,
+      plugin_code: plugin ? plugin.code : '',
+      schema: plugin && plugin.param_schema ? plugin.param_schema : [],
+      params: fx.params || {},
+      is_bypassed: !!fx.is_bypassed,
+      slot_index: fx.slot_index,
+    };
+  });
+}
+
+/** 클립 기록 하나 (S1-11a) — 재생이 gain · 루프 · 음정을 읽을 때 씀 */
+export function clipRecord(clipId) {
+  const found = clips.filter(function (c) { return String(c.clip_id) === String(clipId); })[0];
+  return found || null;
+}
+
+/**
+ * 재생용 트랙 목록 (S1-11a FR-251) — 서버 값에 화면의 M · S 버튼 상태를 덮어 씀
+ * (M · S 는 누르는 즉시 화면이 앞서고 저장은 뒤따르므로, 소리는 화면 상태를 따릅니다)
+ */
+export function playbackTracks() {
+  return tracks.map(function (t) {
+    const row = document.querySelector('.sq-track[data-track-id="' + t.track_id + '"]');
+    const mute = row ? row.querySelector('.is-mute') : null;
+    const solo = row ? row.querySelector('.is-solo') : null;
+    return Object.assign({}, t, {
+      is_muted: mute ? mute.getAttribute('aria-pressed') === 'true' : !!t.is_muted,
+      is_solo: solo ? solo.getAttribute('aria-pressed') === 'true' : !!t.is_solo,
+    });
+  });
+}
+
 /** 한 트랙의 클립 (시작 tick 순) */
 function clipsFor(track) {
   return clips.filter(function (c) { return String(c.track_id) === String(track.track_id); })
@@ -2129,9 +2200,16 @@ export function wireDemoControls(scope) {
   });
 }
 
-/* ───────────────────────── 미터 (S1-11 전까지 흉내) ───────────────────────── */
+/* ───────────────────────── 미터 (S1-11a FR-251 — 진짜 소리 크기) ───────────────────────── */
 
-/** 재생 중일 때만 미터를 흔드는 타이머 시작 */
+/** 트랙 번호 → [왼쪽%, 오른쪽%] 를 돌려주는 함수 (sequencer-audio.js 가 등록). 없으면 막대는 0 으로 내려감 */
+let meterSource = null;
+
+export function setMeterSource(fn) {
+  meterSource = typeof fn === 'function' ? fn : null;
+}
+
+/** 재생 중일 때만 미터를 움직이는 타이머 시작 */
 export function startMeters() {
   if (meterTimer) return;
   if (typeof window === 'undefined' || !window.setInterval) return;
@@ -2146,13 +2224,27 @@ function tickMeters() {
     return;
   }
   const playing = isPlaying();
+  const cache = {};   // 이번 틱에 같은 트랙을 두 번 읽지 않게
+  let busy = false;   // 막대가 하나라도 0 보다 큼
   Array.prototype.forEach.call(bars, function (bar) {
-    const now = parseFloat(bar.style.getPropertyValue('--m')) || 0;
-    const next = playing
-      ? Math.max(4, Math.min(96, now + (Math.random() * 34 - 14)))
-      : Math.max(0, now - 9);
+    const prev = parseFloat(bar.style.getPropertyValue('--m')) || 0;
+    let now = 0;
+    const owner = bar.closest('[data-track-id]');
+    if (playing && owner && meterSource) {
+      const id = owner.dataset.trackId;
+      if (!(id in cache)) cache[id] = meterSource(id);
+      const lv = cache[id];
+      if (lv) now = lv[bar.matches('i:first-child') ? 0 : 1];
+    }
+    const next = now >= prev ? now : Math.max(now, prev - 9);   // 올라갈 때는 바로, 내려갈 때는 천천히
+    if (next > 0) busy = true;
     bar.style.setProperty('--m', Math.round(next) + '%');
   });
+  // 멈춰 있고 막대가 모두 0 이면 타이머를 끔 (다시 재생하면 startMeters 가 켬)
+  if (!playing && !busy) {
+    window.clearInterval(meterTimer);
+    meterTimer = 0;
+  }
 }
 
 /* ───────────────────────── 잔손질 ───────────────────────── */

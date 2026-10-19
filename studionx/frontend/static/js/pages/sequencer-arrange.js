@@ -1346,11 +1346,20 @@ function currentBpm() {
   return parseFloat(document.getElementById('bpm')?.textContent) || 120;
 }
 
+/** 재생 버튼 ↔ 소리 연결 고리 (S1-11a) — sequencer-audio.js 가 등록합니다. onPlay(bar) · onPause() */
+const transportHooks = { onPlay: null, onPause: null };
+
+export function setTransportHooks(hooks) {
+  transportHooks.onPlay = hooks && hooks.onPlay ? hooks.onPlay : null;
+  transportHooks.onPause = hooks && hooks.onPause ? hooks.onPause : null;
+}
+
 function play() {
   const c = playheadCtx;
   c.playing = true;
   c.startBar = c.bar;
   c.anchor = null;
+  if (transportHooks.onPlay) transportHooks.onPlay(c.bar);
   document.body.classList.add('is-playing');
   let last = performance.now();
   const tick = (now) => {
@@ -1371,6 +1380,7 @@ function play() {
 function pause() {
   const c = playheadCtx;
   c.playing = false;
+  if (transportHooks.onPause) transportHooks.onPause();
   cancelAnimationFrame(c.raf);
   document.body.classList.remove('is-playing');
 }
