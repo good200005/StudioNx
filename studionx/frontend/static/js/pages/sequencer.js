@@ -7,19 +7,20 @@
 // 오토메이션 모드 · 점 찍기 · ↕ 곡선은 AI 구현 sequencer-automation.js (사용자 요청 2026-10-06) — setAutomationMode 템플릿 대신
 // 나머지 화면 버튼(메뉴 · 언어 · 왼쪽 버튼 줄 · 아래 칸 · 트랙 펼침 …)은 AI 구현 sequencer-ui.js (사용자 요청 2026-10-06) — 아래 템플릿 함수 중 화면 부분을 대신
 
-import { initArrange, TICKS_PER_BAR, restoreOpenPanels, showToast } from './sequencer-arrange.js';
+import { initArrange, TICKS_PER_BAR, restoreOpenPanels, showToast, setDrawTemplate, getDrawTemplate } from './sequencer-arrange.js';
 import { initRoll } from './sequencer-roll.js';
 import { initAutomation } from './sequencer-automation.js';
 import { initUI } from './sequencer-ui.js';
 import {
   initDevices, readProjectId, applyFullProject, setDeviceNotifier,
   trackById, reapplyDevice, dropDevice, restoreDevice, moveEffectSlots,
+  updateConnection as applyConnection,
 } from './sequencer-devices.js';
 import { api, ApiError } from '../core/api.js';
 import { requireLogin } from '../core/auth.js';
-import { initPalette, runCommand as runRegistered } from './sequencer-commands.js';
+import { initPalette, runCommand as runRegistered, registerCommand } from './sequencer-commands.js';
 import { initHistory, pushHistory, undo, redo, clearHistory } from './sequencer-history.js';
-import { initSave, setProjectId, queueSettings, markDirty } from './sequencer-save.js';
+import { initSave, setProjectId, queueSettings, markDirty, projectIdOf } from './sequencer-save.js';
 
 /** 1박 = 960 tick (DB.md 와 같음) */
 export const PPQ = 960;
@@ -35,6 +36,7 @@ export async function init() {
   initSave({ toast: showToast });
   initPalette({ toast: showToast });
   initShortcuts();
+  initPatternCommands();
   setDeviceNotifier(handleChange);
 
   const projectId = readProjectId();
@@ -217,9 +219,208 @@ export function handleChange(change) {
     case 'trackState':
       markDirty('track');
       break;
+    // Connect to Another (S1-10a FR-2197) — 저장은 sequencer-devices.js 가 이미 했고, 여기서는 표시만
+    case 'connection':
+      markDirty('connection');
+      break;
+    // 클립 (S1-10a FR-2196) — 화면에서 바뀐 클립을 서버에 이어 저장합니다
+    case 'create':
+    case 'duplicate':
+      saveClipCreate(change);
+      break;
+    case 'move':
+    case 'resize':
+    case 'trim':
+    case 'slip':
+      saveClipUpdate(change);
+      break;
+    case 'slice':
+      saveClipUpdate(clipGeometry(change.clip));
+      saveClipCreate({ clip: change.right, trackId: change.trackId, start: styleNumber(change.right, '--s'), length: styleNumber(change.right, '--l') });
+      break;
+    case 'delete':
+      saveClipDelete(change);
+      break;
+    case 'patternNew':
+      saveNewPattern(change);
+      break;
     default:
       break;
   }
+}
+
+/* ───────── 클립 · 패턴 저장 (S1-10a FR-2196) ───────── */
+
+/** 마디 → tick (1박 = 960, 한 마디 = TICKS_PER_BAR) */
+function toTicks(bars) {
+  return Math.round((Number(bars) || 0) * TICKS_PER_BAR);
+}
+
+/** 클립 요소의 CSS 값(마디) 읽기 — --s 시작 · --l 길이 · --o 오프셋 */
+function styleNumber(clip, name) {
+  const v = parseFloat(clip.style.getPropertyValue(name));
+  return isFinite(v) ? v : null;
+}
+
+/** 클립 요소의 지금 위치·길이·오프셋 (마디) */
+function clipGeometry(clip) {
+  return { clip: clip, start: styleNumber(clip, '--s'), length: styleNumber(clip, '--l'), offset: styleNumber(clip, '--o') };
+}
+
+/** 클립 요소의 이름 (앞의 ▤/⇥ 글자 지우기) */
+function clipElementName(clip) {
+  const el = clip.querySelector('.sq-clip__name');
+  return el ? el.textContent.replace(/^[▤⇥]\s*/, '').trim() : '';
+}
+
+/** 클립 요소가 오디오인가 */
+function isAudioClip(clip) {
+  return clip.classList.contains('sq-clip--audio');
+}
+
+/**
+ * 새 클립을 서버에 저장 (FR-2196) — 타임라인에 놓은 클립 · 복제 · 가른 오른쪽 토막.
+ * MIDI 클립에 패턴이 없으면(빈 곳에 새로 그을 때) 패턴을 먼저 만들고, 다음 그리기가 재사용하도록
+ * Draw 템플릿에 그 패턴을 담습니다.
+ * @param {{clip: HTMLElement, trackId: number|string, start: number, length: number}} change
+ */
+async function saveClipCreate(change) {
+  const clip = change.clip;
+  const trackId = change.trackId;
+  if (!clip || !trackId || !projectIdOf()) return;
+  const audio = isAudioClip(clip);
+  const body = {
+    clip_type: audio ? 'AUDIO' : 'MIDI',
+    name: clipElementName(clip).slice(0, 100) || null,
+    start_tick: toTicks(change.start),
+    length_tick: Math.max(1, toTicks(change.length)),
+    offset_tick: toTicks(styleNumber(clip, '--o') || 0),
+  };
+  if (audio) {
+    const sampleId = clip.dataset.sampleId ? Number(clip.dataset.sampleId) : null;
+    if (!sampleId) { showToast('Pick a sample from the browser first'); clip.remove(); return; }
+    body.sample_id = sampleId;
+  } else {
+    let patternId = clip.dataset.patternId ? Number(clip.dataset.patternId) : null;
+    if (!patternId) {
+      try {
+        const pattern = await api.post('/patterns', {
+          project_id: Number(projectIdOf()),
+          name: body.name || 'Pattern',
+          length_tick: body.length_tick,
+        });
+        patternId = pattern.pattern_id;
+        clip.dataset.patternId = String(patternId);
+        const tpl = getDrawTemplate();
+        setDrawTemplate({ kind: 'midi', name: body.name || tpl.name, length: change.length, patternId: patternId });
+      } catch (err) { clipWarn(err); return; }
+    }
+    body.pattern_id = patternId;
+  }
+  try {
+    const saved = await api.post('/tracks/' + encodeURIComponent(String(trackId)) + '/clips', body);
+    clip.dataset.clipId = String(saved.clip_id);
+    markDirty('clip');
+  } catch (err) { clipWarn(err); }
+}
+
+/**
+ * 클립의 위치·길이·오프셋을 서버에 저장 (FR-2196) — 옮기기 · 길이 조절 · 트리밍 · 내용 밀기.
+ * 아직 서버에 없는 클립(번호 없음)이나 데모 클립은 건너뜁니다.
+ * @param {{clip: HTMLElement, start?: number, length?: number, offset?: number}} change
+ */
+async function saveClipUpdate(change) {
+  const clip = change.clip;
+  if (!clip || !projectIdOf()) return;
+  const id = clip.dataset.clipId;
+  if (!id) return;
+  const body = {};
+  if (change.start != null) body.start_tick = toTicks(change.start);
+  if (change.length != null) body.length_tick = Math.max(1, toTicks(change.length));
+  if (change.offset != null) body.offset_tick = toTicks(change.offset);
+  if (!Object.keys(body).length) return;
+  try {
+    await api.patch('/clips/' + encodeURIComponent(id), body);
+    markDirty('clip');
+  } catch (err) { clipWarn(err); }
+}
+
+/** 클립 지우기를 서버에 반영 (FR-2196) */
+async function saveClipDelete(change) {
+  const clip = change.clip;
+  if (!clip || !projectIdOf()) return;
+  const id = clip.dataset.clipId;
+  if (!id) return;
+  try {
+    await api.delete('/clips/' + encodeURIComponent(id));
+    markDirty('clip');
+  } catch (err) { clipWarn(err); }
+}
+
+/**
+ * '＋ 새 패턴' 을 서버에 만들기 (FR-2196) — 목록 항목에 번호를 달아 두어 그 패턴을 끌어 놓으면
+ * 클립이 이 패턴을 가리킵니다.
+ * @param {{name: string, item?: HTMLElement}} change
+ */
+async function saveNewPattern(change) {
+  if (!projectIdOf()) return;
+  const name = (change.name || 'Pattern').slice(0, 100);
+  try {
+    const pattern = await api.post('/patterns', {
+      project_id: Number(projectIdOf()),
+      name: name,
+      length_tick: TICKS_PER_BAR * 4,
+    });
+    patternsById[pattern.pattern_id] = pattern;
+    if (globalThis.console) globalThis.console.debug('[sequencer] pattern', pattern.pattern_id);
+    markDirty('pattern');
+  } catch (err) { clipWarn(err); }
+}
+
+/** 패턴 명령 등록 — PATTERNS 메뉴에서 패턴을 만들거나 안 쓰는 패턴을 지웁니다 (FR-2244) */
+function initPatternCommands() {
+  registerCommand('pattern.new', function () {
+    const btn = document.getElementById('pattern-new');
+    if (btn) btn.click();
+  }, { label: 'New pattern', group: 'patterns' });
+  registerCommand('pattern.purge', purgeUnusedPatterns, { label: 'Remove unused patterns', group: 'patterns' });
+}
+
+/** 안 쓰는 패턴 지우기 (FR-2196) — 클립이 가리키지 않는 패턴만 서버에서 지웁니다 (쓰는 패턴은 400) */
+async function purgeUnusedPatterns() {
+  if (!projectIdOf()) { showToast('Open a project first'); return; }
+  const ids = Object.keys(patternsById);
+  let removed = 0;
+  for (let i = 0; i < ids.length; i += 1) {
+    try {
+      await api.delete('/patterns/' + encodeURIComponent(ids[i]));
+      delete patternsById[ids[i]];
+      removed += 1;
+    } catch (err) {
+      if (!(err instanceof ApiError) || err.status !== 400) clipWarn(err);
+    }
+  }
+  if (removed) {
+    applyPatterns(Object.keys(patternsById).map(function (id) { return patternsById[id]; }));
+    markDirty('pattern');
+    showToast(removed + ' unused pattern' + (removed > 1 ? 's' : '') + ' removed');
+  } else {
+    showToast('No unused patterns to remove');
+  }
+}
+
+/** 클립·패턴 저장 실패 알림 (조용한 실패 방지) */
+function clipWarn(err) {
+  if (err instanceof ApiError && err.status === 401) return;
+  showToast(errText(err));
+  if (globalThis.console) globalThis.console.warn('[sequencer] clip', err);
+}
+
+/** 오류 → 짧은 글자 */
+function errText(err) {
+  if (err && err.status === 403) return 'You cannot change this project';
+  if (err && err.status === 404) return 'That clip or pattern no longer exists';
+  return 'Could not save the change — we will try again';
 }
 
 /** BPM 되돌리기·다시 하기 (272) — 화면도 값도 함께 되돌립니다 */
@@ -483,10 +684,13 @@ export function renderInstrumentStack(accordion, instruments) {
  * - Connected → 대상 트랙 번호 + 플러그인('Instruments (layer)' 이면 레이어) 고르기,
  *   믹서 칸에 .sq-off 덮개, 효과 칸 끝에 .sq-sendto, 트랙 이름 줄에 .sq-link('→1'), 대상 트랙에는 '⇠10'
  * - PUT /tracks/{id}/connection (track_connections)
+ * 구현은 sequencer-devices.js 에 있습니다 (S1-10a). 이 함수는 그 트랙을 찾아 넘겨 줍니다.
  * @param {HTMLElement} accordion
  */
-export function updateConnection(accordion) {
-  // TODO
+export async function updateConnection(accordion) {
+  const row = accordion && accordion.previousElementSibling;
+  const track = row && row.classList.contains('sq-track') ? trackById(row.dataset.trackId) : null;
+  if (track) await applyConnection(accordion, track);
 }
 
 /** 아래 칸 닫기 버튼 · Nyxi 더블 클릭 */
@@ -578,10 +782,30 @@ initUI({ onChange: (change) => handleChange(change) });
 function initClipPreviews() {
   document.addEventListener('sq:roll-notes', (e) => {
     const detail = e.detail || {};
-    if (detail.clip) setClipNotes(detail.clip, detail.notes || []);
+    if (!detail.clip) return;
+    setClipNotes(detail.clip, detail.notes || []);
+    detail.clip.__notes = detail.notes || [];   // 다시 열 때 채울 노트도 갱신
+    saveClipNotes(detail.clip, detail.notes || []);
   });
 }
 initClipPreviews();
+
+/** MIDI 클립의 노트를 서버 패턴에 저장 (S1-10a FR-2196) — 피아노롤에서 고칠 때 호출 (조금 미룸) */
+const noteSaveTimers = new WeakMap();
+function saveClipNotes(clip, notes) {
+  const patternId = clip.dataset.patternId;
+  if (!patternId || !projectIdOf()) return;
+  const prev = noteSaveTimers.get(clip);
+  if (prev) window.clearTimeout(prev);
+  noteSaveTimers.set(clip, window.setTimeout(function () {
+    noteSaveTimers.delete(clip);
+    api.put('/patterns/' + encodeURIComponent(patternId) + '/notes', {
+      notes: notes.map(function (n) {
+        return { pitch: n.pitch, start_tick: n.start_tick, length_tick: n.length_tick, velocity: n.velocity || 100 };
+      }),
+    }).then(function () { markDirty('notes'); }).catch(clipWarn);
+  }, 400));
+}
 
 // FR-261 — 지난번에 펼쳐 둔 트랙 아코디언 상태를 되살린다
 restoreOpenPanels();

@@ -99,6 +99,9 @@ export function openRoll(clip) {
     const name = track?.querySelector('.sq-track__name b')?.textContent.trim();
     const inst = track?.querySelector('.sq-track__name small')?.textContent.replace(/^.*?🎹\s*/, '').trim();
     if (name) document.getElementById('roll-track').textContent = `${name} · ${inst ?? ''}`;
+    // 서버에서 온 MIDI 클립이면 그 패턴의 노트를 롤에 채웁니다 (S1-10a FR-2196)
+    if (clip.__patternBars) setPatternBars(clip.__patternBars);
+    if (clip.__notes) loadClipNotes(clip.__notes);
   }
   requestAnimationFrame(() => {
     applyBarWidth();
@@ -110,6 +113,40 @@ export function openRoll(clip) {
 
 export function closeRoll() {
   document.getElementById('bottom').hidden = true;
+}
+
+/** 패턴 길이(마디)를 반영 — 격자·끝 표시가 패턴 길이에 맞춥니다 (S1-10a) */
+function setPatternBars(bars) {
+  if (!R) return;
+  const n = Math.max(1, Math.round(bars));
+  R.patternBars = n;
+  R.roll.style.setProperty('--roll-pattern-bars', n);
+  requestDraw();
+}
+
+/**
+ * 서버 패턴의 노트를 롤에 채우기 (S1-10a FR-2196) — 지금 있는 노트(반투명 안내 노트는 남김)를 지우고,
+ * 노트를 tick → 마디로 바꿔 놓습니다. 여기서 고치면 'sq:roll-notes' 로 알려 sequencer.js 가 저장합니다.
+ * @param {object[]} notes  {pitch, start_tick, length_tick, velocity}
+ */
+function loadClipNotes(notes) {
+  if (!R) return;
+  R.notes.querySelectorAll('.sq-note:not(.is-ghost)').forEach((n) => n.remove());
+  const frag = document.createDocumentFragment();
+  (notes || []).forEach((nt) => {
+    const el = document.createElement('span');
+    el.className = 'sq-note';
+    el.dataset.pitch = String(nt.pitch);
+    el.dataset.start = String(round((nt.start_tick || 0) / TICKS_PER_BAR));
+    const len = round((nt.length_tick || TICKS_PER_BAR / 4) / TICKS_PER_BAR);
+    el.dataset.length = String(len > 0 ? len : 0.25);
+    el.dataset.vel = String(nt.velocity || 100);
+    placeNote(el);
+    frag.append(el);
+  });
+  R.notes.append(frag);
+  renderVelocity();
+  updateSelectedInfo();
 }
 
 function initOpenClose() {

@@ -11,8 +11,10 @@ from fastapi.testclient import TestClient
 from app.core.security import create_access_token
 from app.db.session import get_db
 from app.main import app
-from app.models import MidiNote, Pattern, Project, ProjectMember, User
+from app.models import Clip, MidiNote, Pattern, Project, ProjectMember, Track, User
+from app.models.clip import ClipType
 from app.models.project import MemberRole
+from app.models.track import TrackType
 
 URL = "/api/v1/patterns"
 DATA_KEYS = {
@@ -26,10 +28,10 @@ NOTE_KEYS = {
 
 def test_pattern_routes_registered():
     paths = app.openapi()["paths"]
-    assert "get" in paths[URL]
+    assert set(paths[URL]) == {"get", "post"}
     assert "get" in paths[URL + "/{pattern_id}"]
     assert "put" in paths[URL + "/{pattern_id}/notes"]
-    assert "patch" in paths[URL + "/{pattern_id}"]
+    assert set(paths[URL + "/{pattern_id}"]) == {"get", "patch", "delete"}
 
 
 def add_user(db, name):
@@ -198,3 +200,68 @@ def test_patch_pattern(client, db):
     assert data["name"] == "Lead"
     assert str(data["swing"]) == "0.25"
     assert data["length_tick"] == 7680
+
+
+def test_create_pattern_201(client, db):
+    user = add_user(db, "pr_create")
+    project = add_project(db, user)
+
+    res = client.post(
+        URL,
+        json={"project_id": project.project_id, "name": "New part", "color": "#FF0000"},
+        headers=auth(user),
+    )
+
+    assert res.status_code == 201
+    data = res.json()
+    assert data["project_id"] == project.project_id
+    assert data["name"] == "New part"
+    assert data["color"] == "#FF0000"
+    assert data["length_tick"] == 3840
+    assert data["notes"] == []
+
+
+def test_create_pattern_viewer_is_403(client, db):
+    owner = add_user(db, "pr_create_owner")
+    viewer = add_user(db, "pr_create_viewer")
+    project = add_project(db, owner, role=MemberRole.VIEWER, member=viewer)
+
+    res = client.post(
+        URL, json={"project_id": project.project_id, "name": "Nope"}, headers=auth(viewer)
+    )
+    assert res.status_code == 403
+
+
+def test_delete_pattern_204(client, db):
+    user = add_user(db, "pr_delete")
+    project = add_project(db, user)
+    pattern = add_pattern(db, project)
+
+    res = client.delete(f"{URL}/{pattern.pattern_id}", headers=auth(user))
+    assert res.status_code == 204
+    assert client.get(f"{URL}/{pattern.pattern_id}", headers=auth(user)).status_code == 404
+
+
+def test_delete_pattern_used_by_clip_is_400(client, db):
+    user = add_user(db, "pr_delete_used")
+    project = add_project(db, user)
+    pattern = add_pattern(db, project)
+    track = Track(
+        project_id=project.project_id, name="Bass", track_type=TrackType.MIDI, order_index=0
+    )
+    db.add(track)
+    db.flush()
+    db.add(
+        Clip(
+            track_id=track.track_id,
+            clip_type=ClipType.MIDI,
+            pattern_id=pattern.pattern_id,
+            start_tick=0,
+            length_tick=3840,
+        )
+    )
+    db.flush()
+
+    res = client.delete(f"{URL}/{pattern.pattern_id}", headers=auth(user))
+    assert res.status_code == 400
+    assert res.json()["error"]["code"] == "BAD_REQUEST"

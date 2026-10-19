@@ -706,13 +706,22 @@ function edgeScroll(scroll, x) {
   else if (x < r.left + head + EDGE) scroll.scrollLeft -= EDGE_SPEED;
 }
 
-/** 클립 하나 만들기 — studioNx.html 의 클립과 같은 모양 */
-export function createClip({ kind, name, start, length }) {
+/**
+ * 클립 하나 만들기 (S1-06 FR-208) — studioNx.html 의 클립과 같은 모양.
+ * 서버에서 온 클립이면 번호를 달아 둡니다 (S1-10a FR-2196) — 저장(PATCH·DELETE) 때 씁니다.
+ * @param {{ kind: string, name: string, start: number, length: number,
+ *   clipId?: number|string, patternId?: number|string, sampleId?: number|string }} param0
+ * @returns {HTMLButtonElement}
+ */
+export function createClip({ kind, name, start, length, clipId, patternId, sampleId }) {
   const clip = document.createElement('button');
   clip.type = 'button';
   clip.className = `sq-clip sq-clip--${kind}`;
   clip.style.setProperty('--s', start);
   clip.style.setProperty('--l', length);
+  if (clipId !== undefined && clipId !== null) clip.dataset.clipId = String(clipId);
+  if (patternId !== undefined && patternId !== null) clip.dataset.patternId = String(patternId);
+  if (sampleId !== undefined && sampleId !== null) clip.dataset.sampleId = String(sampleId);
   const label = document.createElement('span');
   label.className = 'sq-clip__name';
   label.textContent = `${kind === 'audio' ? '⇥' : '▤'} ${name}`;
@@ -917,7 +926,7 @@ function initClipDrag({ scroll, lanes, onChange }) {
       const kind = c.classList.contains('sq-clip--audio') ? 'audio' : 'midi';
       const name = c.querySelector('.sq-clip__name').textContent.replace(/^[▤⇥]\s*/, '').trim();
       const newStart = clamp(ticksToBars(duplicateClipStart(barsToTicks(start), barsToTicks(length))), 0, totalBars(lanes) - length);
-      const clip = createClip({ kind, name, start: newStart, length });
+      const clip = createClip({ kind, name, start: newStart, length, patternId: c.dataset.patternId, sampleId: c.dataset.sampleId });
       if (offset) clip.style.setProperty('--o', offset);
       track.querySelector('.sq-track__lane').append(clip);
       onChange({ type: 'duplicate', clip, trackId: track.dataset.trackId, start: newStart, length, offset });
@@ -947,7 +956,12 @@ function initListDrop({ scroll, lanes, onChange }) {
   document.addEventListener('dragstart', (e) => {
     const item = e.target.closest?.('.sq-file[draggable="true"][data-kind]');
     if (!item) return;
-    data = { kind: item.dataset.kind, name: item.dataset.name, length: parseFloat(item.dataset.bars) || 1, color: item.dataset.color };
+    data = {
+      kind: item.dataset.kind, name: item.dataset.name, length: parseFloat(item.dataset.bars) || 1, color: item.dataset.color,
+      // 서버 번호 — MIDI 는 패턴, AUDIO 는 샘플 (S1-10a FR-2196). 없으면 null
+      patternId: item.dataset.patternId || null,
+      sampleId: item.dataset.sampleId || null,
+    };
     e.dataTransfer.setData(DND_TYPE, JSON.stringify(data));
     e.dataTransfer.setData('text/plain', data.name);
     e.dataTransfer.effectAllowed = 'copy';
@@ -2153,6 +2167,9 @@ function templateOf(clip) {
     kind: clip.classList.contains('sq-clip--audio') ? 'audio' : 'midi',
     name: clip.querySelector('.sq-clip__name').textContent.replace(/^[▤⇥]\s*/, '').trim(),
     length: parseFloat(clip.style.getPropertyValue('--l')) || 1,
+    // 서버 번호를 이어받아 복제 · 가르기 · 새로 그리기가 같은 패턴/샘플을 가리키게 (S1-10a)
+    patternId: clip.dataset.patternId || null,
+    sampleId: clip.dataset.sampleId || null,
   };
 }
 

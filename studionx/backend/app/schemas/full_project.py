@@ -2,11 +2,11 @@
 
 시퀀서는 화면을 열 때 `GET /projects/{id}/full` 한 번으로 곡 전체를 받는다.
 그래서 여기의 응답(FullProjectResponse)은 프로젝트 설정, 트랙과 그 안의 악기·이펙트·연결선,
-패턴과 그 노트를 한 덩어리에 담는다.
+트랙 간 연결, 패턴과 그 노트, 그리고 클립을 한 덩어리에 담는다.
 
-아직 DB 모델이 없는 것들(clips · markers · tempo_changes · meter_changes)은
-응답에 빈 목록으로 넣어 둔다. 화면이 이 칸들을 늘 읽으므로, 나중에 그 모델과 API 가
-생기면(S2-04 오토메이션·클립 저장 작업) 여기 목록만 채우면 화면을 고치지 않아도 된다.
+아직 DB 모델이 없는 것들(markers · tempo_changes · meter_changes)은 응답에 빈 목록으로
+넣어 둔다. 화면이 이 칸들을 늘 읽으므로, 나중에 그 모델과 API 가 생기면 여기 목록만
+채우면 화면을 고치지 않아도 된다.
 """
 
 from datetime import datetime
@@ -15,6 +15,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from app.schemas.clip import ClipResponse
+from app.schemas.connection import TrackConnectionResponse
 from app.schemas.device import (
     TrackInstrumentResponse,
     TrackPluginLinkResponse,
@@ -57,29 +59,33 @@ class FullProjectInfo(BaseModel):
 
 
 class FullTrackResponse(TrackResponse):
-    """트랙 한 줄에 그 안의 장치를 붙인 모양 (FR-245·263·267·269).
+    """트랙 한 줄에 그 안의 장치와 나가는 연결을 붙인 모양 (FR-245·263·267·269·2197).
 
     instruments 는 악기 칸(slot_index 순), effects 는 이펙트 체인(slot_index 순),
-    links 는 갈래 연결선이다. 화면의 악기·이펙트 칸(sequencer-devices.js)이
-    트랙마다 따로 세 번 요청하던 것을 이 한 덩어리로 대신한다.
+    links 는 갈래 연결선이다. connections 는 이 트랙에서 다른 트랙으로 나가는 연결
+    (0~1개, FR-2197) — 받는 쪽 연결은 다른 트랙의 connections 에 있으므로 화면이 모아 본다.
+    화면의 악기·이펙트 칸(sequencer-devices.js)이 트랙마다 따로 세 번 요청하던 것을
+    이 한 덩어리로 대신한다.
     """
 
     instruments: list[TrackInstrumentResponse]
     effects: list[TrackPluginResponse]
     links: list[TrackPluginLinkResponse]
+    connections: list[TrackConnectionResponse]
 
 
 class FullProjectResponse(BaseModel):
     """GET /projects/{id}/full 응답 — 한 번의 요청으로 곡 전체 (FR-254).
 
-    clips · markers · tempo_changes · meter_changes 는 그 표와 API 가 아직 없어
-    늘 빈 목록이다 (S2-04 오토메이션·클립 저장 작업에서 채운다).
+    clips 는 프로젝트의 모든 클립(track_id 로 트랙에 묶임), connections 는 각 트랙의
+    나가는 연결이다. markers · tempo_changes · meter_changes 는 그 표와 API 가 아직 없어
+    늘 빈 목록이다.
     """
 
     project: FullProjectInfo
     tracks: list[FullTrackResponse]
     patterns: list[PatternResponse]
-    clips: list[dict[str, Any]] = Field(default_factory=list)
+    clips: list[ClipResponse] = Field(default_factory=list)
     markers: list[dict[str, Any]] = Field(default_factory=list)
     tempo_changes: list[dict[str, Any]] = Field(default_factory=list)
     meter_changes: list[dict[str, Any]] = Field(default_factory=list)

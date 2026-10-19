@@ -5,6 +5,8 @@ from sqlalchemy import text
 
 from app.api.v1 import (
     auth,
+    clips,
+    connections,
     dev_notes,
     inquiries,
     me,
@@ -49,5 +51,7 @@ api_router.include_router(samples.router, prefix="/samples", tags=["samples"])  
 api_router.include_router(tags.router, prefix="/tags", tags=["tags"])  # S1-07
 api_router.include_router(plugins.router, prefix="/plugins", tags=["plugins"])  # S1-09
 api_router.include_router(tracks.router, prefix="", tags=["tracks"])  # S1-09
+api_router.include_router(connections.router, prefix="", tags=["connections"])  # S1-10a
+api_router.include_router(clips.router, prefix="", tags=["clips"])  # S1-10a
 api_router.include_router(patterns.router, prefix="/patterns", tags=["patterns"])  # S1-08
 # TODO(Phase 1): users, projects, inquiries ... 라우터도 같은 방식으로 추가
