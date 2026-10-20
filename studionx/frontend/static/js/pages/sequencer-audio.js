@@ -38,6 +38,7 @@ function collectAudioClips() {
     if (lengthBar <= 0) return;
     list.push({
       clip_id: el.dataset.clipId ? Number(el.dataset.clipId) : null,
+      selected: el.classList.contains('is-selected'),    // 내보내기의 "선택한 클립" 범위가 씀 (S1-11b)
       track_id: trackId,
       sample_id: sampleId,
       start_tick: Math.round(startBar * TICKS_PER_BAR),
@@ -68,6 +69,7 @@ function collectMidiClips() {
     if (lengthBar <= 0) return;
     const notes = el.__notes ? el.__notes : (el.dataset.patternId ? patternNotes(el.dataset.patternId) : []);
     list.push({
+      selected: el.classList.contains('is-selected'),
       track_id: trackId,
       start_tick: Math.round(startBar * TICKS_PER_BAR),
       length_tick: Math.round(lengthBar * TICKS_PER_BAR),
@@ -111,6 +113,27 @@ function startRefresh() {
 }
 function stopRefresh() {
   if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+}
+
+/**
+ * 내보내기에 넘길 지금 화면의 스냅샷 (S1-11b) — 재생 시작 때 모으는 것과 같은 값
+ * @returns {object} tracks, audioClips, midiClips, getInstruments, getEffects, bpm, loop(tick 또는 null), loadSampleBytes
+ */
+export function exportSnapshot() {
+  const loop = getLoop();
+  return {
+    tracks: playbackTracks(),
+    audioClips: collectAudioClips(),
+    midiClips: collectMidiClips(),
+    getInstruments: playbackInstruments,
+    getEffects: playbackEffects,
+    bpm: currentBpm(),
+    tempoChanges: [],
+    loop: loop.on && loop.length > 0
+      ? { start: Math.round(loop.start * TICKS_PER_BAR), end: Math.round((loop.start + loop.length) * TICKS_PER_BAR) }
+      : null,
+    loadSampleBytes: loadSampleBytes,
+  };
 }
 
 /** 지금 재생 세션 (시험용 — 헤드리스 시험이 마스터 출력을 엿볼 때 씀). 아직 재생한 적이 없으면 null */
