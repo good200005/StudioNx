@@ -87,7 +87,7 @@ function initBottomPanels() {
     if (t.startsWith('Playlist')) openBottom(null);
     else if (t.startsWith('Piano')) openBottom('roll');
     else if (t.startsWith('Mixer')) openBottom('mixer');
-    else if (t.startsWith('Export')) showToast('Export (WAV · MP3 · stems) comes with Phase 3');
+    else if (t.startsWith('Export')) runCommand('file.export');
   });
   document.getElementById('rail-mixer')?.addEventListener('click', () => openBottom('mixer'));
   // 키보드: Space = 재생/일시정지, Tab = 믹서

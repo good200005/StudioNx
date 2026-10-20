@@ -897,3 +897,48 @@ body.sq {
 .sq-fx__mix .sq-irow__pan, .sq-fx__mix .sq-irow__solo { flex: none; }
 .sq-irow__db { font-size: 0.55rem; }
 #device-save.is-dirty { outline: 1px solid var(--c-violet); outline-offset: 1px; }
+
+/* ── 내보내기 창 (S1-11b, 목업 docs/page_mockups/export_modal/) ── */
+.sq-export { width: 38rem; }
+.sq-export [hidden] { display: none !important; }
+.ex-row { display: grid; grid-template-columns: 7.2rem 1fr; gap: 0.6rem; align-items: start; }
+.ex-label { padding-top: 0.3rem; font-size: 0.66rem; font-weight: 600; color: var(--c-ink-soft); letter-spacing: 0.02em; }
+.ex-seg { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.ex-seg button { padding: 0.25rem 0.7rem; border: 1px solid var(--sq-line-2); color: var(--c-ink-soft); font: inherit; font-size: 0.68rem; background: transparent; }
+.ex-seg button.is-on { border-color: var(--sq-accent); background: color-mix(in srgb, var(--c-violet) 22%, transparent); color: var(--c-ink); }
+.ex-seg button:disabled { opacity: 0.42; cursor: not-allowed; }
+.ex-seg small { align-self: center; margin-left: 0.3rem; font-size: 0.6rem; color: var(--c-ink-faint); }
+.ex-range { display: grid; gap: 0.3rem; }
+.ex-range label { display: flex; align-items: center; gap: 0.45rem; padding: 0.35rem 0.55rem; border: 1px solid var(--sq-line-2); cursor: pointer; }
+.ex-range label:has(input:checked) { border-color: var(--sq-accent); background: color-mix(in srgb, var(--c-violet) 14%, transparent); }
+.ex-range label.is-off { opacity: 0.42; cursor: not-allowed; }
+.ex-range input[type=radio] { margin: 0; accent-color: var(--c-violet); }
+.ex-range b { font-weight: 600; }
+.ex-range em { margin-left: auto; font-style: normal; font-size: 0.62rem; color: var(--c-ink-faint); font-variant-numeric: tabular-nums; }
+.ex-custom { display: flex; align-items: center; gap: 0.4rem; margin-left: 1.45rem; font-size: 0.66rem; color: var(--c-ink-soft); }
+.ex-custom.is-off { opacity: 0.4; }
+.ex-num { width: 3.6rem; height: 1.5rem; padding: 0 0.4rem; border: 1px solid var(--sq-line-2); background: var(--sq-panel-2); color: var(--c-ink); font: inherit; font-size: 0.7rem; text-align: right; font-variant-numeric: tabular-nums; }
+.ex-num:disabled { opacity: 0.5; }
+.ex-text { width: 100%; height: 1.55rem; padding: 0 0.45rem; border: 1px solid var(--sq-line-2); background: var(--sq-panel-2); color: var(--c-ink); font: inherit; font-size: 0.7rem; box-sizing: border-box; }
+.ex-inline { display: flex; align-items: center; gap: 0.5rem; font-size: 0.68rem; color: var(--c-ink-soft); }
+.ex-inline input[type=checkbox] { accent-color: var(--c-violet); margin: 0; }
+.ex-hint { margin: 0.3rem 0 0; font-size: 0.62rem; color: var(--c-ink-faint); line-height: 1.45; }
+.ex-foot-note { margin: 0 auto 0 0; }
+.ex-name { display: flex; gap: 0.3rem; align-items: center; }
+.ex-name span { font-size: 0.7rem; color: var(--c-ink-faint); }
+.ex-auto { padding: 0 0.35rem; font: inherit; font-size: 0.6rem; color: var(--c-ink-soft); border: 1px solid var(--sq-line-2); background: transparent; cursor: pointer; }
+.ex-msg { margin: 0; padding: 0.4rem 0.6rem; border: 1px solid var(--sq-rec); color: var(--sq-rec); font-size: 0.68rem; }
+.ex-sum { display: flex; flex-wrap: wrap; gap: 0.3rem 1.2rem; padding: 0.5rem 0.65rem; background: var(--sq-panel-2); border: 1px solid var(--sq-line); font-size: 0.66rem; color: var(--c-ink-soft); font-variant-numeric: tabular-nums; }
+.ex-sum b { color: var(--c-ink); font-weight: 600; }
+.ex-bar { height: 0.55rem; background: var(--sq-panel-2); border: 1px solid var(--sq-line-2); }
+.ex-bar i { display: block; height: 100%; background: var(--c-violet); }
+.ex-prog { display: grid; gap: 0.5rem; padding: 0.4rem 0; }
+.ex-prog .ex-hint { margin: 0; }
+.ex-prog__top { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.74rem; }
+.ex-prog__top b { font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+.ex-done { display: grid; gap: 0.5rem; padding: 0.4rem 0; }
+.ex-done .ex-hint { margin: 0; }
+.ex-done__file { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.7rem; border: 1px solid var(--sq-ok); background: color-mix(in srgb, var(--sq-ok) 9%, transparent); }
+.ex-done__file b { font-weight: 600; word-break: break-all; }
+.ex-done__file span { margin-left: auto; font-size: 0.64rem; color: var(--c-ink-soft); white-space: nowrap; }
+.ex-ok { margin: 0; color: var(--sq-ok); font-weight: 600; }

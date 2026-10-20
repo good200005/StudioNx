@@ -137,20 +137,26 @@ export class MixerGraph {
    * 트랙 값을 모두 반영 (볼륨 · 팬 · 뮤트 · 솔로)
    * @param {Array<object>} tracks  서버 트랙 (volume_db, pan, is_muted, is_solo, track_type)
    */
-  applyTracks(tracks) {
+  applyTracks(tracks, immediate) {
     const audible = {};
     audibleTrackIds(tracks).forEach(function (id) { audible[String(id)] = true; });
     const self = this;
     const now = this.context.currentTime;
+    // 재생 중에는 뚝 끊기는 소리(클릭)를 막으려고 아주 짧게 이어서 바꾸고, 렌더링 시작 때(immediate)는 바로 그 값으로 둠
+    // (뮤트한 트랙이 처음 몇십 ms 동안 새어 나오지 않게 하려고)
+    const set = function (param, value) {
+      if (immediate) param.setValueAtTime(value, now);
+      else param.setTargetAtTime(value, now, 0.01);
+    };
     (tracks || []).forEach(function (t) {
       if (t.track_type === 'MASTER') {
-        self.master.gain.setTargetAtTime(dbToGain(t.volume_db), now, 0.01);
+        set(self.master.gain, dbToGain(t.volume_db));
         return;
       }
       const s = self.strip(t.track_id);
       const gain = audible[String(t.track_id)] ? dbToGain(t.volume_db) : 0;
-      s.input.gain.setTargetAtTime(gain, now, 0.01);   // 뚝 끊기는 소리(클릭)를 막으려고 아주 짧게 이어서 바꿈
-      if (s.pan) s.pan.pan.setTargetAtTime(Math.max(-1, Math.min(1, Number(t.pan) || 0)), now, 0.01);
+      set(s.input.gain, gain);
+      if (s.pan) set(s.pan.pan, Math.max(-1, Math.min(1, Number(t.pan) || 0)));
     });
   }
 }

@@ -10,6 +10,7 @@
 import { initArrange, TICKS_PER_BAR, restoreOpenPanels, showToast, setDrawTemplate, getDrawTemplate } from './sequencer-arrange.js';
 import { initRoll } from './sequencer-roll.js';
 import { initAudio } from './sequencer-audio.js';
+import { initExport } from './sequencer-export.js';
 import { initAutomation } from './sequencer-automation.js';
 import { initUI } from './sequencer-ui.js';
 import {
@@ -98,6 +99,7 @@ function applyProjectInfo(project) {
   setText('#pattern-select', null);                       // 패턴은 applyPatterns 가 채웁니다
   setText('.sq-global--meter .sq-global__head small', project.time_sig_num + '/' + project.time_sig_den);
   document.body.dataset.sampleRate = String(project.sample_rate || '');
+  document.body.dataset.projectTitle = String(project.title || '');       // 내보내기 파일명에 씀 (S1-11b)
   document.body.dataset.revision = String(project.revision || '');
 }
 
@@ -721,6 +723,9 @@ export function initShortcuts() {
     } else if ((key === 'z' && event.shiftKey) || key === 'y') {
       event.preventDefault();
       redo();
+    } else if (key === 'r' && event.shiftKey) {
+      event.preventDefault();                      // 브라우저의 강력 새로고침 대신 내보내기 창
+      runRegistered('file.export');
     }
   });
 }
@@ -770,6 +775,7 @@ initArrange({ onChange: (change) => handleChange(change) });
 // 피아노롤 — 노트 변화 알림 (이력·저장 연결은 패턴 저장 작업에서)
 initRoll({ onChange: (change) => handleChange(Object.assign({}, change, { type: 'note' })) });
 initAudio();
+initExport();
 
 // 오토메이션 — 점 저장은 오토메이션 표가 생긴 뒤 (S2-04)
 initAutomation({ onChange: (change) => handleChange(Object.assign({}, change, { type: 'automation' })) });

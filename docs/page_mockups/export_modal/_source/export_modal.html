@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <title>Export modal mockup</title>
+  <!-- 내보내기 모달 목업 (S1-11b, PRD 03 FR-301 · FR-306 · FR-307)
+       실제 studio.css 의 .sq-dialog 를 그대로 쓰고, 새로 필요한 .ex-* 클래스만 아래 style 에 둡니다.
+       상태: ?s=default | range | progress | done | mp3   테마: &theme=light -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="../../../../studionx/frontend/static/css/tokens.css">
+  <link rel="stylesheet" href="../../../../studionx/frontend/static/css/base.css">
+  <link rel="stylesheet" href="../../../../studionx/frontend/static/css/pages/studio.css">
+  <style>
+    body.sq { margin: 0; height: 100vh; display: grid !important; grid-template: none !important; place-items: center; background: #0b0a0f url("../../sequencer/01_A_left_browser.png") center / cover no-repeat !important; }
+    body.sq::before { content: ""; position: fixed; inset: 0; background: rgb(8 6 10 / 0.55); }
+    :root[data-theme="light"] body.sq::before { background: rgb(246 245 249 / 0.55); }
+    .sq-dialog { position: relative; inset: auto; margin: 0; display: block; width: 38rem; }
+
+    /* ── 새로 필요한 클래스 (구현 때 studio.css 에 추가) ── */
+    .ex-sec { display: grid; gap: 0.35rem; }
+    .ex-sec > label, .ex-sec > .ex-label { font-size: 0.66rem; font-weight: 600; color: var(--c-ink-soft); letter-spacing: 0.02em; }
+    .ex-row { display: grid; grid-template-columns: 7.2rem 1fr; gap: 0.6rem; align-items: start; }
+    .ex-row > .ex-label { padding-top: 0.3rem; font-size: 0.66rem; font-weight: 600; color: var(--c-ink-soft); }
+    .ex-seg { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+    .ex-seg button { padding: 0.25rem 0.7rem; border: 1px solid var(--sq-line-2); color: var(--c-ink-soft); font: inherit; font-size: 0.68rem; background: transparent; }
+    .ex-seg button.is-on { border-color: var(--sq-accent); background: color-mix(in srgb, var(--c-violet) 22%, transparent); color: var(--c-ink); }
+    .ex-seg button:disabled { opacity: 0.42; cursor: not-allowed; }
+    .ex-seg small { align-self: center; margin-left: 0.3rem; font-size: 0.6rem; color: var(--c-ink-faint); }
+    .ex-range { display: grid; gap: 0.3rem; }
+    .ex-range label { display: flex; align-items: center; gap: 0.45rem; padding: 0.35rem 0.55rem; border: 1px solid var(--sq-line-2); cursor: pointer; }
+    .ex-range label:has(input:checked) { border-color: var(--sq-accent); background: color-mix(in srgb, var(--c-violet) 14%, transparent); }
+    .ex-range input[type=radio] { margin: 0; accent-color: var(--c-violet); }
+    .ex-range b { font-weight: 600; }
+    .ex-range em { margin-left: auto; font-style: normal; font-size: 0.62rem; color: var(--c-ink-faint); font-variant-numeric: tabular-nums; }
+    .ex-range label.is-off { opacity: 0.42; cursor: not-allowed; }
+    .ex-custom { display: flex; align-items: center; gap: 0.4rem; margin-left: 1.45rem; font-size: 0.66rem; color: var(--c-ink-soft); }
+    .ex-custom.is-off { opacity: 0.4; }
+    .ex-num { width: 3.6rem; height: 1.5rem; padding: 0 0.4rem; border: 1px solid var(--sq-line-2); background: var(--sq-panel-2); color: var(--c-ink); font: inherit; font-size: 0.7rem; text-align: right; font-variant-numeric: tabular-nums; }
+    .ex-num:disabled { opacity: 0.5; }
+    .ex-text { width: 100%; height: 1.55rem; padding: 0 0.45rem; border: 1px solid var(--sq-line-2); background: var(--sq-panel-2); color: var(--c-ink); font: inherit; font-size: 0.7rem; box-sizing: border-box; }
+    .ex-inline { display: flex; align-items: center; gap: 0.5rem; font-size: 0.68rem; color: var(--c-ink-soft); }
+    .ex-inline input[type=checkbox] { accent-color: var(--c-violet); margin: 0; }
+    .ex-hint { font-size: 0.62rem; color: var(--c-ink-faint); line-height: 1.45; }
+    .ex-name { display: flex; gap: 0.3rem; align-items: center; }
+    .ex-name span { font-size: 0.7rem; color: var(--c-ink-faint); }
+    .ex-sum { display: flex; flex-wrap: wrap; gap: 0.3rem 1.2rem; padding: 0.5rem 0.65rem; background: var(--sq-panel-2); border: 1px solid var(--sq-line); font-size: 0.66rem; color: var(--c-ink-soft); font-variant-numeric: tabular-nums; }
+    .ex-sum b { color: var(--c-ink); font-weight: 600; }
+    .ex-bar { height: 0.55rem; background: var(--sq-panel-2); border: 1px solid var(--sq-line-2); }
+    .ex-bar i { display: block; height: 100%; background: var(--c-violet); }
+    .ex-prog { display: grid; gap: 0.5rem; padding: 0.4rem 0; }
+    .ex-prog__top { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.74rem; }
+    .ex-prog__top b { font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+    .ex-done { display: grid; gap: 0.5rem; padding: 0.4rem 0; }
+    .ex-done__file { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.7rem; border: 1px solid var(--sq-ok); background: color-mix(in srgb, var(--sq-ok) 9%, transparent); }
+    .ex-done__file b { font-weight: 600; word-break: break-all; }
+    .ex-done__file span { margin-left: auto; font-size: 0.64rem; color: var(--c-ink-soft); white-space: nowrap; }
+    .ex-ok { color: var(--sq-ok); font-weight: 600; }
+    .ex-lock { margin-left: 0.4rem; padding: 0 0.25rem; font-style: normal; font-size: 0.58rem; color: var(--c-ink-soft); border: 1px solid var(--sq-line-2); }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body class="sq">
+
+  <dialog class="sq-dialog" id="export-modal" open aria-labelledby="export-title">
+    <header class="sq-dialog__head"><h2 id="export-title">⤓ Export audio</h2><button type="button" aria-label="Close">✕</button></header>
+
+    <!-- 설정 화면 -->
+    <div class="sq-dialog__body" id="ex-form">
+      <div class="ex-row">
+        <span class="ex-label">Format</span>
+        <div class="ex-seg" id="ex-format">
+          <button type="button" class="is-on" data-fmt="wav">WAV</button>
+          <button type="button" data-fmt="mp3" disabled>MP3</button>
+          <button type="button" data-fmt="flac" disabled>FLAC</button>
+          <small>MP3 · FLAC come with Phase 3</small>
+        </div>
+      </div>
+
+      <div class="ex-row">
+        <span class="ex-label">Range</span>
+        <div>
+          <div class="ex-range">
+            <label><input type="radio" name="range" value="all" checked><b>Entire project</b><em>bar 1 – 33 · 1:05</em></label>
+            <label><input type="radio" name="range" value="loop"><b>Loop region</b><em>bar 5 – 9 · 0:08</em></label>
+            <label id="ex-sel" class="is-off"><input type="radio" name="range" value="selected" disabled><b>Selected clips</b><em id="ex-sel-len">Select clips on the timeline first</em></label>
+            <label><input type="radio" name="range" value="custom"><b>Custom</b><em id="ex-custom-len">—</em></label>
+            <div class="ex-custom is-off" id="ex-custom">
+              From bar <input class="ex-num" id="ex-from" type="number" value="1" min="1" disabled>
+              to bar <input class="ex-num" id="ex-to" type="number" value="33" min="2" disabled>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ex-row">
+        <span class="ex-label">Sample rate</span>
+        <div class="ex-seg" id="ex-rate"><button type="button" class="is-on">44.1 kHz</button><button type="button">48 kHz</button></div>
+      </div>
+
+      <div class="ex-row">
+        <span class="ex-label">Bit depth</span>
+        <div>
+          <div class="ex-seg" id="ex-depth"><button type="button" class="is-on">16-bit</button><button type="button">24-bit</button><button type="button">32-bit float</button></div>
+          <p class="ex-hint" style="margin:0.3rem 0 0">16-bit adds a little dither noise so quiet tails stay smooth.</p>
+        </div>
+      </div>
+
+      <div class="ex-row">
+        <span class="ex-label">MP3 bitrate</span>
+        <div class="ex-seg"><button type="button" disabled>128</button><button type="button" disabled>192</button><button type="button" disabled>320</button><small>Used when the format is MP3</small></div>
+      </div>
+
+      <div class="ex-row">
+        <span class="ex-label">Normalize</span>
+        <div class="ex-inline">
+          <label class="ex-inline"><input type="checkbox" id="ex-norm"> Raise the loudest peak to</label>
+          <input class="ex-num" type="number" value="-0.3" step="0.1" disabled id="ex-norm-db"> dBFS
+        </div>
+      </div>
+
+      <div class="ex-row">
+        <span class="ex-label">Tail</span>
+        <div>
+          <div class="ex-inline"><input class="ex-num" type="number" value="2.0" step="0.5" min="0" max="30"> seconds after the end
+            <button type="button" class="ex-lock" style="cursor:pointer;background:transparent;color:var(--c-ink-soft)">Auto</button></div>
+          <p class="ex-hint" style="margin:0.3rem 0 0">Keeps delay and reverb tails from being cut. Auto adds the longest effect tail.</p>
+        </div>
+      </div>
+
+      <div class="ex-row">
+        <span class="ex-label">File name</span>
+        <div class="ex-name"><input class="ex-text" id="ex-file" value="Midnight Drive_20261020_1432"><span>.wav</span></div>
+      </div>
+
+      <div class="ex-sum" id="ex-sum">
+        <span>Length <b id="ex-sum-len">1:07</b></span>
+        <span>Format <b id="ex-sum-fmt">WAV · 44.1 kHz · 16-bit stereo</b></span>
+        <span>Size <b id="ex-sum-size">≈ 11.8 MB</b></span>
+      </div>
+    </div>
+
+    <!-- 진행 중 화면 (FR-306) -->
+    <div class="sq-dialog__body" id="ex-progress" hidden>
+      <div class="ex-prog">
+        <div class="ex-prog__top"><span>Rendering…</span><b id="ex-pct">42%</b></div>
+        <div class="ex-bar"><i style="width:42%"></i></div>
+        <p class="ex-hint" style="margin:0">Bar 14 of 33 · about 6 seconds left. Keep this window open. You can stop it at any time.</p>
+      </div>
+      <div class="ex-sum"><span>Range <b>Entire project</b></span><span>Format <b>WAV · 44.1 kHz · 16-bit</b></span></div>
+    </div>
+
+    <!-- 완료 화면 (FR-307) -->
+    <div class="sq-dialog__body" id="ex-done" hidden>
+      <div class="ex-done">
+        <p class="ex-ok" style="margin:0">✓ Export finished</p>
+        <div class="ex-done__file"><b>Midnight Drive_20261020_1432.wav</b><span>1:07 · 11.8 MB</span></div>
+        <p class="ex-hint" style="margin:0">Peak −0.3 dBFS · rendered in 11 seconds</p>
+      </div>
+    </div>
+
+    <footer class="sq-dialog__foot" id="ex-foot-form">
+      <span class="ex-hint" style="margin-right:auto">Mute and solo settings are applied.</span>
+      <button type="button" class="sq-dialog__btn">Cancel</button>
+      <button type="button" class="sq-dialog__btn is-go">⤓ Export</button>
+    </footer>
+    <footer class="sq-dialog__foot" id="ex-foot-progress" hidden>
+      <span></span>
+      <button type="button" class="sq-dialog__btn">Stop</button>
+    </footer>
+    <footer class="sq-dialog__foot" id="ex-foot-done" hidden>
+      <span></span>
+      <button type="button" class="sq-dialog__btn">Close</button>
+      <button type="button" class="sq-dialog__btn is-go">⤓ Download</button>
+    </footer>
+  </dialog>
+
+  <script>
+    var q = new URLSearchParams(location.search);
+    var s = q.get('s') || 'default';
+    if (q.get('theme') === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    function show(id, on) { document.getElementById(id).hidden = !on; }
+    function pick(groupId, index) {
+      var bs = document.querySelectorAll('#' + groupId + ' button');
+      for (var i = 0; i < bs.length; i++) bs[i].classList.toggle('is-on', i === index);
+    }
+    if (s === 'range') {
+      document.querySelector('input[value=custom]').checked = true;
+      document.getElementById('ex-custom').classList.remove('is-off');
+      document.getElementById('ex-from').disabled = false; document.getElementById('ex-to').disabled = false;
+      document.getElementById('ex-from').value = 9; document.getElementById('ex-to').value = 25;
+      document.getElementById('ex-custom-len').textContent = 'bar 9 – 25 · 0:32';
+      pick('ex-rate', 1); pick('ex-depth', 2);
+      document.getElementById('ex-norm').checked = true; document.getElementById('ex-norm-db').disabled = false;
+      document.getElementById('ex-file').value = 'Midnight Drive_verse2';
+      document.getElementById('ex-sum-len').textContent = '0:34';
+      document.getElementById('ex-sum-fmt').textContent = 'WAV · 48 kHz · 32-bit float stereo';
+      document.getElementById('ex-sum-size').textContent = '≈ 12.5 MB';
+    }
+    if (s === 'selected') {
+      var sel = document.querySelector('input[value=selected]');
+      sel.disabled = false; sel.checked = true;
+      document.getElementById('ex-sel').classList.remove('is-off');
+      document.getElementById('ex-sel-len').textContent = '2 clips · bar 5 – 9 · 0:08';
+      var hint = document.createElement('p');
+      hint.className = 'ex-hint'; hint.style.margin = '0.3rem 0 0 1.45rem';
+      hint.textContent = 'Only Lead A and Lead A #2 are heard. Other clips are muted. Track effects and the mixer still apply.';
+      document.querySelector('.ex-range').appendChild(hint);
+      document.getElementById('ex-file').value = 'Midnight Drive_Lead A';
+      document.getElementById('ex-sum-len').textContent = '0:10';
+      document.getElementById('ex-sum-size').textContent = '≈ 1.8 MB';
+    }
+    if (s === 'progress') { show('ex-form', false); show('ex-progress', true); show('ex-foot-form', false); show('ex-foot-progress', true); document.getElementById('export-title').textContent = '⤓ Exporting…'; }
+    if (s === 'done') { show('ex-form', false); show('ex-done', true); show('ex-foot-form', false); show('ex-foot-done', true); document.getElementById('export-title').textContent = '⤓ Export audio'; }
+  </script>
+</body>
+</html>

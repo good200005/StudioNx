@@ -1002,6 +1002,117 @@
     </footer>
   </dialog>
 
+  <!-- 내보내기 창 (S1-11b 화면, PRD 03 FR-301 · FR-306 · FR-307) — 목업: docs/page_mockups/export_modal/
+       sequencer-export.js 가 값을 채우고 렌더링 · 다운로드를 맡습니다. 화면은 설정 → 진행 중 → 완료 순으로 바뀝니다. -->
+  <dialog class="sq-dialog sq-export" id="export-modal" aria-labelledby="export-title">
+    <header class="sq-dialog__head"><h2 id="export-title">⤓ Export audio</h2><button type="button" id="ex-x" aria-label="Close">✕</button></header>
+
+    <div class="sq-dialog__body" id="ex-form">
+      <div class="ex-row">
+        <span class="ex-label">Format</span>
+        <div class="ex-seg">
+          <button type="button" class="is-on" data-format="wav" aria-pressed="true">WAV</button>
+          <button type="button" disabled>MP3</button>
+          <button type="button" disabled>FLAC</button>
+          <small>MP3 · FLAC come with Phase 3</small>
+        </div>
+      </div>
+
+      <div class="ex-row">
+        <span class="ex-label">Range</span>
+        <div class="ex-range">
+          <label><input type="radio" name="ex-range" value="all" checked><b>Entire project</b><em id="ex-len-all">—</em></label>
+          <label id="ex-opt-loop"><input type="radio" name="ex-range" value="loop"><b>Loop region</b><em id="ex-len-loop">—</em></label>
+          <label id="ex-opt-selected"><input type="radio" name="ex-range" value="selected"><b>Selected clips</b><em id="ex-len-selected">—</em></label>
+          <label><input type="radio" name="ex-range" value="custom"><b>Custom</b><em id="ex-len-custom">—</em></label>
+          <div class="ex-custom" id="ex-custom">
+            From bar <input class="ex-num" id="ex-from" type="number" value="1" min="1" step="1">
+            to bar <input class="ex-num" id="ex-to" type="number" value="1" min="1" step="1">
+          </div>
+          <p class="ex-hint" id="ex-selected-note" hidden>Only the selected clips are heard. Other clips are muted. Track effects and the mixer still apply.</p>
+        </div>
+      </div>
+
+      <div class="ex-row">
+        <span class="ex-label">Sample rate</span>
+        <div class="ex-seg" id="ex-rate"><button type="button" data-rate="44100" class="is-on" aria-pressed="true">44.1 kHz</button><button type="button" data-rate="48000" aria-pressed="false">48 kHz</button></div>
+      </div>
+
+      <div class="ex-row">
+        <span class="ex-label">Bit depth</span>
+        <div>
+          <div class="ex-seg" id="ex-depth"><button type="button" data-depth="16" class="is-on" aria-pressed="true">16-bit</button><button type="button" data-depth="24" aria-pressed="false">24-bit</button><button type="button" data-depth="32" aria-pressed="false">32-bit float</button></div>
+          <p class="ex-hint" id="ex-depth-note">16-bit adds a little dither noise so quiet tails stay smooth.</p>
+        </div>
+      </div>
+
+      <div class="ex-row">
+        <span class="ex-label">MP3 bitrate</span>
+        <div class="ex-seg"><button type="button" disabled>128</button><button type="button" disabled>192</button><button type="button" disabled>320</button><small>Used when the format is MP3</small></div>
+      </div>
+
+      <div class="ex-row">
+        <span class="ex-label">Normalize</span>
+        <div class="ex-inline">
+          <label class="ex-inline"><input type="checkbox" id="ex-norm"> Raise the loudest peak to</label>
+          <input class="ex-num" type="number" id="ex-norm-db" value="-0.3" step="0.1" min="-12" max="0" disabled> dBFS
+        </div>
+      </div>
+
+      <div class="ex-row">
+        <span class="ex-label">Tail</span>
+        <div>
+          <div class="ex-inline"><input class="ex-num" type="number" id="ex-tail" value="2" step="0.5" min="0" max="30"> seconds after the end
+            <button type="button" class="ex-auto" id="ex-tail-auto">Auto</button></div>
+          <p class="ex-hint">Keeps delay and reverb tails from being cut. Auto adds the longest effect tail.</p>
+        </div>
+      </div>
+
+      <div class="ex-row">
+        <span class="ex-label">File name</span>
+        <div class="ex-name"><input class="ex-text" id="ex-file" maxlength="80" aria-label="File name"><span>.wav</span></div>
+      </div>
+
+      <p class="ex-msg" id="ex-msg" role="alert" hidden></p>
+      <div class="ex-sum">
+        <span>Length <b id="ex-sum-len">—</b></span>
+        <span>Format <b id="ex-sum-fmt">—</b></span>
+        <span>Size <b id="ex-sum-size">—</b></span>
+      </div>
+    </div>
+
+    <div class="sq-dialog__body" id="ex-progress" hidden>
+      <div class="ex-prog">
+        <div class="ex-prog__top"><span id="ex-prog-title">Rendering…</span><b id="ex-pct">0%</b></div>
+        <div class="ex-bar"><i id="ex-bar-fill" style="width:0%"></i></div>
+        <p class="ex-hint" id="ex-prog-note">Keep this window open. You can stop it at any time.</p>
+      </div>
+    </div>
+
+    <div class="sq-dialog__body" id="ex-done" hidden>
+      <div class="ex-done">
+        <p class="ex-ok">✓ Export finished</p>
+        <div class="ex-done__file"><b id="ex-done-name">—</b><span id="ex-done-meta">—</span></div>
+        <p class="ex-hint" id="ex-done-note">—</p>
+      </div>
+    </div>
+
+    <footer class="sq-dialog__foot" id="ex-foot-form">
+      <span class="ex-hint ex-foot-note">Mute and solo settings are applied.</span>
+      <button type="button" class="sq-dialog__btn" id="ex-cancel">Cancel</button>
+      <button type="button" class="sq-dialog__btn is-go" id="ex-go">⤓ Export</button>
+    </footer>
+    <footer class="sq-dialog__foot" id="ex-foot-progress" hidden>
+      <span></span>
+      <button type="button" class="sq-dialog__btn" id="ex-stop">Stop</button>
+    </footer>
+    <footer class="sq-dialog__foot" id="ex-foot-done" hidden>
+      <span></span>
+      <button type="button" class="sq-dialog__btn" id="ex-close">Close</button>
+      <button type="button" class="sq-dialog__btn is-go" id="ex-download">⤓ Download</button>
+    </footer>
+  </dialog>
+
   <script type="module" src="static/js/pages/sequencer.js"></script>
 </body>
 </html>
