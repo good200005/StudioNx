@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <title>Sampler mockup</title>
+  <!-- Sampler 상세 창 목업 (S1-11a 결정 대기: Sampler One-Shot 모드와 MIDI 연주용 샘플 선택)
+       실제 studio.css 의 .sq-dialog / .sq-dmodal / .sq-param 을 그대로 쓰고, 새로 필요한 .sm-* 클래스만 아래 style 에 둡니다.
+       NEW 표시가 붙은 것이 이번에 결정할 새 요소입니다.
+       상태: ?s=classic | oneshot | empty | picker | card -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="../../../../studionx/frontend/static/css/tokens.css">
+  <link rel="stylesheet" href="../../../../studionx/frontend/static/css/base.css">
+  <link rel="stylesheet" href="../../../../studionx/frontend/static/css/pages/studio.css">
+  <style>
+    body.sq { margin: 0; height: 100vh; display: grid !important; grid-template: none !important; place-items: center; background: #0b0a0f url("../../sequencer/01_A_left_browser.png") center / cover no-repeat !important; }
+    body.sq::before { content: ""; position: fixed; inset: 0; background: rgb(8 6 10 / 0.55); }
+    .sq-dialog { position: relative; inset: auto; margin: 0; display: block; width: 40rem; }
+    .sq-dmodal__art { background: #1f9d8a; }
+    [hidden] { display: none !important; }
+
+    /* ── 새로 필요한 클래스 (구현 때 studio.css 에 추가) ── */
+    .sm-new { display: inline-block; margin-left: 0.4rem; padding: 0 0.3rem; font: 700 0.55rem/1.3 var(--font-text); letter-spacing: 0.06em; color: #10120a; background: var(--sq-auto); vertical-align: middle; }
+    .sm-row { display: grid; grid-template-columns: 6.2rem 1fr; gap: 0.6rem; align-items: start; }
+    .sm-label { padding-top: 0.3rem; font-size: 0.66rem; font-weight: 600; color: var(--c-ink-soft); }
+    .sm-file { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.55rem; border: 1px solid var(--sq-line-2); background: var(--sq-panel-2); }
+    .sm-file b { font-weight: 600; font-size: 0.74rem; }
+    .sm-file small { color: var(--c-ink-faint); font-size: 0.62rem; font-variant-numeric: tabular-nums; }
+    .sm-file button { margin-left: auto; padding: 0.2rem 0.6rem; border: 1px solid var(--sq-line-2); color: var(--c-ink); font: inherit; font-size: 0.66rem; background: transparent; }
+    .sm-file.is-empty { border-style: dashed; color: var(--c-ink-faint); justify-content: center; padding: 1rem; font-size: 0.7rem; }
+    .sm-wave { position: relative; height: 4.4rem; margin-top: 0.4rem; border: 1px solid var(--sq-line); background: color-mix(in srgb, var(--sq-panel-2) 70%, #000); overflow: hidden; }
+    .sm-wave svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .sm-wave .sm-root { position: absolute; top: 0; bottom: 0; left: 0; width: 2px; background: var(--sq-ok); }
+    .sm-wave .sm-root b { position: absolute; top: 0.15rem; left: 0.35rem; font-size: 0.6rem; color: var(--sq-ok); white-space: nowrap; }
+    .sm-wave .sm-end { position: absolute; top: 0; bottom: 0; right: 0; width: 2px; background: var(--sq-rec); }
+    .sm-wave.is-empty { display: grid; place-items: center; color: var(--c-ink-faint); font-size: 0.66rem; }
+    .sm-seg { display: flex; gap: 0.25rem; }
+    .sm-seg button { padding: 0.25rem 0.8rem; border: 1px solid var(--sq-line-2); color: var(--c-ink-soft); font: inherit; font-size: 0.68rem; background: transparent; }
+    .sm-seg button.is-on { border-color: var(--sq-accent); background: color-mix(in srgb, var(--c-violet) 22%, transparent); color: var(--c-ink); }
+    .sm-hint { margin: 0.35rem 0 0; font-size: 0.62rem; color: var(--c-ink-faint); line-height: 1.5; }
+    .sq-param.is-off { opacity: 0.38; pointer-events: none; }
+    .sm-picker { position: absolute; left: 7rem; top: 7.4rem; width: 26rem; border: 1px solid var(--sq-accent); background: var(--sq-panel); box-shadow: 0 1rem 2.4rem rgb(0 0 0 / 0.6); z-index: 5; }
+    .sm-picker header { padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--sq-line); background: var(--sq-panel-2); font-size: 0.68rem; font-weight: 600; }
+    .sm-picker input { width: calc(100% - 1.2rem); margin: 0.5rem 0.6rem 0.2rem; height: 1.5rem; padding: 0 0.4rem; border: 1px solid var(--sq-line-2); background: var(--sq-panel-2); color: var(--c-ink); font: inherit; font-size: 0.68rem; box-sizing: border-box; }
+    .sm-picker ul { margin: 0; padding: 0.3rem 0.6rem 0.5rem; list-style: none; display: grid; gap: 0.2rem; }
+    .sm-picker li { display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0.5rem; border: 1px solid transparent; font-size: 0.7rem; }
+    .sm-picker li.is-hot { border-color: var(--sq-accent); background: color-mix(in srgb, var(--c-violet) 18%, transparent); }
+    .sm-picker li small { margin-left: auto; color: var(--c-ink-faint); font-size: 0.62rem; }
+    .sm-picker li button { padding: 0 0.4rem; border: 1px solid var(--sq-line-2); color: var(--c-ink-soft); font: inherit; font-size: 0.6rem; background: transparent; }
+    .sm-picker footer { padding: 0.4rem 0.6rem; border-top: 1px solid var(--sq-line); font-size: 0.62rem; color: var(--c-ink-faint); }
+    /* 트랙 줄의 카드 */
+    .sm-card-wrap { display: flex; align-items: center; gap: 0.6rem; padding: 1rem; background: var(--sq-panel); border: 1px solid var(--sq-line-2); }
+    .sm-card { width: 11rem; padding: 0.5rem 0.6rem; border: 1px solid var(--sq-line-2); background: var(--sq-panel-2); }
+    .sm-card h4 { margin: 0 0 0.25rem; font-size: 0.74rem; }
+    .sm-card p { margin: 0 0 0.35rem; font-size: 0.6rem; color: var(--c-ink-faint); }
+    .sm-card.is-empty { border-style: dashed; }
+    .sm-card.is-empty p { color: #ffb86b; }
+    .sm-cap { margin: 0 0 0.6rem; font-size: 0.7rem; color: var(--c-ink-soft); }
+  </style>
+</head>
+<body class="sq">
+
+  <dialog class="sq-dialog sq-dmodal" id="sampler-modal" open aria-labelledby="sm-title">
+    <header class="sq-dialog__head">
+      <span class="sq-dmodal__art" aria-hidden="true">SMP</span>
+      <h2 id="sm-title">Sampler</h2>
+      <span class="sq-dmodal__sub">Instrument · Track 2 Drums</span>
+      <span class="sq-tabs" role="group" aria-label="Compare A / B"><button type="button" class="is-on">A</button><button type="button">B</button></span>
+      <button type="button" class="sq-dmodal__close" aria-label="Close">✕</button>
+    </header>
+
+    <div class="sq-dialog__body">
+      <div class="sq-tabs" role="tablist"><button type="button" class="is-on">Sample</button><button type="button">Amp Env</button></div>
+
+      <!-- 새 영역: 샘플 고르기와 모드 -->
+      <div class="sm-row">
+        <span class="sm-label">Sample <span class="sm-new">NEW</span></span>
+        <div>
+          <div class="sm-file" id="sm-file">
+            <span aria-hidden="true">♫</span><b id="sm-name">kick_808.wav</b><small id="sm-meta">0:01 · 44.1 kHz · mono</small>
+            <button type="button" id="sm-change">Change…</button>
+          </div>
+          <div class="sm-wave" id="sm-wave">
+            <svg id="sm-svg" viewBox="0 0 400 60" preserveAspectRatio="none" aria-hidden="true"></svg>
+            <span class="sm-root"><b id="sm-rootlabel">Root C4</b></span><span class="sm-end"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sm-row">
+        <span class="sm-label">Mode <span class="sm-new">NEW</span></span>
+        <div>
+          <div class="sm-seg" id="sm-mode"><button type="button" class="is-on" data-mode="classic">Classic</button><button type="button" data-mode="oneshot">One-Shot</button></div>
+          <p class="sm-hint" id="sm-hint">Classic: the sample plays while the note is held, then fades out with Release. A higher or lower note changes the pitch.</p>
+        </div>
+      </div>
+
+      <div class="sq-params" id="sm-params">
+        <div class="sq-param"><span class="sq-knob" role="slider"><i style="--a:30deg"></i><span class="sq-knob__val">C4</span></span><span class="sq-param__name">Root</span></div>
+        <div class="sq-param" id="sm-loop"><span class="sq-switch" role="switch" aria-pressed="false"></span><span class="sq-param__name">Loop</span></div>
+        <div class="sq-param"><span class="sq-knob" role="slider"><i style="--a:50deg"></i><span class="sq-knob__val">1.00</span></span><span class="sq-param__name">Gain</span></div>
+        <div class="sq-param"><span class="sq-knob" role="slider"><i style="--a:90deg"></i><span class="sq-knob__val">0 st</span></span><span class="sq-param__name">Tune</span></div>
+      </div>
+    </div>
+
+    <footer class="sq-dialog__foot">
+      <label>Preset <select><option>Init</option></select></label>
+      <button type="button" class="sq-dialog__btn">Apply</button>
+      <span class="sq-dmodal__badge">Saved</span>
+      <button type="button" class="sq-dialog__btn">Reset</button>
+      <button type="button" class="sq-dialog__btn is-go">Save</button>
+    </footer>
+
+    <!-- 샘플 고르는 창 (Change… 를 눌렀을 때) -->
+    <div class="sm-picker" id="sm-picker" hidden>
+      <header>Choose a sample from your library</header>
+      <input type="search" placeholder="Search samples…" aria-label="Search samples">
+      <ul>
+        <li class="is-hot"><span aria-hidden="true">♫</span>kick_808.wav<small>0:01 · Drums</small><button type="button">▶</button></li>
+        <li><span aria-hidden="true">♫</span>snare_tight.wav<small>0:01 · Drums</small><button type="button">▶</button></li>
+        <li><span aria-hidden="true">♫</span>hat_loop_120.wav<small>0:04 · Loops</small><button type="button">▶</button></li>
+        <li><span aria-hidden="true">♫</span>bass_sub.wav<small>0:03 · Bass</small><button type="button">▶</button></li>
+        <li><span aria-hidden="true">♫</span>pad_dusk.wav<small>0:08 · FX</small><button type="button">▶</button></li>
+      </ul>
+      <footer>You can also drag a sample from the browser onto the waveform.</footer>
+    </div>
+  </dialog>
+
+  <!-- 트랙 줄의 카드 (card 상태) -->
+  <div id="card-view" hidden>
+    <p class="sm-cap">Device cards on track 2 (Drums)</p>
+    <div class="sm-card-wrap">
+      <div class="sm-card"><h4>Sampler</h4><p>kick_808.wav · Classic</p><span class="sq-knobs"><span class="sq-knob"><i style="--a:50deg"></i>Gain</span><span class="sq-knob"><i style="--a:90deg"></i>Tune</span></span></div>
+      <div class="sm-card"><h4>Sampler</h4><p>snare_tight.wav · One-Shot</p><span class="sq-knobs"><span class="sq-knob"><i style="--a:50deg"></i>Gain</span><span class="sq-knob"><i style="--a:90deg"></i>Tune</span></span></div>
+      <div class="sm-card is-empty"><h4>Sampler</h4><p>⚠ No sample chosen. Notes make no sound.</p><span class="sq-knobs"><span class="sq-knob"><i style="--a:50deg"></i>Gain</span><span class="sq-knob"><i style="--a:90deg"></i>Tune</span></span></div>
+    </div>
+  </div>
+
+  <script>
+    var q = new URLSearchParams(location.search);
+    var s = q.get('s') || 'classic';
+    function el(id) { return document.getElementById(id); }
+    // 파형: 킥 드럼처럼 처음이 크고 빨리 줄어드는 모양
+    (function () {
+      var bars = '';
+      for (var i = 0; i < 100; i++) {
+        var h = Math.max(1.5, 27 * Math.exp(-i / 14) * (0.55 + 0.45 * Math.abs(Math.sin(i * 1.3))));
+        bars += '<rect x="' + (i * 4 + 0.6) + '" y="' + (30 - h) + '" width="2.6" height="' + (h * 2) + '" fill="#3ab8c9" opacity="0.85"/>';
+      }
+      el('sm-svg').innerHTML = bars;
+    })();
+    function setMode(m) {
+      var seg = el('sm-mode').querySelectorAll('button');
+      for (var i = 0; i < seg.length; i++) seg[i].classList.toggle('is-on', seg[i].getAttribute('data-mode') === m);
+      el('sm-loop').classList.toggle('is-off', m === 'oneshot');
+      el('sm-hint').textContent = m === 'oneshot'
+        ? 'One-Shot: every note plays the whole sample, however short the note is. Loop and the envelope Sustain and Release are ignored. Good for drum hits.'
+        : 'Classic: the sample plays while the note is held, then fades out with Release. A higher or lower note changes the pitch.';
+    }
+    if (s === 'oneshot') { setMode('oneshot'); el('sm-name').textContent = 'snare_tight.wav'; el('sm-meta').textContent = '0:01 · 44.1 kHz · mono'; el('sm-rootlabel').textContent = 'Root C4'; }
+    if (s === 'empty') {
+      el('sm-file').className = 'sm-file is-empty'; el('sm-file').innerHTML = '<span>No sample yet. Choose one from your library, or drag it here.</span><button type="button" style="margin-left:0.6rem;padding:0.2rem 0.6rem;border:1px solid var(--sq-accent);color:var(--c-ink);font:inherit;font-size:0.66rem;background:transparent">Choose…</button>';
+      el('sm-wave').className = 'sm-wave is-empty'; el('sm-wave').innerHTML = 'The waveform appears here';
+    }
+    if (s === 'picker') { el('sm-picker').hidden = false; }
+    if (s === 'card') { el('sampler-modal').hidden = true; el('card-view').hidden = false; }
+  </script>
+</body>
+</html>
