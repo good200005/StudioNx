@@ -33,7 +33,7 @@ from app.schemas.full_project import (
     FullTrackResponse,
 )
 from app.schemas.track import TrackResponse
-from app.services import pattern_service, project_service
+from app.services import pattern_service, project_service, tempo_service
 
 
 def _group_by(rows: list, key) -> dict[Any, list]:
@@ -101,8 +101,8 @@ def get_full_project(db: Session, user: User, project_id: int) -> FullProjectRes
 
     멤버면 누구나 (VIEWER 포함). 없는 프로젝트 · 남의 프로젝트는 404.
     clips 는 프로젝트의 모든 클립, connections 는 각 트랙의 나가는 연결이다.
-    markers · tempo_changes · meter_changes 는 그 표의 모델·API 가 아직 없어 빈 목록으로
-    나간다 (화면은 이 칸이 늘 있다고 보고 읽는다).
+    tempo_changes 는 저장된 템포 변경점(tick 오름차순)이고, markers · meter_changes 는 그 표의
+    모델·API 가 아직 없어 빈 목록으로 나간다 (화면은 이 칸이 늘 있다고 보고 읽는다).
     """
     project, member = project_service.get_membership(db, project_id, user)
 
@@ -196,4 +196,5 @@ def get_full_project(db: Session, user: User, project_id: int) -> FullProjectRes
             for pattern in patterns
         ],
         clips=clips,
+        tempo_changes=tempo_service.tempo_items(db, project_id),
     )

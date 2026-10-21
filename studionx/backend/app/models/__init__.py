@@ -11,6 +11,7 @@ from app.models.project import Project, ProjectMember
 from app.models.project_session import ProjectSession
 from app.models.sample import Sample, SampleSource
 from app.models.tag import SampleTag, Tag, TagCategory
+from app.models.tempo_change import TempoChange, TempoRamp
 from app.models.track import RoutingMode, Track, TrackType
 from app.models.track_connection import ConnectionTarget, TrackConnection
 from app.models.track_plugin import TrackInstrument, TrackPlugin, TrackPluginLink
@@ -39,6 +40,8 @@ __all__ = [
     "SampleTag",
     "Tag",
     "TagCategory",
+    "TempoChange",
+    "TempoRamp",
     "Track",
     "TrackConnection",
     "TrackInstrument",

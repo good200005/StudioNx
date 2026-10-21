@@ -23,6 +23,7 @@ from app.schemas.device import (
     TrackPluginResponse,
 )
 from app.schemas.pattern import PatternResponse
+from app.schemas.tempo import TempoChangeItem
 from app.schemas.track import TrackResponse
 
 # 곡 설정(BPM·박자·Key·마스터) 수정에서 허용하는 범위
@@ -78,8 +79,8 @@ class FullProjectResponse(BaseModel):
     """GET /projects/{id}/full 응답 — 한 번의 요청으로 곡 전체 (FR-254).
 
     clips 는 프로젝트의 모든 클립(track_id 로 트랙에 묶임), connections 는 각 트랙의
-    나가는 연결이다. markers · tempo_changes · meter_changes 는 그 표와 API 가 아직 없어
-    늘 빈 목록이다.
+    나가는 연결이다. tempo_changes 는 저장된 템포 변경점(tick 오름차순)이고, markers ·
+    meter_changes 는 그 표와 API 가 아직 없어 늘 빈 목록이다.
     """
 
     project: FullProjectInfo
@@ -87,7 +88,7 @@ class FullProjectResponse(BaseModel):
     patterns: list[PatternResponse]
     clips: list[ClipResponse] = Field(default_factory=list)
     markers: list[dict[str, Any]] = Field(default_factory=list)
-    tempo_changes: list[dict[str, Any]] = Field(default_factory=list)
+    tempo_changes: list[TempoChangeItem] = Field(default_factory=list)
     meter_changes: list[dict[str, Any]] = Field(default_factory=list)
 
 

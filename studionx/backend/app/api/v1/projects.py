@@ -35,7 +35,8 @@ from app.schemas.project import (
     ProjectSort,
     ProjectUpdateRequest,
 )
-from app.services import full_project_service, project_service
+from app.schemas.tempo import TempoChangesResponse, TempoChangesSaveRequest
+from app.services import full_project_service, project_service, tempo_service
 
 router = APIRouter()
 
@@ -86,9 +87,38 @@ def read_full_project(project_id: int, user: CurrentUser, db: Db) -> FullProject
     """프로젝트 전체 — 트랙·악기·이펙트·연결선·패턴·노트를 한 번에 (FR-254).
 
     시퀀서가 화면을 열 때 부르는 요청이다. 멤버만 (VIEWER 포함), 없거나 남의 것은 404.
-    clips · markers · tempo_changes · meter_changes 는 그 모델이 아직 없어 빈 목록으로 나간다.
+    tempo_changes 는 저장된 템포 변경점이고, markers · meter_changes 는 그 모델이 아직 없어
+    빈 목록으로 나간다.
     """
     return full_project_service.get_full_project(db, user, project_id)
+
+
+@router.get(
+    "/{project_id}/tempo-changes",
+    response_model=TempoChangesResponse,
+    responses=NOT_FOUND,
+)
+def read_tempo_changes(project_id: int, user: CurrentUser, db: Db) -> TempoChangesResponse:
+    """프로젝트의 템포 변경점 목록 (FR-202a) — 멤버면 누구나, tick 오름차순."""
+    return tempo_service.list_tempo_changes(db, user, project_id)
+
+
+@router.put(
+    "/{project_id}/tempo-changes",
+    response_model=TempoChangesResponse,
+    responses={**NOT_FOUND, **FORBIDDEN},
+)
+def replace_tempo_changes(
+    project_id: int,
+    data: TempoChangesSaveRequest,
+    user: CurrentUser,
+    db: Db,
+) -> TempoChangesResponse:
+    """템포 변경점을 보낸 목록으로 통째 교체 (FR-202a) — OWNER·EDITOR 만 (VIEWER 는 403).
+
+    템포 줄(Tempo lane)이 바뀔 때마다 점 전체를 보낸다. 빈 목록이면 모두 지워 평평한 템포로 돌아감.
+    """
+    return tempo_service.replace_tempo_changes(db, user, project_id, data)
 
 
 @router.patch(

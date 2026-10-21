@@ -1,4 +1,4 @@
-import { PPQ } from '../audio/timing.js';
+import { PPQ, ticksToSecondsWithChanges, secondsToTicks } from '../audio/timing.js';
 
 // 시퀀서 편곡 영역 드래그 · 재생선 (구현: AI — 사용자 요청 2026-10-06 "수정 사항.pdf", "수정 사항2.pdf")
 // 설명: docs/ai-notes/30_sequencer_arrange_drag.md
@@ -1278,13 +1278,16 @@ export function stopPlayback() { if (playheadCtx) stop(); }
 
 /**
  * 상단 시간 표시 — 큰 글씨/작은 글씨 중 하나는 분:초:밀리초, 다른 하나는 마디.박.16분 (#time 을 누르면 서로 바뀜)
- * 4/4 · 지금 BPM 기준 (템포 · 박자 변경점은 엔진 구현 때)
+ * 4/4 · 템포 변경점이 있으면 그 지도로, 없으면 지금 BPM 기준 (박자 변경점은 아직)
  */
 function updateTime(bar) {
   const main = document.getElementById('time-main');
   const small = document.getElementById('time-bars');
   if (!main || !small) return;
-  const sec = (bar * 4 * 60) / currentBpm();
+  const changes = currentTempoChanges();
+  const sec = changes.length
+    ? ticksToSecondsWithChanges(bar * TICKS_PER_BAR, currentBpm(), changes)
+    : (bar * 4 * 60) / currentBpm();
   const mm = String(Math.floor(sec / 60)).padStart(2, '0');
   const ss = String(Math.floor(sec % 60)).padStart(2, '0');
   const ms = String(Math.floor((sec * 1000) % 1000)).padStart(3, '0');
@@ -1346,6 +1349,18 @@ function currentBpm() {
   return parseFloat(document.getElementById('bpm')?.textContent) || 120;
 }
 
+/** 템포 변경점을 돌려주는 함수 (S1-13 FR-202a) — sequencer-audio.js 가 등록합니다. 재생선과 시간 표시가 템포 지도를 따르게 함 */
+let tempoSource = null;
+
+export function setTempoChangesSource(fn) {
+  tempoSource = typeof fn === 'function' ? fn : null;
+}
+
+/** 지금 템포 변경점 (등록 전이거나 없으면 빈 목록) */
+function currentTempoChanges() {
+  return tempoSource ? tempoSource() : [];
+}
+
 /** 재생 버튼 ↔ 소리 연결 고리 (S1-11a) — sequencer-audio.js 가 등록합니다. onPlay(bar) · onPause() */
 const transportHooks = { onPlay: null, onPause: null };
 
@@ -1364,8 +1379,16 @@ function play() {
   let last = performance.now();
   const tick = (now) => {
     if (!c.playing) return;
-    const barsPerSec = currentBpm() / 60 / 4;          // 4/4 — 박자 변경점은 엔진 구현 때
-    let next = c.bar + ((now - last) / 1000) * barsPerSec;
+    const dt = (now - last) / 1000;
+    const changes = currentTempoChanges();
+    let next;
+    if (changes.length) {
+      // 템포 변경점이 있으면 지금 위치의 시각에 지난 시간을 더한 뒤 다시 위치(tick)로 바꿈 (소리와 같은 템포 지도)
+      const sec = ticksToSecondsWithChanges(c.bar * TICKS_PER_BAR, currentBpm(), changes);
+      next = secondsToTicks(sec + dt, currentBpm(), changes) / TICKS_PER_BAR;
+    } else {
+      next = c.bar + dt * (currentBpm() / 60 / 4);     // 4/4, 템포가 하나일 때
+    }
     // Loop 켜짐: 구간 끝을 지나면 구간 처음으로 (구간보다 뒤에서 시작했으면 그대로 진행)
     const loopEnd = loopState.start + loopState.length;
     if (loopState.on && loopState.length > 0 && c.bar < loopEnd && next >= loopEnd) next = loopState.start + ((next - loopEnd) % loopState.length);
