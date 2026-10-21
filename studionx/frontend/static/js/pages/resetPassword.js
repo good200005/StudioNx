@@ -1,6 +1,8 @@
 // resetPassword.html 페이지 스크립트 — 비밀번호 재설정 (P1-28, FR-118)
 // 재설정 메일의 링크(resetPassword.html#token=…)로 들어오는 로그인 전 페이지.
 // 함수를 하나씩 만들어 사용자 검토를 받음 (readResetToken → initResetPasswordRules → initResetForm, 모두 완료).
+// 화면 오류를 Sentry 로 보냄 (S1-13) — 다른 파일을 불러오다 난 오류도 잡도록 반드시 첫 import 로 둡니다
+import '../core/sentry-init.js';
 import { includePartials } from '../core/include.js';
 import { initAuthState, initPasswordToggles, setFieldState } from '../core/auth-ui.js';
 import { initModalFallback } from '../core/modal.js';

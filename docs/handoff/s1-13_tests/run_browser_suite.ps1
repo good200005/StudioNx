@@ -1,5 +1,5 @@
 # S1-13 브라우저 시험 묶음 실행 — 같은 시험을 BROWSER_PATH 로 정한 브라우저에서 돌려 결과를 표로 보여 줍니다.
-# 사용 (저장소 맨 위에서, 시험용 서버 8001 이 떠 있어야 화면 시험이 돌아감):
+# 사용 (저장소 맨 위에서, 시험용 서버 8001 이 떠 있어야 화면 시험이 돌아감. 진짜 Sentry 로 아무것도 안 가게 서버는 SENTRY_DSN 을 비워서 띄움):
 #   $env:BROWSER_PATH = 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
 #   powershell -File docs/handoff/s1-13_tests/run_browser_suite.ps1
 # 시험마다 제한 시간(기본 240초)을 두어, 하나가 멈춰도 뒤의 시험이 막히지 않게 합니다.
@@ -20,7 +20,9 @@ $tests = @(
   'docs/handoff/s1-11a_tests/ui_midi.mjs',
   'docs/handoff/s1-11b_tests/ui_export.mjs',
   'docs/handoff/s1-11c_tests/ui_sampler.mjs',
-  'docs/handoff/s1-13_tests/ui_tempo.mjs'
+  'docs/handoff/s1-13_tests/ui_tempo.mjs',
+  'docs/handoff/s1-13_tests/sentry_unit.mjs',
+  'docs/handoff/s1-13_tests/ui_sentry.mjs'
 )
 
 "브라우저: " + $(if ($env:BROWSER_PATH) { $env:BROWSER_PATH } else { '(기본 Chrome)' })

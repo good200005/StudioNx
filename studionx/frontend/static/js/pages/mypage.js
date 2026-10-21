@@ -2,6 +2,8 @@
 // 화면 모양은 HTML·CSS로 완성되어 있고(HTML 의 값은 예시), 여기서는 API 값으로 바꿔 넣는 일만 합니다.
 // 데이터: GET /api/v1/me/dashboard (PRD 01 §7) — 응답 예시는 아래 loadDashboard 주석
 
+// 화면 오류를 Sentry 로 보냄 (S1-13) — 다른 파일을 불러오다 난 오류도 잡도록 반드시 첫 import 로 둡니다
+import '../core/sentry-init.js';
 import { initAuthState, initLogoutButton } from '../core/auth-ui.js';
 import { requireLogin } from '../core/auth.js';
 import { api } from '../core/api.js';

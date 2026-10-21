@@ -2,6 +2,8 @@
 // CSS만으로 되는 것: 앵커 부드러운 스크롤(scroll-behavior), 세로 앵커 위치(position: sticky), 모바일 메뉴 모양(<details>).
 // 여기서 하는 것: 로딩 첫 접속만, 세로 앵커 현재 표시, 모바일 메뉴 닫기, 문의 폼, 공지 카드와 모달, 로그인 모달.
 
+// 화면 오류를 Sentry 로 보냄 (S1-13) — 다른 파일을 불러오다 난 오류도 잡도록 반드시 첫 import 로 둡니다
+import '../core/sentry-init.js';
 import { initAuthState, initLoginForm, initPasswordToggles, initOAuthPlaceholders } from '../core/auth-ui.js';
 import { initModalFallback } from '../core/modal.js';
 import { initImageProtection } from '../core/protect-images.js';

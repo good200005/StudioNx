@@ -11,6 +11,7 @@ from sqlalchemy import inspect
 from sqlalchemy.exc import OperationalError
 
 os.environ["SENTRY_DSN"] = ""  # app 은 아래 fixture 안에서 불러온다 (이 설정 뒤)
+os.environ["SENTRY_BROWSER_DSN"] = ""  # 화면용 DSN 도 끔 (/client-config 시험용)
 
 
 @pytest.fixture
