@@ -219,7 +219,7 @@ def test_full_returns_project_tracks_and_patterns(client, db):
     assert data["project"]["my_role"] == "OWNER"
     assert data["project"]["member_count"] == 1
     assert data["clips"] == []  # 클립이 없으면 빈 목록
-    for key in EMPTY_LATER:  # 모델·API 가 아직 없는 표는 빈 목록
+    for key in EMPTY_LATER:  # 모델이 없거나(마커, 박자) 저장된 것이 없으면(템포) 빈 목록
         assert data[key] == []
 
     # MASTER 부터 order_index 순

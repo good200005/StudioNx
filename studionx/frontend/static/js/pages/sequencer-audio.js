@@ -5,8 +5,11 @@
 import { PlaybackSession } from '../audio/session.js';
 import { PPQ } from '../audio/timing.js';
 import { fetchSampleFileUrl } from '../core/api.js';
-import { TICKS_PER_BAR, setTransportHooks, getLoop } from './sequencer-arrange.js';
-import { playbackTracks, clipRecord, patternNotes, playbackInstruments, playbackEffects, setMeterSource, startMeters } from './sequencer-devices.js';
+import { TICKS_PER_BAR, setTransportHooks, setTempoChangesSource, getLoop } from './sequencer-arrange.js';
+import {
+  playbackTracks, clipRecord, patternNotes, playbackInstruments, playbackEffects, playbackTempoChanges,
+  setMeterSource, startMeters,
+} from './sequencer-devices.js';
 
 let session = null;
 let refreshTimer = null;
@@ -96,6 +99,7 @@ function getSession() {
     getInstruments: playbackInstruments,
     getEffects: playbackEffects,
     getBpm: currentBpm,
+    getTempoChanges: playbackTempoChanges,
     getLoop: function () {
       const loop = getLoop();
       if (!loop.on || !(loop.length > 0)) return null;
@@ -128,7 +132,7 @@ export function exportSnapshot() {
     getInstruments: playbackInstruments,
     getEffects: playbackEffects,
     bpm: currentBpm(),
-    tempoChanges: [],
+    tempoChanges: playbackTempoChanges(),
     loop: loop.on && loop.length > 0
       ? { start: Math.round(loop.start * TICKS_PER_BAR), end: Math.round((loop.start + loop.length) * TICKS_PER_BAR) }
       : null,
@@ -147,6 +151,7 @@ export function audioSession() {
  * - ⏸ · ■ : 소리를 끊음
  */
 export function initAudio() {
+  setTempoChangesSource(playbackTempoChanges);    // 재생선과 시간 표시도 소리와 같은 템포 지도를 따름 (S1-13)
   setTransportHooks({
     onPlay: function (bar) {
       const s = getSession();

@@ -49,6 +49,8 @@ let connections = {};
 let connectionsByTarget = {};
 /** 프로젝트의 모든 클립 (S1-10a FR-2196) — GET /full 의 clips */
 let clips = [];
+/** 곡 중간의 템포 변경점 (S1-13 FR-202a) — GET /full 의 tempo_changes. { tick, bpm, ramp } 목록, tick 오름차순 */
+let tempoChanges = [];
 /** patternId -> 패턴(노트 포함) — MIDI 클립 미리보기와 이름에 씀 (S1-10a FR-2196) */
 const patternsById = {};
 /** pluginId -> [preset] — 프리셋 목록 (FR-246) */
@@ -211,6 +213,7 @@ export function applyFullProject(data) {
   indexConnections(list);
   indexPatterns((data && data.patterns) || []);
   indexClips((data && data.clips) || []);
+  indexTempoChanges((data && data.tempo_changes) || []);
   renderTracks();
   // FR-261 — 담아 둔 펼침 상태를 새 트랙 줄에 다시 적용하고, 펼친 칸은 바로 채웁니다
   restoreOpenPanels();
@@ -245,6 +248,24 @@ function indexPatterns(list) {
 /** 프로젝트의 모든 클립을 담기 (S1-10a FR-2196) */
 function indexClips(list) {
   clips = (list || []).slice();
+}
+
+/**
+ * 템포 변경점을 담기 (S1-13 FR-202a) — GET /full 의 tempo_changes
+ * - 재생과 내보내기가 같은 목록으로 시간을 계산합니다 (audio/timing.js 의 ticksToSecondsWithChanges)
+ * - 오디오 엔진이 받는 모양({ tick, bpm, ramp })만 남기고, 숫자가 아닌 줄은 버립니다
+ */
+function indexTempoChanges(list) {
+  tempoChanges = (list || []).map(function (c) {
+    return { tick: Number(c.tick), bpm: Number(c.bpm), ramp: c.ramp === 'LINEAR' ? 'LINEAR' : 'STEP' };
+  }).filter(function (c) {
+    return isFinite(c.tick) && c.tick > 0 && isFinite(c.bpm) && c.bpm > 0;
+  }).sort(function (a, b) { return a.tick - b.tick; });
+}
+
+/** 재생과 내보내기가 쓰는 템포 변경점 (S1-13) — 복사본이라 받은 쪽이 고쳐도 원본은 그대로 */
+export function playbackTempoChanges() {
+  return tempoChanges.map(function (c) { return { tick: c.tick, bpm: c.bpm, ramp: c.ramp }; });
 }
 
 /** 패턴의 노트 (S1-11a) — 서버가 준 값. MIDI 클립 재생이 피아노롤에서 고치지 않은 클립의 노트를 읽을 때 씀 */
