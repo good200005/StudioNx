@@ -6,6 +6,7 @@
 import { MixerGraph } from './mixer.js';
 import { ClipPlayer, clipsCovering, clipsStartingIn } from './playback.js';
 import { InstrumentRack } from './instruments.js';
+import { samplerSampleIds } from './sampler.js';
 import { NotePlayer, expandNotes, notesStartingIn } from './notes.js';
 import { EffectRack } from './effect_rack.js';
 import { ticksToSecondsWithChanges, secondsToTicks } from './timing.js';
@@ -95,6 +96,10 @@ export async function renderOffline(o) {
   const buffers = {};
   const ids = [];
   audioClips.forEach(function (c) { if (c.sample_id != null && ids.indexOf(String(c.sample_id)) < 0) ids.push(String(c.sample_id)); });
+  // Sampler 악기가 쓰는 샘플도 함께 디코딩 (S1-11c)
+  samplerSampleIds(o.getInstruments, o.tracks.map(function (t) { return t.track_id; })).forEach(function (id) {
+    if (ids.indexOf(String(id)) < 0) ids.push(String(id));
+  });
   for (let i = 0; i < ids.length; i++) {
     if (cancelled()) throw new Error('cancelled');
     try {
@@ -109,7 +114,7 @@ export async function renderOffline(o) {
   // 2) 재생과 같은 그래프
   const mixer = new MixerGraph(ctx);
   const effects = new EffectRack(ctx, mixer, o.getEffects, function () { return o.bpm; });
-  const rack = new InstrumentRack(ctx, function (id) { return mixer.trackInput(id); }, o.getInstruments);
+  const rack = new InstrumentRack(ctx, function (id) { return mixer.trackInput(id); }, o.getInstruments, function (sid) { return buffers[String(sid)] || null; });
   const player = new ClipPlayer(ctx, function (id) { return mixer.trackInput(id); }, function (sid) { return buffers[String(sid)] || null; });
   const notePlayer = new NotePlayer(ctx, function (id, pitch, vel, when, dur) { return rack.playNote(id, pitch, vel, when, dur); });
   effects.sync(o.tracks);

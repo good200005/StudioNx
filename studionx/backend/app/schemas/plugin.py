@@ -15,12 +15,16 @@ PresetSource = Literal["SYSTEM", "USER", "AI"]
 class ParamOption(BaseModel):
     value: str
     label: str
+    hint: str | None = None
 
 
 class ParamSchemaItem(BaseModel):
     key: str
     name: str
-    type: Literal["knob", "select", "toggle"] = "knob"
+    # sample: 라이브러리의 샘플 번호를 담는 칸 (Sampler 의 sample_id, S1-11c)
+    type: Literal["knob", "select", "toggle", "sample"] = "knob"
+    # segment: select 를 드롭다운 대신 이어 붙은 버튼으로 그리고, 고른 옵션의 hint 를 아래에 보여 줌
+    display: Literal["segment"] | None = None
     group: str | None = None
     min: float | int | None = None
     max: float | int | None = None

@@ -25,6 +25,10 @@
 
 import { api, ApiError } from '../core/api.js';
 import { showToast, isPlaying, restoreOpenPanels, createClip, ticksToBars, TICKS_PER_BAR } from './sequencer-arrange.js';
+import {
+  isSampler, noteName, ignoredKeys, cardSubtitle, sampleInfoOf, loadSampleLibrary,
+  samplePickHtml, bindSamplePick, stopSamplePreview,
+} from './sequencer-sampler.js';
 
 /** 순서를 바꿀 때 옮기는 카드를 잠깐 비켜 두는 빈 칸 번호 (UQ(track_id, slot_index) 를 피하려고) */
 const OPEN_SLOT = 100;
@@ -100,6 +104,8 @@ export function initDevices(options) {
       refreshOpenCells();
       // 트랙 줄 · 믹서 줄의 악기 이름을 바로 보여 주기 위해 값을 미리 모읍니다
       preloadDevices(tracks).then(syncTrackSubs);
+      // Sampler 카드에 샘플 이름을 보여 주려고 라이브러리 목록을 읽어 둡니다 (S1-11c)
+      loadSampleLibrary().then(refreshOpenCells);
     })
     .catch(function (err) {
       if (err instanceof ApiError && err.status === 401) return;
@@ -915,7 +921,15 @@ export function cardHtml(kind, track, d) {
       + '<span class="sq-knob__name">' + esc(item.name) + '</span></span>';
   }).join('');
   const mix = kind === 'INSTRUMENT' ? instrumentMixHtml(d) : effectExtraHtml();
-  return '<li class="sq-fx sq-fx--dev' + (bypassed ? ' is-bypassed' : '') + '" draggable="' + String(kind === 'EFFECT') + '"'
+  // Sampler 는 이름 아래에 "샘플 이름 · 모드" 를, 샘플이 없으면 경고를 보여 줌 (S1-11c)
+  let sub = '';
+  let noSample = false;
+  if (kind === 'INSTRUMENT' && isSampler(p)) {
+    const info = cardSubtitle(sampleInfoOf(values.sample_id), values.sample_id, selectLabel(schemaItem(p, 'mode'), values.mode));
+    noSample = info.empty;
+    sub = '<span class="sq-fx__sub' + (info.empty ? ' is-warn' : '') + '">' + (info.empty ? '⚠ ' : '') + esc(info.text) + '</span>';
+  }
+  return '<li class="sq-fx sq-fx--dev' + (bypassed ? ' is-bypassed' : '') + (noSample ? ' is-nosample' : '') + '" draggable="' + String(kind === 'EFFECT') + '"'
     + ' data-device-kind="' + kind + '"' + idAttr + '>'
     + '<span class="sq-fx__art" aria-hidden="true">' + artHtml(p) + '</span>'
     + '<div class="sq-fx__head"><span class="sq-fx__grip" aria-hidden="true">' + (kind === 'EFFECT' ? '⠿' : '⏻') + '</span>'
@@ -924,6 +938,7 @@ export function cardHtml(kind, track, d) {
       ? '<button type="button" class="sq-fx__power" aria-pressed="' + String(!d.is_bypassed) + '" aria-label="Bypass">🎛</button>'
       : '')
     + '<button type="button" class="sq-fx__del" aria-label="Remove ' + (kind === 'EFFECT' ? 'effect' : 'instrument') + '">✕</button></div>'
+    + sub
     + '<div class="sq-knobs">' + knobs + '</div>'
     + '<span class="sq-fx__preset">Preset: ' + esc(d.__preset || 'Init') + '</span>'
     + mix + '</li>';
@@ -1071,6 +1086,7 @@ export function fmtValue(item, v) {
   if (!item) return String(v);
   if (item.type === 'toggle') return v ? 'On' : 'Off';
   if (item.type === 'select') return selectLabel(item, v);
+  if (item.unit === 'note') return noteName(v);   // Sampler 의 Root 는 노트 이름(C4)으로
   const step = item.step ? item.step : 0;
   const dec = step >= 1 ? 0 : (step >= 0.1 ? 1 : (step >= 0.01 ? 2 : 3));
   const unit = item.unit ? (item.unit === '%' ? ' %' : ' ' + item.unit) : '';
@@ -1800,11 +1816,37 @@ export function renderModalParams() {
     const cell = box.querySelector('[data-param-cell="' + item.key + '"]');
     if (cell) bindModalParam(cell, item);
   });
+  // One-Shot 모드에서 무시되는 칸은 흐리게 (S1-11c)
+  const ignored = isSampler(modal.plugin) ? ignoredKeys(modal.draft.mode) : [];
+  ignored.forEach(function (key) {
+    const cell = box.querySelector('[data-param-cell="' + key + '"]');
+    if (cell) {
+      cell.classList.add('is-ignored');
+      cell.title = 'Ignored in One-Shot mode';
+    }
+  });
+}
+
+/** 이어 붙은 버튼으로 그리는 셀렉트 (display: "segment") — 고른 옵션의 hint 를 아래에 보여 줌 */
+function segmentHtml(item, v) {
+  const opts = item.options || [];
+  const cur = opts.filter(function (o) { return String(o.value) === String(v); })[0];
+  const buttons = opts.map(function (o) {
+    const on = String(o.value) === String(v);
+    return '<button type="button" data-seg="' + esc(o.value) + '" class="' + (on ? 'is-on' : '') + '" aria-pressed="' + String(on) + '">' + esc(o.label) + '</button>';
+  }).join('');
+  return '<div class="sq-param sq-param--wide sq-segcell" data-param-cell="' + esc(item.key) + '">'
+    + '<span class="sq-samp__label">' + esc(item.name) + '</span>'
+    + '<div class="ex-seg" role="group" aria-label="' + esc(item.name) + '">' + buttons + '</div>'
+    + (cur && cur.hint ? '<p class="sq-segcell__hint">' + esc(cur.hint) + '</p>' : '')
+    + '</div>';
 }
 
 /** 파라미터 한 칸 — 노브 / 셀렉트 / 토글 */
 function paramCellHtml(item) {
   const v = modal.draft[item.key];
+  if (item.type === 'sample') return samplePickHtml(item, v, modal.draft.root_note);
+  if (item.type === 'select' && item.display === 'segment') return segmentHtml(item, v);
   let control;
   if (item.type === 'select') {
     const opts = (item.options || []).map(function (o) {
@@ -1825,6 +1867,22 @@ function paramCellHtml(item) {
 
 /** 모달 파라미터 하나에 동작 연결 — 고치면 초안에 담고 "Edited" 로 표시 */
 function bindModalParam(cell, item) {
+  if (item.type === 'sample') {
+    bindSamplePick(cell, modal.draft[item.key], function (id) {
+      setDraft(item.key, id);
+      renderModalParams();
+    });
+    return;
+  }
+  if (item.type === 'select' && item.display === 'segment') {
+    Array.prototype.forEach.call(cell.querySelectorAll('[data-seg]'), function (b) {
+      b.addEventListener('click', function () {
+        setDraft(item.key, b.getAttribute('data-seg'));
+        renderModalParams();
+      });
+    });
+    return;
+  }
   const el = cell.querySelector('[data-modal-param]');
   if (!el) return;
   if (item.type === 'select') {
@@ -2167,6 +2225,7 @@ function wireDialogs() {
 
 /** 상세 설정 모달 닫기 */
 export function closeDeviceModal() {
+  stopSamplePreview();
   const dlg = document.getElementById('device-modal');
   if (dlg && dlg.close) dlg.close();
   modal = null;
