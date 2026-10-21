@@ -42,7 +42,7 @@ PRD의 Phase는 **기능 묶음**이고, 이 문서의 단계는 **구현 순서
 | S1-10 | 프로젝트 전체 저장/불러오기(`/full`), 자동 저장, Undo/Redo(명령 레지스트리 기반) | 02 FR-253~256, 2169 | 1주 | 최상 |
 | S1-11a | **재생 오디오 그래프** (2026-10-19 추가): 기본 악기(Synth, Sampler), 이펙트(EQ, Compressor, Reverb, Limiter, Gain, **Delay**), 트랙 믹서(볼륨, 팬, 뮤트, 솔로, 마스터), 클립과 노트의 실제 재생, 진짜 미터. 컨텍스트를 인자로 받아 실시간과 오프라인 렌더링에 함께 씀 ([결정 문서](Default_Instruments_Effects.md)) | 02 FR-241~252, 263~264 | 2주 | 최상 |
 | S1-11b | WAV 출력 (OfflineAudioContext, 클라이언트 인코딩, 내보내기 창에 FR-301 옵션 전체. 스템은 보류, 2026-10-20) | 03 FR-301~303, 307 | 1주 | 최상 |
-| S1-11c | **Sampler MIDI 연주** (2026-10-20 추가): Sampler에 `sample_id`와 `mode`(Classic, One-Shot) 파라미터 추가, MIDI 노트로 샘플 재생(One-Shot은 노트 길이 무시, 연속으로 치면 겹쳐 울림), 상세 창의 Sample 줄과 Mode 줄, 샘플 없는 카드 경고. 목업 `docs/page_mockups/sampler/`, 결정 `docs/Default_Instruments_Effects.md` | 02 FR-233, FR-241, FR-242 | 0.5주 | 상 |
+| S1-11c | **Sampler MIDI 연주** (2026-10-20 추가): Sampler에 `sample_id`와 `mode`(Classic, One-Shot) 파라미터 추가, MIDI 노트로 샘플 재생(One-Shot은 노트 길이 무시, 연속으로 치면 겹쳐 울림), 상세 창의 Sample 줄과 Mode 줄, 샘플 없는 카드 경고. 목업 `docs/page_mockups/sampler/`, 결정 `docs/Default_Instruments_Effects.md` | 02 FR-241, FR-242 | 0.5주 | 상 |
 | S1-12 | **오디오 회귀 테스트 기반**: 테스트 프로젝트 3~5개 + 골든 WAV + 비교 스크립트 | 00 §7.1 | 1주 | 상 |
 | S1-13 | MVP 안정화: 버그 수정, 브라우저 테스트, Sentry 오류 정리 | — | 1주 | 상 |
 

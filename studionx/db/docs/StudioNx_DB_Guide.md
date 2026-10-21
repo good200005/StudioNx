@@ -191,3 +191,4 @@ mysql -u studionx_app -p studionx -e "SHOW COLUMNS FROM inquiries LIKE 'privacy_
 | `migrations/2026-10-06_sequencer_feature_gaps.sql` | 시퀀서 기능 보강: 새 표 5개(`track_instruments`·`track_sends`·`track_connections`·`midi_cc_events`·`markers`) + `tracks`·`clips`·`midi_notes`·`patterns`·`plugins`·`samples`·`export_jobs` 컬럼 (**한 번만 실행**) | 2026-10-06 이전에 02·03을 실행한 DB (로컬 DB 실행 완료) |
 | `migrations/2026-10-06_remove_clip_launcher.sql` | 클립 런처 제거: `launcher_scenes` 삭제, `clips.scene_id` 삭제 (**한 번만 실행**) | 위 변경 SQL 까지 실행한 DB |
 | `migrations/2026-10-19_plugin_delay.sql` | 시스템 플러그인 시드에 `delay`(Delay) 1행 추가 (여러 번 실행해도 안전) | 2026-10-19 이전에 02를 실행한 DB |
+| `migrations/2026-10-21_sampler_sample_mode.sql` | `sampler` 플러그인의 `param_schema`에 `sample_id`와 `mode` 추가 (여러 번 실행해도 안전, 이미 붙은 Sampler의 params는 그대로) | 2026-10-21 이전에 02를 실행한 DB |
