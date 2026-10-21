@@ -1,0 +1,323 @@
+{
+  "name": "sampler_drums",
+  "description": "Sampler로 드럼 패턴(One-Shot 킥, 스네어, 하이햇)과 Classic 모드 베이스를 연주합니다. 모드별 길이 처리, 음높이, 벨로시티, 겹침, 트랙 팬을 확인합니다.",
+  "bpm": 120,
+  "sampleRate": 44100,
+  "endBar": 2,
+  "tailSec": 0.4,
+  "samples": {
+    "1": {
+      "kind": "kick",
+      "secs": 0.5,
+      "amp": 0.9,
+      "decay": 0.15
+    },
+    "2": {
+      "kind": "noise",
+      "secs": 0.4,
+      "amp": 0.7,
+      "decay": 0.09,
+      "seed": 7
+    },
+    "3": {
+      "kind": "noise",
+      "secs": 0.2,
+      "amp": 0.5,
+      "decay": 0.025,
+      "seed": 21
+    },
+    "4": {
+      "kind": "pluck",
+      "freq": 65.41,
+      "secs": 1.2,
+      "amp": 0.8,
+      "decay": 0.5
+    }
+  },
+  "tracks": [
+    {
+      "id": 1,
+      "type": "MIDI"
+    },
+    {
+      "id": 2,
+      "type": "MIDI"
+    },
+    {
+      "id": 3,
+      "type": "MIDI",
+      "pan": 0.3
+    },
+    {
+      "id": 4,
+      "type": "MIDI",
+      "volume_db": -3
+    }
+  ],
+  "instruments": {
+    "1": [
+      {
+        "plugin": "sampler",
+        "params": {
+          "sample_id": 1,
+          "mode": "oneshot",
+          "root_note": 60,
+          "gain": 1
+        }
+      }
+    ],
+    "2": [
+      {
+        "plugin": "sampler",
+        "params": {
+          "sample_id": 2,
+          "mode": "oneshot",
+          "root_note": 60,
+          "gain": 0.9,
+          "decay": 0.2
+        }
+      }
+    ],
+    "3": [
+      {
+        "plugin": "sampler",
+        "params": {
+          "sample_id": 3,
+          "mode": "oneshot",
+          "root_note": 60,
+          "gain": 0.8
+        }
+      }
+    ],
+    "4": [
+      {
+        "plugin": "sampler",
+        "params": {
+          "sample_id": 4,
+          "mode": "classic",
+          "root_note": 36,
+          "gain": 1,
+          "attack": 0.005,
+          "release": 0.15
+        }
+      }
+    ]
+  },
+  "midiClips": [
+    {
+      "track": 1,
+      "startBar": 0,
+      "lengthBars": 2,
+      "notes": [
+        {
+          "pitch": 60,
+          "startBeat": 0,
+          "lengthBeat": 0.25,
+          "velocity": 120
+        },
+        {
+          "pitch": 60,
+          "startBeat": 2,
+          "lengthBeat": 0.25,
+          "velocity": 120
+        },
+        {
+          "pitch": 60,
+          "startBeat": 3.5,
+          "lengthBeat": 0.25,
+          "velocity": 120
+        },
+        {
+          "pitch": 60,
+          "startBeat": 4,
+          "lengthBeat": 0.25,
+          "velocity": 120
+        },
+        {
+          "pitch": 60,
+          "startBeat": 6,
+          "lengthBeat": 0.25,
+          "velocity": 120
+        },
+        {
+          "pitch": 60,
+          "startBeat": 7.5,
+          "lengthBeat": 0.25,
+          "velocity": 120
+        }
+      ]
+    },
+    {
+      "track": 2,
+      "startBar": 0,
+      "lengthBars": 2,
+      "notes": [
+        {
+          "pitch": 60,
+          "startBeat": 1,
+          "lengthBeat": 0.25,
+          "velocity": 110
+        },
+        {
+          "pitch": 60,
+          "startBeat": 3,
+          "lengthBeat": 0.25,
+          "velocity": 110
+        },
+        {
+          "pitch": 60,
+          "startBeat": 5,
+          "lengthBeat": 0.25,
+          "velocity": 110
+        },
+        {
+          "pitch": 60,
+          "startBeat": 7,
+          "lengthBeat": 0.25,
+          "velocity": 110
+        }
+      ]
+    },
+    {
+      "track": 3,
+      "startBar": 0,
+      "lengthBars": 2,
+      "notes": [
+        {
+          "pitch": 60,
+          "startBeat": 0,
+          "lengthBeat": 0.25,
+          "velocity": 70
+        },
+        {
+          "pitch": 60,
+          "startBeat": 0.5,
+          "lengthBeat": 0.25,
+          "velocity": 100
+        },
+        {
+          "pitch": 60,
+          "startBeat": 1,
+          "lengthBeat": 0.25,
+          "velocity": 70
+        },
+        {
+          "pitch": 60,
+          "startBeat": 1.5,
+          "lengthBeat": 0.25,
+          "velocity": 100
+        },
+        {
+          "pitch": 60,
+          "startBeat": 2,
+          "lengthBeat": 0.25,
+          "velocity": 70
+        },
+        {
+          "pitch": 60,
+          "startBeat": 2.5,
+          "lengthBeat": 0.25,
+          "velocity": 100
+        },
+        {
+          "pitch": 60,
+          "startBeat": 3,
+          "lengthBeat": 0.25,
+          "velocity": 70
+        },
+        {
+          "pitch": 60,
+          "startBeat": 3.5,
+          "lengthBeat": 0.25,
+          "velocity": 100
+        },
+        {
+          "pitch": 60,
+          "startBeat": 4,
+          "lengthBeat": 0.25,
+          "velocity": 70
+        },
+        {
+          "pitch": 60,
+          "startBeat": 4.5,
+          "lengthBeat": 0.25,
+          "velocity": 100
+        },
+        {
+          "pitch": 60,
+          "startBeat": 5,
+          "lengthBeat": 0.25,
+          "velocity": 70
+        },
+        {
+          "pitch": 60,
+          "startBeat": 5.5,
+          "lengthBeat": 0.25,
+          "velocity": 100
+        },
+        {
+          "pitch": 60,
+          "startBeat": 6,
+          "lengthBeat": 0.25,
+          "velocity": 70
+        },
+        {
+          "pitch": 60,
+          "startBeat": 6.5,
+          "lengthBeat": 0.25,
+          "velocity": 100
+        },
+        {
+          "pitch": 60,
+          "startBeat": 7,
+          "lengthBeat": 0.25,
+          "velocity": 70
+        },
+        {
+          "pitch": 60,
+          "startBeat": 7.5,
+          "lengthBeat": 0.25,
+          "velocity": 100
+        }
+      ]
+    },
+    {
+      "track": 4,
+      "startBar": 0,
+      "lengthBars": 2,
+      "notes": [
+        {
+          "pitch": 36,
+          "startBeat": 0,
+          "lengthBeat": 1.5,
+          "velocity": 110
+        },
+        {
+          "pitch": 36,
+          "startBeat": 2,
+          "lengthBeat": 1,
+          "velocity": 100
+        },
+        {
+          "pitch": 43,
+          "startBeat": 4,
+          "lengthBeat": 1.5,
+          "velocity": 110
+        },
+        {
+          "pitch": 41,
+          "startBeat": 6,
+          "lengthBeat": 1,
+          "velocity": 100
+        },
+        {
+          "pitch": 48,
+          "startBeat": 7,
+          "lengthBeat": 0.75,
+          "velocity": 100
+        }
+      ]
+    }
+  ],
+  "master_db": -4
+}

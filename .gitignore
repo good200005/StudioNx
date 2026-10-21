@@ -30,3 +30,6 @@ docs/studionx-*.json
 
 # S1-05 메트로놈 시험 산출물 (docs/ai-notes/67 참고): 저장소에 올리지 않음
 /audio/
+
+# S1-12 오디오 회귀 테스트: 실패한 렌더링 결과 (골든은 올리고 이것은 올리지 않음)
+/studionx/tests/audio/out/
