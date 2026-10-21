@@ -942,3 +942,37 @@ body.sq {
 .ex-done__file b { font-weight: 600; word-break: break-all; }
 .ex-done__file span { margin-left: auto; font-size: 0.64rem; color: var(--c-ink-soft); white-space: nowrap; }
 .ex-ok { margin: 0; color: var(--sq-ok); font-weight: 600; }
+
+/* ── Sampler 샘플 고르기 (S1-11c) — 목업 docs/page_mockups/sampler/ ── */
+.sq-fx__sub { display: block; padding: 0 0.4rem; font-size: 0.55rem; color: var(--c-ink-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sq-fx__sub.is-warn { color: var(--sq-warn, #e0a340); white-space: normal; }
+.sq-fx.is-nosample { border-style: dashed; }
+.sq-param--wide { grid-column: 1 / -1; justify-items: stretch; text-align: left; }
+.sq-samp__label { font-size: 0.6rem; color: var(--c-ink-soft); }
+.sq-samp__row { display: flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.5rem; border: 1px solid var(--sq-line-2); background: var(--sq-panel); }
+.sq-samp__icon { color: var(--c-ink-soft); }
+.sq-samp__name { font-size: 0.7rem; font-weight: 600; color: var(--c-ink); min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.sq-samp.is-empty .sq-samp__name { font-weight: 400; color: var(--c-ink-faint); }
+.sq-samp__meta { flex: 1; font-size: 0.58rem; color: var(--c-ink-faint); }
+.sq-samp__wave { position: relative; height: 3.5rem; border: 1px solid var(--sq-line); background: var(--sq-panel); color: var(--sq-ok); }
+.sq-samp__wave canvas { display: block; width: 100%; height: 100%; }
+.sq-samp__root { position: absolute; top: 0; left: 0; padding: 0 0.3rem; font-size: 0.55rem; background: var(--sq-ok); color: #000; }
+.sq-samp__warn { margin: 0; font-size: 0.62rem; color: var(--sq-warn, #e0a340); }
+.sq-samp.is-drop .sq-samp__wave, .sq-samp.is-drop .sq-samp__row { border-color: var(--sq-accent); }
+.sq-samp__pick { display: grid; gap: 0.35rem; padding: 0.5rem; border: 1px solid var(--sq-accent); background: var(--sq-panel); }
+.sq-samp__pick[hidden] { display: none; }
+.sq-samp__pick strong { font-size: 0.64rem; }
+.sq-samp__pick input { height: 1.5rem; padding: 0 0.4rem; border: 1px solid var(--sq-line-2); background: var(--sq-panel-2); color: var(--c-ink); font: inherit; font-size: 0.64rem; }
+.sq-samp__pick ul { display: grid; gap: 0.15rem; max-height: 9rem; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
+.sq-samp__pick li { display: flex; gap: 0.25rem; }
+.sq-samp__item { flex: 1; display: flex; align-items: center; gap: 0.4rem; padding: 0.25rem 0.4rem; border: 1px solid transparent; background: transparent; color: var(--c-ink); font: inherit; font-size: 0.64rem; text-align: left; }
+.sq-samp__item.is-on { border-color: var(--sq-accent); background: color-mix(in srgb, var(--c-violet) 22%, transparent); }
+.sq-samp__iname { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.sq-samp__imeta { font-size: 0.56rem; color: var(--c-ink-faint); }
+.sq-samp__prev { width: 1.6rem; border: 1px solid var(--sq-line-2); background: transparent; color: var(--c-ink-soft); font-size: 0.55rem; }
+.sq-samp__none { padding: 0.4rem; font-size: 0.6rem; color: var(--c-ink-faint); }
+.sq-samp__pick small { font-size: 0.55rem; color: var(--c-ink-faint); }
+.sq-segcell__hint { margin: 0; font-size: 0.58rem; color: var(--c-ink-faint); }
+.sq-param.is-ignored { opacity: 0.4; }
+.sq-samp__drophint { margin: 0; padding: 0.7rem; border: 1px dashed var(--sq-line-2); font-size: 0.6rem; text-align: center; color: var(--c-ink-faint); }
+.sq-samp.is-drop .sq-samp__drophint { border-color: var(--sq-accent); color: var(--c-ink); }

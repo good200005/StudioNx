@@ -1,14 +1,15 @@
 // 트랙의 악기 층 (S1-11a, PRD 02 FR-241 · FR-242 · FR-2181)
 // 한 트랙에는 악기가 여러 개(레이어) 붙을 수 있고, 같은 노트를 모두가 함께 연주합니다.
 // 층마다 볼륨 · 팬 노드를 두고 트랙의 입력(믹서)으로 모읍니다.
-// 지금 소리가 나는 악기는 Subtractive Synth 뿐입니다. Sampler 는 오디오 클립용이라 MIDI 노트로는 울리지 않습니다
-// (샘플을 고르는 칸이 없음 — 목업 확인 뒤 결정, docs/Default_Instruments_Effects.md §5).
+// 소리가 나는 악기는 Subtractive Synth(S1-11a)와 Sampler(S1-11c)입니다.
+// Sampler 는 악기에 붙은 sample_id 의 샘플을 노트 음높이에 맞춰 울립니다 (docs/Default_Instruments_Effects.md §5).
 
 import { playSynthNote, resolveParams, layerGain } from './synth.js';
+import { playSamplerNote } from './sampler.js';
 import { createStereoGain } from './mixer.js';
 
 /** MIDI 노트로 소리를 내는 악기 코드 */
-export const PLAYABLE_CODES = ['synth_sub'];
+export const PLAYABLE_CODES = ['synth_sub', 'sampler'];
 
 export class InstrumentRack {
   /**
@@ -16,11 +17,13 @@ export class InstrumentRack {
    * @param {function(number|string):AudioNode} trackInput  트랙 번호 → 입력 노드 (MixerGraph.trackInput)
    * @param {function(number|string):Array<object>} getInstruments  트랙 번호 → 악기 층 목록
    *   층: { id, plugin_code, schema, params, volume_db, pan, is_enabled }
+   * @param {function(number|string):(AudioBuffer|null)} [getBuffer]  샘플 번호 → 디코딩된 샘플 (Sampler 가 씀)
    */
-  constructor(context, trackInput, getInstruments) {
+  constructor(context, trackInput, getInstruments, getBuffer) {
     this.context = context;
     this.trackInput = trackInput;
     this.getInstruments = getInstruments;
+    this.getBuffer = getBuffer ? getBuffer : function () { return null; };
     this.layers = {};   // 층 번호 → { gain, pan }
   }
 
@@ -54,7 +57,12 @@ export class InstrumentRack {
       if (PLAYABLE_CODES.indexOf(inst.plugin_code) < 0) return;
       const layer = self._layer(trackId, inst);
       const params = resolveParams(inst.schema, inst.params);
-      out.push(playSynthNote(self.context, layer.gain, params, pitch, velocity, when, durationSec));
+      if (inst.plugin_code === 'sampler') {
+        const buffer = params.sample_id != null ? self.getBuffer(params.sample_id) : null;
+        out.push(playSamplerNote(self.context, layer.gain, params, buffer, pitch, velocity, when, durationSec));
+      } else {
+        out.push(playSynthNote(self.context, layer.gain, params, pitch, velocity, when, durationSec));
+      }
     });
     return out;
   }

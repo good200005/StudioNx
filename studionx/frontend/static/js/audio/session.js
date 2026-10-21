@@ -9,6 +9,7 @@ import { ClipPlayer, clipsStartingIn, clipsCovering } from './playback.js';
 import { InstrumentRack } from './instruments.js';
 import { NotePlayer, expandNotes, notesStartingIn } from './notes.js';
 import { EffectRack } from './effect_rack.js';
+import { samplerSampleIds } from './sampler.js';
 
 export class PlaybackSession {
   /**
@@ -71,6 +72,7 @@ export class PlaybackSession {
       this.engine.context,
       function (trackId) { return self.mixer.trackInput(trackId); },
       deps.getInstruments ? deps.getInstruments : function () { return []; },
+      function (sampleId) { return self.buffers[String(sampleId)] || null; },
     );
     this.notePlayer = new NotePlayer(this.engine.context, function (trackId, pitch, velocity, when, dur) {
       return self.rack.playNote(trackId, pitch, velocity, when, dur);
@@ -109,8 +111,12 @@ export class PlaybackSession {
     const deps = this.deps;
     this.clips = deps.getClips();
     this.noteEvents = expandNotes(deps.getMidiClips ? deps.getMidiClips() : []);
-    await Promise.all(this.clips.filter(function (c) { return c.sample_id != null; })
-      .map(function (c) { return self._loadSample(c.sample_id); }));
+    const ids = this.clips.filter(function (c) { return c.sample_id != null; }).map(function (c) { return c.sample_id; });
+    // Sampler 악기가 쓰는 샘플도 함께 불러옴 (S1-11c)
+    const trackIds = deps.getTracks().map(function (t) { return t.track_id; });
+    samplerSampleIds(deps.getInstruments ? deps.getInstruments : function () { return []; }, trackIds)
+      .forEach(function (id) { if (ids.indexOf(id) < 0) ids.push(id); });
+    await Promise.all(ids.map(function (id) { return self._loadSample(id); }));
 
     this.mixer.applyTracks(deps.getTracks());
     this.effects.sync(deps.getTracks());
