@@ -11,6 +11,7 @@ $tests = @(
   'docs/handoff/s1-11c_tests/render_sampler.mjs',
   'studionx/tests/audio/run.mjs',
   'studionx/tests/audio/selftest.mjs',
+  'docs/handoff/s1-09_tests/ui.mjs',
   'docs/handoff/s1-10_tests/ui.mjs',
   'docs/handoff/s1-10a_tests/ui.mjs',
   'docs/handoff/s1-11a_tests/ui.mjs',
