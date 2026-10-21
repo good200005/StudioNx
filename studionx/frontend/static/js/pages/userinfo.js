@@ -2,6 +2,8 @@
 // 화면 모양은 HTML·CSS로 완성되어 있고, 값은 loadMe(22)가 채움. 탈퇴 확인창은 promptDialog(26, FIX-01).
 // API (PRD 01 §7): GET·PATCH /users/me · POST /users/me/profile-image · PUT /users/me/password · DELETE /users/me
 
+// 화면 오류를 Sentry 로 보냄 (S1-13) — 다른 파일을 불러오다 난 오류도 잡도록 반드시 첫 import 로 둡니다
+import '../core/sentry-init.js';
 import { initAuthState, initPasswordToggles, setFieldState, initLogoutButton } from '../core/auth-ui.js';
 import { requireLogin, loginUrl } from '../core/auth.js';
 import { api, clearAccessToken } from '../core/api.js';

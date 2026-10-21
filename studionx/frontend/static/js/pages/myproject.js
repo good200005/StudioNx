@@ -3,6 +3,8 @@
 // 여기서는 API 연결과, 모달을 열 때 "어느 프로젝트인지" 채우는 일을 합니다.
 // API (PRD 01 §7): GET /projects?query=&page=&size= · POST /projects · PATCH /projects/{id} · DELETE /projects/{id}
 
+// 화면 오류를 Sentry 로 보냄 (S1-13) — 다른 파일을 불러오다 난 오류도 잡도록 반드시 첫 import 로 둡니다
+import '../core/sentry-init.js';
 import { initAuthState, initLogoutButton } from '../core/auth-ui.js';
 import { requireLogin, loginUrl } from '../core/auth.js';
 import { api } from '../core/api.js';

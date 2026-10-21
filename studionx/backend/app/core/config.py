@@ -59,6 +59,10 @@ class Settings(BaseSettings):
     # Sentry — 비어 있으면 비활성화
     sentry_dsn: str = ""
     sentry_traces_sample_rate: float = 0.1
+    # 브라우저(화면)에서 난 JS 오류를 받는 Sentry 프로젝트의 DSN (S1-13)
+    # 서버용과 따로 두면 Python 오류와 JS 오류가 섞이지 않는다
+    # 공개되어도 되는 값이며 GET /client-config 로 화면에 내려간다. 비우면 화면은 보내지 않음
+    sentry_browser_dsn: str = ""
 
     @property
     def database_url(self) -> str:

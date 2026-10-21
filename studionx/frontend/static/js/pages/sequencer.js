@@ -7,6 +7,8 @@
 // 오토메이션 모드 · 점 찍기 · ↕ 곡선은 AI 구현 sequencer-automation.js (사용자 요청 2026-10-06) — setAutomationMode 템플릿 대신
 // 나머지 화면 버튼(메뉴 · 언어 · 왼쪽 버튼 줄 · 아래 칸 · 트랙 펼침 …)은 AI 구현 sequencer-ui.js (사용자 요청 2026-10-06) — 아래 템플릿 함수 중 화면 부분을 대신
 
+// 화면 오류를 Sentry 로 보냄 (S1-13) — 다른 파일을 불러오다 난 오류도 잡도록 반드시 첫 import 로 둡니다
+import '../core/sentry-init.js';
 import { initArrange, TICKS_PER_BAR, restoreOpenPanels, showToast, setDrawTemplate, getDrawTemplate } from './sequencer-arrange.js';
 import { initRoll } from './sequencer-roll.js';
 import { initAudio } from './sequencer-audio.js';

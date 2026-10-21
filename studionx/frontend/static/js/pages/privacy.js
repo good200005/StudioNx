@@ -1,4 +1,6 @@
 // privacy.html · privacy.ko.html · privacy.ja.html 페이지 스크립트 — 공통 헤더·푸터·로그인 모달을 끼우고, 목차 표시와 언어 전환 (core/include.js)
+// 화면 오류를 Sentry 로 보냄 (S1-13) — 다른 파일을 불러오다 난 오류도 잡도록 반드시 첫 import 로 둡니다
+import '../core/sentry-init.js';
 import { includePartials } from '../core/include.js';
 import { initAuthState } from '../core/auth-ui.js';
 import { initModalFallback } from '../core/modal.js';

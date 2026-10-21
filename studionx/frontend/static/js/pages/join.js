@@ -1,4 +1,6 @@
 // join.html 페이지 스크립트 (템플릿 — 구현은 직접, P1-07)
+// 화면 오류를 Sentry 로 보냄 (S1-13) — 다른 파일을 불러오다 난 오류도 잡도록 반드시 첫 import 로 둡니다
+import '../core/sentry-init.js';
 import { initLoginForm, initPasswordToggles, initOAuthPlaceholders, setFieldState } from '../core/auth-ui.js';
 import { initModalFallback } from '../core/modal.js';
 import { includePartials } from '../core/include.js';

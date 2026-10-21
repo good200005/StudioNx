@@ -1,6 +1,6 @@
 ﻿"""/api/v1 라우터 모음. 기능별 라우터(auth, users, projects ...)는 여기에 include 한다."""
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from sqlalchemy import text
 
 from app.api.v1 import (
@@ -18,7 +18,9 @@ from app.api.v1 import (
     tracks,
     users,
 )
+from app.core.config import get_settings
 from app.db.session import engine
+from app.schemas.client_config import ClientConfigResponse
 
 api_router = APIRouter()
 
@@ -38,6 +40,20 @@ def health_db() -> dict:
         return {"db": "ok"}
     except Exception as exc:  # 개발 환경 진단용이라 원인만 간단히 돌려준다
         return {"db": "error", "detail": type(exc).__name__}
+
+
+@api_router.get("/client-config", response_model=ClientConfigResponse, tags=["system"])
+def client_config(request: Request) -> ClientConfigResponse:
+    """화면이 시작할 때 읽는 공개 설정 (S1-13) — 브라우저용 Sentry DSN, 환경, 버전.
+
+    로그인 없이 읽는다. 공개되어도 되는 값만 담는다 (schemas/client_config.py).
+    """
+    settings = get_settings()
+    return ClientConfigResponse(
+        sentry_dsn=settings.sentry_browser_dsn,
+        environment=settings.app_env,
+        release="studionx@" + request.app.version,
+    )
 
 
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
