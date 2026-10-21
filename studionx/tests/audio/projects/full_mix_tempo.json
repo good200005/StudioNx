@@ -1,0 +1,196 @@
+{
+  "name": "full_mix_tempo",
+  "description": "템포가 바뀌는 곡(100 BPM에서 둘째 마디부터 140 BPM)을 48kHz로 렌더링합니다. Synth 베이스, Sampler 드럼, 이펙트가 걸린 오디오 패드를 함께 써서 전체 합산과 샘플레이트 변환, 템포 변경 계산을 확인합니다.",
+  "bpm": 100,
+  "sampleRate": 48000,
+  "endBar": 2,
+  "tailSec": 0.8,
+  "tempoChanges": [
+    {
+      "bar": 1,
+      "bpm": 140,
+      "ramp": "STEP"
+    }
+  ],
+  "samples": {
+    "1": {
+      "kind": "kick",
+      "secs": 0.4,
+      "amp": 0.9,
+      "decay": 0.13
+    },
+    "2": {
+      "kind": "saw",
+      "freq": 196,
+      "secs": 2,
+      "amp": 0.45
+    }
+  },
+  "tracks": [
+    {
+      "id": 1,
+      "type": "MIDI",
+      "volume_db": -2
+    },
+    {
+      "id": 2,
+      "type": "MIDI"
+    },
+    {
+      "id": 3,
+      "type": "AUDIO",
+      "volume_db": -5,
+      "pan": 0.25
+    }
+  ],
+  "instruments": {
+    "1": [
+      {
+        "plugin": "synth_sub",
+        "params": {
+          "osc1_wave": "square",
+          "osc1_level": 0.7,
+          "osc2_wave": "saw",
+          "osc2_level": 0.5,
+          "osc2_semi": -12,
+          "cutoff": 700,
+          "resonance": 0.4,
+          "env_attack": 0.005,
+          "env_decay": 0.25,
+          "env_sustain": 0.5,
+          "env_release": 0.2
+        }
+      }
+    ],
+    "2": [
+      {
+        "plugin": "sampler",
+        "params": {
+          "sample_id": 1,
+          "mode": "oneshot",
+          "root_note": 60
+        }
+      }
+    ]
+  },
+  "effects": {
+    "1": [
+      {
+        "plugin": "delay",
+        "params": {
+          "time": 0.3,
+          "feedback": 0.3,
+          "mix": 0.2
+        }
+      }
+    ],
+    "3": [
+      {
+        "plugin": "eq3",
+        "params": {
+          "high_gain": -4,
+          "high_freq": 5000
+        }
+      },
+      {
+        "plugin": "reverb",
+        "params": {
+          "mix": 0.35,
+          "decay": 1.8
+        }
+      }
+    ]
+  },
+  "midiClips": [
+    {
+      "track": 1,
+      "startBar": 0,
+      "lengthBars": 2,
+      "notes": [
+        {
+          "pitch": 36,
+          "startBeat": 0,
+          "lengthBeat": 1,
+          "velocity": 110
+        },
+        {
+          "pitch": 36,
+          "startBeat": 2,
+          "lengthBeat": 1,
+          "velocity": 100
+        },
+        {
+          "pitch": 43,
+          "startBeat": 4,
+          "lengthBeat": 2,
+          "velocity": 110
+        },
+        {
+          "pitch": 41,
+          "startBeat": 6,
+          "lengthBeat": 1,
+          "velocity": 100
+        },
+        {
+          "pitch": 48,
+          "startBeat": 7,
+          "lengthBeat": 1,
+          "velocity": 100
+        }
+      ]
+    },
+    {
+      "track": 2,
+      "startBar": 0,
+      "lengthBars": 2,
+      "notes": [
+        {
+          "pitch": 60,
+          "startBeat": 0,
+          "lengthBeat": 0.25,
+          "velocity": 120
+        },
+        {
+          "pitch": 60,
+          "startBeat": 2,
+          "lengthBeat": 0.25,
+          "velocity": 110
+        },
+        {
+          "pitch": 60,
+          "startBeat": 4,
+          "lengthBeat": 0.25,
+          "velocity": 120
+        },
+        {
+          "pitch": 60,
+          "startBeat": 5.5,
+          "lengthBeat": 0.25,
+          "velocity": 100
+        },
+        {
+          "pitch": 60,
+          "startBeat": 6,
+          "lengthBeat": 0.25,
+          "velocity": 120
+        },
+        {
+          "pitch": 60,
+          "startBeat": 7,
+          "lengthBeat": 0.25,
+          "velocity": 110
+        }
+      ]
+    }
+  ],
+  "audioClips": [
+    {
+      "track": 3,
+      "sample": 2,
+      "startBar": 0,
+      "lengthBars": 2,
+      "loop": true
+    }
+  ],
+  "master_db": -3
+}

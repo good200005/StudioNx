@@ -1,0 +1,91 @@
+{
+  "name": "effects_chain",
+  "description": "오디오 클립 하나를 이펙트 여섯 개(EQ, Compressor, Delay, Reverb, Gain, Limiter)를 차례로 통과시킵니다. Gain으로 소리를 키워 Limiter가 실제로 작동하게 합니다. 이펙트마다 소리를 바꿔서 순서와 파라미터가 결과에 반영되는지 확인합니다.",
+  "bpm": 120,
+  "sampleRate": 44100,
+  "endBar": 2,
+  "tailSec": 1.2,
+  "samples": {
+    "1": {
+      "kind": "pluck",
+      "freq": 392,
+      "secs": 0.5,
+      "amp": 0.8,
+      "decay": 0.18
+    }
+  },
+  "tracks": [
+    {
+      "id": 1,
+      "type": "AUDIO"
+    }
+  ],
+  "effects": {
+    "1": [
+      {
+        "plugin": "eq3",
+        "params": {
+          "low_gain": 4,
+          "low_freq": 180,
+          "mid_gain": -5,
+          "mid_freq": 900,
+          "mid_q": 1.2,
+          "high_gain": 3,
+          "high_freq": 7000
+        }
+      },
+      {
+        "plugin": "compressor",
+        "params": {
+          "threshold": -18,
+          "ratio": 4,
+          "attack": 0.005,
+          "release": 0.15,
+          "knee": 6,
+          "makeup": 3
+        }
+      },
+      {
+        "plugin": "delay",
+        "params": {
+          "time": 0.25,
+          "feedback": 0.45,
+          "tone": 5000,
+          "mix": 0.35
+        }
+      },
+      {
+        "plugin": "reverb",
+        "params": {
+          "mix": 0.3,
+          "decay": 1.6,
+          "pre_delay": 0.02,
+          "damping": 0.5
+        }
+      },
+      {
+        "plugin": "gain",
+        "params": {
+          "gain": 8,
+          "pan": 0.15
+        }
+      },
+      {
+        "plugin": "limiter",
+        "params": {
+          "ceiling": -1,
+          "release": 0.1
+        }
+      }
+    ]
+  },
+  "audioClips": [
+    {
+      "track": 1,
+      "sample": 1,
+      "startBar": 0,
+      "lengthBars": 1.5,
+      "loop": true
+    }
+  ]
+}

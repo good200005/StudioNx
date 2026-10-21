@@ -1,0 +1,160 @@
+{
+  "name": "synth_basic",
+  "description": "Subtractive Synth 두 층(saw 두 개와 필터 LFO, 사인 서브)으로 코드와 멜로디를 연주합니다. 엔벨로프, 필터, LFO, 레이어 합산, 벨로시티를 확인합니다.",
+  "bpm": 120,
+  "sampleRate": 44100,
+  "endBar": 2,
+  "tailSec": 0.6,
+  "tracks": [
+    {
+      "id": 1,
+      "type": "MIDI",
+      "volume_db": 0,
+      "pan": 0
+    }
+  ],
+  "instruments": {
+    "1": [
+      {
+        "plugin": "synth_sub",
+        "params": {
+          "osc1_wave": "saw",
+          "osc1_level": 0.8,
+          "osc1_detune": -8,
+          "osc2_wave": "saw",
+          "osc2_level": 0.8,
+          "osc2_detune": 8,
+          "osc2_semi": 0,
+          "filter_type": "lowpass",
+          "cutoff": 1800,
+          "resonance": 0.3,
+          "env_attack": 0.02,
+          "env_decay": 0.4,
+          "env_sustain": 0.6,
+          "env_release": 0.4,
+          "lfo_rate": 2.5,
+          "lfo_depth": 0.35,
+          "lfo_target": "filter"
+        },
+        "volume_db": -4,
+        "pan": -0.2
+      },
+      {
+        "plugin": "synth_sub",
+        "params": {
+          "osc1_wave": "sine",
+          "osc1_level": 1,
+          "osc2_level": 0,
+          "filter_type": "lowpass",
+          "cutoff": 900,
+          "env_attack": 0.01,
+          "env_decay": 0.2,
+          "env_sustain": 0.8,
+          "env_release": 0.3
+        },
+        "volume_db": -8,
+        "pan": 0.2
+      }
+    ]
+  },
+  "midiClips": [
+    {
+      "track": 1,
+      "startBar": 0,
+      "lengthBars": 2,
+      "notes": [
+        {
+          "pitch": 48,
+          "startBeat": 0,
+          "lengthBeat": 4,
+          "velocity": 100
+        },
+        {
+          "pitch": 52,
+          "startBeat": 0,
+          "lengthBeat": 4,
+          "velocity": 90
+        },
+        {
+          "pitch": 55,
+          "startBeat": 0,
+          "lengthBeat": 4,
+          "velocity": 90
+        },
+        {
+          "pitch": 53,
+          "startBeat": 4,
+          "lengthBeat": 2,
+          "velocity": 100
+        },
+        {
+          "pitch": 57,
+          "startBeat": 4,
+          "lengthBeat": 2,
+          "velocity": 90
+        },
+        {
+          "pitch": 60,
+          "startBeat": 4,
+          "lengthBeat": 2,
+          "velocity": 90
+        },
+        {
+          "pitch": 55,
+          "startBeat": 6,
+          "lengthBeat": 2,
+          "velocity": 100
+        },
+        {
+          "pitch": 59,
+          "startBeat": 6,
+          "lengthBeat": 2,
+          "velocity": 90
+        },
+        {
+          "pitch": 62,
+          "startBeat": 6,
+          "lengthBeat": 2,
+          "velocity": 90
+        },
+        {
+          "pitch": 72,
+          "startBeat": 0.5,
+          "lengthBeat": 0.5,
+          "velocity": 110
+        },
+        {
+          "pitch": 74,
+          "startBeat": 1,
+          "lengthBeat": 0.5,
+          "velocity": 100
+        },
+        {
+          "pitch": 76,
+          "startBeat": 2,
+          "lengthBeat": 1,
+          "velocity": 110
+        },
+        {
+          "pitch": 74,
+          "startBeat": 4,
+          "lengthBeat": 0.5,
+          "velocity": 100
+        },
+        {
+          "pitch": 72,
+          "startBeat": 5,
+          "lengthBeat": 0.25,
+          "velocity": 90
+        },
+        {
+          "pitch": 67,
+          "startBeat": 6.5,
+          "lengthBeat": 1.5,
+          "velocity": 100
+        }
+      ]
+    }
+  ],
+  "master_db": -2
+}
