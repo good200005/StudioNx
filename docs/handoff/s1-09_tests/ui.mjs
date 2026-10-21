@@ -42,6 +42,17 @@ const dragBy = async (sel, dy, wait = 700) => {
 };
 
 const api = (expr) => q(`(async()=>{const m=await import('/static/js/core/api.js'); ${expr}})()`);
+// 화면 이동 — 저장하지 않은 변경이 있으면 "떠나시겠습니까?" 창(beforeunload)이 떠서 Page.navigate 가 끝나지 않으므로, 창이 뜨면 수락합니다 (S1-11 시험과 같은 방식)
+const nav = async (url) => {
+  const before = b.events.length;
+  const p = b.send('Page.navigate', { url });
+  let done = false; p.then(() => { done = true; });
+  for (let i = 0; i < 80 && !done; i++) {
+    await sleep(150);
+    if (b.events.slice(before).some((e) => e.method === 'Page.javascriptDialogOpening')) await b.send('Page.handleJavaScriptDialog', { accept: true });
+  }
+  await sleep(2500);
+};
 const errs = () => b.events.filter((e) => e.method === 'Runtime.exceptionThrown').length;
 
 /* ── 1. 로그인 ─────────────────────────────────────────────── */
@@ -55,8 +66,7 @@ const [pid, trackTotal] = String(found).split('|');
 check('시험 프로젝트와 트랙이 있음', Number(pid) > 0 && Number(trackTotal) >= 4, 'pid=' + pid + ' tracks=' + trackTotal);
 
 /* ── 2. 실제 모드로 열기 ───────────────────────────────────── */
-await b.goto(`${BASE}/studioNx.html?projectId=${pid}`);
-await sleep(2500);
+await nav(`${BASE}/studioNx.html?projectId=${pid}`);
 const errs0 = errs();
 
 const shape = JSON.parse(await q(`(()=>{
@@ -115,7 +125,8 @@ const cell = JSON.parse(await q(`(()=>{
     flows:acc.querySelectorAll('.sq-flow').length,
     preset:(acc.querySelector('.sq-fx__preset')||{}).textContent,
     connTitle:((c('Connect to another')||{}).textContent||'').replace(/\\s+/g,' ').trim(),
-    connHint:(document.querySelector('.sq-acc.is-live [aria-label="Connect to another"] .sq-cell__hint')||{}).textContent,
+    connOptions:[...document.querySelectorAll('.sq-acc.is-live [aria-label="Connect to another"] .sq-route__type option')].map(o=>o.value).join(','),
+    connTrackInput:!!document.querySelector('.sq-acc.is-live [aria-label="Connect to another"] input.sq-route__track'),
     fader:!!acc.querySelector('.sq-mixer .sq-fader'),
     layerRow:!!acc.querySelector('.sq-fx__mix .sq-irow__db'),
     fxTitle:(acc.querySelector('[aria-label="Effects"] h3')||{}).textContent
@@ -127,7 +138,8 @@ check('이펙트 칸 제목 EFFECTS + 안내', String(cell.fxTitle).indexOf('EFF
 check('악기 카드 1 · 이펙트 카드 2 · 화살표 1', cell.instCards === 1 && cell.fxCards === 2, J({ i: cell.instCards, f: cell.fxCards }));
 check('카드에 노브 2개 이상, 프리셋 이름 표시', cell.knobs >= 2 && String(cell.preset).indexOf('Preset') === 0, J({ k: cell.knobs, p: cell.preset }));
 check('악기 카드 아래 겹 볼륨 줄', cell.layerRow === true, J(cell.layerRow));
-check('CONNECT 칸은 S1-10 안내', String(cell.connHint).indexOf('S1-10') > 0, J(cell.connHint));
+// (예전에는 "S1-10 에서 구현" 안내 문구를 기대했지만, S1-10a 에서 Connect 가 구현되어 선택 칸이 생겼습니다)
+check('CONNECT 칸에 Connect 선택(None, Connected)과 Track 입력이 있음', cell.connOptions === 'none,connected' && cell.connTrackInput === true, J({ o: cell.connOptions, t: cell.connTrackInput }));
 check('믹서 칸에 페이더', cell.fader === true, J(cell.fader));
 await b.shot(OUT + '02_accordion.png');
 
@@ -203,7 +215,9 @@ for (let i=0;i<3;i++){
   await sleep(200);
 }
 const target = await q(`document.querySelectorAll('#device-params .sq-knob').length>0?'#device-params .sq-knob':'#device-params [data-modal-param]'`);
-await dragBy(target, 45, 500);
+// 노브가 이미 최댓값(예: 컴프레서 Threshold 0 dB)이면 위로 끌어도 값이 바뀌지 않으므로, 중간보다 높으면 아래로, 아니면 위로 끕니다
+const knobPos = JSON.parse(await q(`(()=>{const e=document.querySelector(${J(target)}); if(!e) return '{}'; const g=(k)=>Number(e.getAttribute(k)); return JSON.stringify({min:g('aria-valuemin'),max:g('aria-valuemax'),now:g('aria-valuenow')});})()`));
+await dragBy(target, knobPos.now > (knobPos.min + knobPos.max) / 2 ? -45 : 45, 500);
 const dirty = await q(`(document.getElementById('device-save')||{}).className`);
 check('모달 노브를 끌면 저장 안 된 표시(is-dirty)', knobCount > 0 && String(dirty).indexOf('is-dirty') >= 0, J({ knobs: knobCount, cls: dirty }));
 await click('#device-save', 900);
@@ -255,8 +269,7 @@ await sleep(500);
 check('여기까지 자바스크립트 오류 없음', errs() === errs0, String(errs() - errs0));
 
 /* ── 10. projectId 없이 열면 예시 화면 그대로 ─────────────── */
-await b.goto(`${BASE}/studioNx.html`);
-await sleep(2000);
+await nav(`${BASE}/studioNx.html`);
 const demo = JSON.parse(await q(`(()=>{
   return JSON.stringify({
     rows: document.querySelectorAll('#tracks > .sq-track').length,

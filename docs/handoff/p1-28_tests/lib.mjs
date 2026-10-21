@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 export async function launch(port = 9450, w = 1280, h = 900) {
   const dir = process.env.TEMP + '\cdp_p124_' + port; fs.rmSync(dir, { recursive: true, force: true });
-  const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe', ['--headless=new', `--remote-debugging-port=${port}`, `--user-data-dir=${dir}`, '--hide-scrollbars', `--window-size=${w},${h}`, 'about:blank']);
+  const chrome = spawn(process.env.BROWSER_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe', ['--headless=new', `--remote-debugging-port=${port}`, `--user-data-dir=${dir}`, '--hide-scrollbars', `--window-size=${w},${h}`, 'about:blank']);
   await new Promise(r => setTimeout(r, 1800));
   const t = (await (await fetch(`http://127.0.0.1:${port}/json`)).json()).find(x => x.type === 'page');
   const ws = new WebSocket(t.webSocketDebuggerUrl); await new Promise(r => ws.addEventListener('open', r));

@@ -13,7 +13,7 @@
 | 골든 갱신 (의도적으로 소리를 바꾼 경우에만) | `node studionx/tests/audio/run.mjs --update "변경 이유"` |
 | 테스트 도구 자체 시험 | `node studionx/tests/audio/selftest.mjs` |
 
-Chrome이 기본 위치(`C:/Program Files/Google/Chrome/Application/chrome.exe`)에 없으면 환경 변수 `CHROME_PATH`로 지정합니다. 실패한 렌더링은 `out/`에 WAV로 저장되며(저장소에는 올리지 않음), 들어 보면서 무엇이 달라졌는지 확인할 수 있습니다.
+브라우저는 기본으로 Chrome(`C:/Program Files/Google/Chrome/Application/chrome.exe`)을 씁니다. 위치가 다르거나 Edge 같은 다른 Chromium 브라우저로 돌리려면 환경 변수 `BROWSER_PATH`(예전 이름 `CHROME_PATH`도 됨)로 지정합니다. 실패한 렌더링은 `out/`에 WAV로 저장되며(저장소에는 올리지 않음), 들어 보면서 무엇이 달라졌는지 확인할 수 있습니다.
 
 ## 구성
 

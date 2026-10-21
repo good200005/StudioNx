@@ -122,8 +122,8 @@ export function startServer() {
 
 /** 헤드리스 Chrome 을 띄워 DevTools 로 연결 */
 async function launchChrome() {
-  const exe = process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe';
-  if (!fs.existsSync(exe)) throw new Error('Chrome 을 찾지 못했습니다: ' + exe + ' (환경 변수 CHROME_PATH 로 지정할 수 있습니다)');
+  const exe = process.env.BROWSER_PATH || process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe';
+  if (!fs.existsSync(exe)) throw new Error('Chrome 을 찾지 못했습니다: ' + exe + ' (환경 변수 BROWSER_PATH 로 지정할 수 있습니다)');
   const port = 9600 + Math.floor(Math.random() * 300);
   const dir = path.join(os.tmpdir(), 'studionx_audio_regression_' + port);
   fs.rmSync(dir, { recursive: true, force: true });
