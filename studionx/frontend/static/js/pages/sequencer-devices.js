@@ -39,6 +39,8 @@ const KNOB_SWEEP = 135;
 
 let active = false;
 let projectId = null;
+/** 플러그인 목록과 트랙을 읽어 그리는 일이 끝나면 풀리는 약속 (S1-14 로딩 화면이 기다림). 실패해도 풀림 */
+let readyPromise = Promise.resolve();
 let plugins = [];
 let tracks = [];
 /** trackId -> { instruments: [], effects: [] } — 트랙을 펼칠 때 한 번 읽고, 고치면 다시 읽음 */
@@ -93,7 +95,7 @@ export function initDevices(options) {
   wireDialogs();
   wireDemoControls(document);
 
-  loadPlugins()
+  readyPromise = loadPlugins()
     .then(function () {
       if (!active) return null;
       return loadTracks();
@@ -106,7 +108,7 @@ export function initDevices(options) {
       refreshOpenCells();
       // 트랙 줄 · 믹서 줄의 악기 이름을 바로 보여 주기 위해 값을 미리 모읍니다
       preloadDevices(tracks).then(syncTrackSubs);
-      // Sampler 카드에 샘플 이름을 보여 주려고 라이브러리 목록을 읽어 둡니다 (S1-11c)
+      // Sampler 카드에 샘플 이름을 보여 주려고 라이브러리 목록을 읽어 둡니다 (S1-11c). 기다리지는 않음
       loadSampleLibrary().then(refreshOpenCells);
     })
     .catch(function (err) {
@@ -115,6 +117,11 @@ export function initDevices(options) {
       showToast('Could not read this project — showing the example screen');
       if (window.console) console.warn('[devices]', err);
     });
+}
+
+/** 장치 화면의 준비가 끝날 때까지 기다리는 약속 (S1-14) — initDevices 를 부르기 전에는 이미 풀려 있음 */
+export function devicesReady() {
+  return readyPromise;
 }
 
 /**

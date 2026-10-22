@@ -976,3 +976,62 @@ body.sq {
 .sq-param.is-ignored { opacity: 0.4; }
 .sq-samp__drophint { margin: 0; padding: 0.7rem; border: 1px dashed var(--sq-line-2); font-size: 0.6rem; text-align: center; color: var(--c-ink-faint); }
 .sq-samp.is-drop .sq-samp__drophint { border-color: var(--sq-accent); color: var(--c-ink); }
+
+/* ── 시퀀서 로딩 화면 (S1-14) — 목업 docs/page_mockups/sequencer/04~07 (B "Signal in") ──
+   화면을 덮고(z-index 1000), 진행률만큼 파형이 그려지다가 100% 면 SIGNAL IN 이 켜지고 신호선을 따라 위아래로 열립니다.
+   JS(pages/sequencer-loader.js)가 stroke-dashoffset 과 글을 바꾸고 is-in / is-opening 클래스를 붙입니다. */
+.sq-ld { --ld-bg: #0b0a0f; --ld-ink: #f4f3f7; --ld-soft: #b9b6c4; --ld-faint: #7f7b8c; --ld-rule: rgb(244 243 247 / 0.14); --ld-vi: #a383ff; --ld-red: #ff6b6b;
+  position: fixed; inset: 0; z-index: 1000; overflow: hidden; color: var(--ld-ink); font: 600 12px/1 Unbounded, sans-serif;
+  /* 안전장치: 스크립트가 실패해도 30초 뒤에는 저절로 숨겨서 화면이 영영 막히지 않게 함 */
+  animation: sq-ld-failsafe 1ms linear 30s forwards; }
+@keyframes sq-ld-failsafe { to { visibility: hidden; pointer-events: none; } }
+/* 스크립트가 종류(is-open · is-new · is-demo)를 정하기 전에는 종류 문구와 단계를 숨김 — 새 프로젝트인데 "OPENING PROJECT" 가 잠깐 비치지 않게 */
+.sq-ld:not(.is-open):not(.is-new):not(.is-demo) .sq-ld__kind, .sq-ld:not(.is-open):not(.is-new):not(.is-demo) .sq-ld__steps { visibility: hidden; }
+.sq-ld__half { position: absolute; left: 0; right: 0; height: 50%; background: var(--ld-bg); transition: transform 380ms cubic-bezier(0.7, 0, 0.3, 1) 60ms; }
+.sq-ld__half--top { top: 0; }
+.sq-ld__half--bot { bottom: 0; }
+.sq-ld.is-opening .sq-ld__half--top { transform: translateY(-100%); }
+.sq-ld.is-opening .sq-ld__half--bot { transform: translateY(100%); }
+.sq-ld__content { position: absolute; inset: 0; transition: opacity 120ms linear; }
+.sq-ld.is-opening .sq-ld__content { opacity: 0; }
+
+.sq-ld__brand { position: absolute; left: 2rem; top: 1.75rem; display: flex; align-items: center; gap: 0.6rem; font: 800 16px/1 Unbounded, sans-serif; }
+.sq-ld__brand svg { width: 22px; height: 22px; color: var(--ld-vi); }
+.sq-ld__win { position: absolute; right: 2rem; top: 1.9rem; color: var(--ld-faint); letter-spacing: 0.14em; font-size: 11px; }
+
+/* 신호선은 화면 한가운데: 위쪽에 제목, 아래쪽에 상태와 단계 */
+.sq-ld__title { position: absolute; left: 0; right: 0; bottom: calc(50% + 90px); text-align: center; }
+.sq-ld__title small { display: block; margin-bottom: 14px; color: var(--ld-faint); letter-spacing: 0.24em; font-size: 11px; }
+.sq-ld.is-new .sq-ld__title small, .sq-ld.is-demo .sq-ld__title small { color: var(--ld-vi); }
+.sq-ld__title b { display: block; max-width: 80vw; margin: 0 auto; overflow: hidden; font: 800 40px/1.1 Unbounded, sans-serif; letter-spacing: -0.01em; text-overflow: ellipsis; white-space: nowrap; }
+.sq-ld__title span { display: block; margin-top: 14px; color: var(--ld-soft); font-size: 12px; letter-spacing: 0.08em; }
+
+.sq-ld__line { position: absolute; left: 0; top: calc(50% - 60px); width: 100%; height: 120px; overflow: visible; }
+.sq-ld__flat { stroke: var(--ld-rule); stroke-width: 2; }
+.sq-ld__wave { fill: none; stroke: var(--ld-vi); stroke-width: 2.2; stroke-linejoin: round; stroke-dasharray: 100; stroke-dashoffset: 100; }
+.sq-ld.is-in .sq-ld__wave { animation: sq-ld-flash 300ms ease-out both; }
+@keyframes sq-ld-flash { 50% { stroke-width: 3.4; filter: drop-shadow(0 0 8px rgb(163 131 255 / 0.8)); } }
+
+.sq-ld__tag { position: absolute; left: 0; right: 0; top: calc(50% + 84px); margin: 0; text-align: center; color: var(--ld-faint); letter-spacing: 0.24em; font-size: 11px; }
+.sq-ld__sw { display: inline-grid; }
+.sq-ld__sw b { grid-area: 1 / 1; font-weight: 700; }
+.sq-ld__no { color: var(--ld-red); }
+.sq-ld__yes { color: var(--ld-vi); opacity: 0; }
+.sq-ld.is-in .sq-ld__no { opacity: 0; }
+.sq-ld.is-in .sq-ld__yes { opacity: 1; }
+.sq-ld__pct { color: var(--ld-ink); }
+
+.sq-ld__steps { position: absolute; left: 0; right: 0; top: calc(50% + 150px); display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem 3rem; color: var(--ld-faint); font-size: 11px; letter-spacing: 0.1em; }
+.sq-ld__step { display: flex; align-items: center; gap: 10px; }
+.sq-ld__dot { width: 10px; height: 10px; border: 2px solid var(--ld-faint); border-radius: 50%; }
+.sq-ld__step.is-done .sq-ld__dot { border-color: var(--ld-vi); background: var(--ld-vi); }
+.sq-ld__step.is-done .sq-ld__st { color: var(--ld-ink); }
+.sq-ld__cnt { font-variant-numeric: tabular-nums; }
+
+/* 움직임 줄이기: 위아래로 열지 않고 그냥 사라짐 */
+@media (prefers-reduced-motion: reduce) {
+  .sq-ld__half, .sq-ld__content { transition: none; }
+  .sq-ld.is-opening { opacity: 0; transition: opacity 150ms linear; }
+  .sq-ld.is-opening .sq-ld__half--top, .sq-ld.is-opening .sq-ld__half--bot { transform: none; }
+  .sq-ld.is-in .sq-ld__wave { animation: none; }
+}
