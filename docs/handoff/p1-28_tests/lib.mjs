@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
-export async function launch(port = 9450, w = 1280, h = 900) {
+export async function launch(port = 9450, w = 1280, h = 900, opts = {}) {
   const dir = process.env.TEMP + '\cdp_p124_' + port; fs.rmSync(dir, { recursive: true, force: true });
   const chrome = spawn(process.env.BROWSER_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe', ['--headless=new', `--remote-debugging-port=${port}`, `--user-data-dir=${dir}`, '--hide-scrollbars', `--window-size=${w},${h}`, 'about:blank']);
   await new Promise(r => setTimeout(r, 1800));
@@ -10,6 +10,8 @@ export async function launch(port = 9450, w = 1280, h = 900) {
   ws.addEventListener('message', e => { const m = JSON.parse(e.data); if (m.id) { const f = pend.get(m.id); if (f) f(m); } else events.push(m); });
   const send = (method, params = {}) => new Promise(r => { const i = ++id; pend.set(i, r); ws.send(JSON.stringify({ id: i, method, params })); });
   await send('Page.enable'); await send('Runtime.enable');
+  // 시퀀서의 로딩 화면(S1-14)은 클릭을 막으므로, 시험은 기본으로 보이지 않게 함. 로딩 화면 시험만 launch(.., { loader: true })
+  if (!opts.loader) await send('Page.addScriptToEvaluateOnNewDocument', { source: 'window.__snxNoLoader = true;' });
   await send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 1, mobile: false });
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const goto = async url => { await send('Page.navigate', { url }); await sleep(2500); };

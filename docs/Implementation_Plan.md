@@ -45,6 +45,7 @@ PRD의 Phase는 **기능 묶음**이고, 이 문서의 단계는 **구현 순서
 | S1-11c | **Sampler MIDI 연주** (2026-10-20 추가): Sampler에 `sample_id`와 `mode`(Classic, One-Shot) 파라미터 추가, MIDI 노트로 샘플 재생(One-Shot은 노트 길이 무시, 연속으로 치면 겹쳐 울림), 상세 창의 Sample 줄과 Mode 줄, 샘플 없는 카드 경고. 목업 `docs/page_mockups/sampler/`, 결정 `docs/Default_Instruments_Effects.md` | 02 FR-241, FR-242 | 0.5주 | 상 |
 | S1-12 | **오디오 회귀 테스트 기반**: 테스트 프로젝트 3~5개 + 골든 WAV + 비교 스크립트 | 00 §7.1 | 1주 | 상 |
 | S1-13 | MVP 안정화: 버그 수정, 브라우저 테스트, Sentry 오류 정리 | — | 1주 | 상 |
+| S1-14 | **시퀀서 로딩 화면** (2026-10-21 추가): 목업 `docs/page_mockups/sequencer/04~07`(B "Signal in", 2026-10-03 결정)을 구현. 열 때 샘플 파일을 미리 받아 진행률(샘플 n/m)을 실제 일의 진행으로 만들고, 어떤 단계가 실패해도 열리며, 로딩 중에는 뒤 화면을 막음. 일정은 S1-13 주간 안에서 소화하며 간트는 바꾸지 않음 | 02 §4.17 | 0.2주 | 중 |
 
 ### 2.1 Phase 1 세부 작업 (S1-02 ~ S1-04)
 > 관련 FR은 [PRD 01](PRD/01_Phase1_Account_Pages.md) 기준. 담당은 기획서 AI 규칙(HTML/CSS = AI 작성, JS·백엔드 = AI 뼈대 → 직접 구현)을 따릅니다.
