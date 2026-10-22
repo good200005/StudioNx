@@ -22,7 +22,9 @@ $tests = @(
   'docs/handoff/s1-11c_tests/ui_sampler.mjs',
   'docs/handoff/s1-13_tests/ui_tempo.mjs',
   'docs/handoff/s1-13_tests/sentry_unit.mjs',
-  'docs/handoff/s1-13_tests/ui_sentry.mjs'
+  'docs/handoff/s1-13_tests/ui_sentry.mjs',
+  'docs/handoff/s1-14_tests/loader_unit.mjs',
+  'docs/handoff/s1-14_tests/ui_loader.mjs'
 )
 
 "브라우저: " + $(if ($env:BROWSER_PATH) { $env:BROWSER_PATH } else { '(기본 Chrome)' })

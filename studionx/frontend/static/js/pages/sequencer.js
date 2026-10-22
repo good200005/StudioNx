@@ -11,12 +11,13 @@
 import '../core/sentry-init.js';
 import { initArrange, TICKS_PER_BAR, restoreOpenPanels, showToast, setDrawTemplate, getDrawTemplate } from './sequencer-arrange.js';
 import { initRoll } from './sequencer-roll.js';
-import { initAudio } from './sequencer-audio.js';
+import { initAudio, preloadSamples, projectSampleIds } from './sequencer-audio.js';
+import { createLoader, loaderMode, projectInfoText } from './sequencer-loader.js';
 import { initExport } from './sequencer-export.js';
 import { initAutomation } from './sequencer-automation.js';
 import { initUI } from './sequencer-ui.js';
 import {
-  initDevices, readProjectId, applyFullProject, setDeviceNotifier,
+  initDevices, devicesReady, readProjectId, applyFullProject, setDeviceNotifier,
   trackById, reapplyDevice, dropDevice, restoreDevice, moveEffectSlots,
   updateConnection as applyConnection,
 } from './sequencer-devices.js';
@@ -34,6 +35,8 @@ export const PPQ = 960;
  * - projectId = readProjectId() — 없으면 예시 화면 그대로 (S1-09 결정, 데모 모드)
  * - 로그인 확인(requireLogin) → loadProject(projectId) 로 서버 값 채우기
  * - 명령 레지스트리 · 되돌리기 · 저장 · 단축키를 먼저 세워 두고, 화면 모듈의 onChange 를 한 곳(handleChange)으로 모음
+ * - 로딩 화면(S1-14): studioNx.html 에 처음부터 있는 #sq-loader 가 화면을 덮고 있다가, 프로젝트 데이터 → 샘플 → 화면 준비가
+ *   끝나면 위아래로 열립니다 (?new=1 이면 새 프로젝트 모드, projectId 가 없으면 예시 화면 모드)
  */
 export async function init() {
   initHistory({ toast: showToast });
@@ -44,16 +47,69 @@ export async function init() {
   setDeviceNotifier(handleChange);
 
   const projectId = readProjectId();
-  if (!projectId) return;                    // 예시 화면: 숫자·트랙을 그대로 두고 저장도 하지 않습니다
+  const mode = loaderMode(window.location.search, !!projectId);
+  const loader = createLoader({ mode: mode });
+  if (!projectId) {                           // 예시 화면: 숫자·트랙을 그대로 두고 저장도 하지 않습니다
+    await openWithLoader(loader, null, mode);
+    return;
+  }
   setProjectId(projectId);
-  if (!(await requireLogin())) return;        // 로그인 안 됐으면 home.html 로 보냄
+  if (!(await requireLogin())) return;        // 로그인 안 됐으면 home.html 로 보냄 (이동하므로 로딩 화면은 그대로 둠)
+  loader.setStage('data', 0.3);
+  let data = null;
   try {
-    await loadProject(projectId);
+    data = await loadProject(projectId);
+    if (data === null) return;                // 오류 화면(404 · 403 · 500)으로 이동 중 — 로딩 화면은 그대로 둠
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) return;   // api.js 재발급 실패 → requireLogin 흐름
+    loader.fail();                            // 기다리지 않고 바로 열고, 안내만 띄움
     showToast('Could not open this project — showing the example screen');
     if (window.console) console.warn('[sequencer]', err);
   }
+  await openWithLoader(loader, data, mode);
+}
+
+/**
+ * 로딩 화면 마무리 (S1-14) — 샘플 미리 받기와 화면 준비를 기다린 뒤 로딩 화면을 엶
+ * - open: 프로젝트가 쓰는 샘플(오디오 클립과 Sampler)을 미리 받아 둠 → 진행률이 "샘플 n/m" 으로 보이고, 재생을 처음 누를 때 기다리지 않음
+ * - new · demo: 불러올 샘플이 없어서 바로 다음 단계로
+ * - 어떤 단계가 실패해도 열립니다 (샘플 하나가 안 받아져도 시퀀서는 열려야 하므로)
+ * @param {object} loader  createLoader 의 결과
+ * @param {object|null} data  GET /full 의 응답 (예시 화면이나 읽기 실패면 null)
+ * @param {'open'|'new'|'demo'} mode
+ */
+async function openWithLoader(loader, data, mode) {
+  try {
+    if (!data && mode === 'demo') {
+      // 예시 화면은 프로젝트가 없으므로 제목과 안내를 직접 적음 (저장되지 않는 화면이라는 것을 알림)
+      loader.setProject({ title: 'Example Project', info: 'SAMPLE DATA, NOTHING IS SAVED' });
+    }
+    if (data) {
+      const tracks = data.tracks || [];
+      loader.setProject({
+        title: data.project ? data.project.title : '',
+        info: projectInfoText(data.project, tracks.filter(function (t) { return t.track_type !== 'MASTER'; }).length, mode),
+      });
+    }
+    loader.setStage('data', 1);
+    if (data && mode === 'open') {
+      const ids = projectSampleIds(data);
+      loader.setSampleTotal(ids.length);
+      await preloadSamples(ids, function (done, total) { loader.setSamples(done, total); });
+    } else {
+      loader.setStage('content', 1);
+    }
+    loader.setStage('engine', 0.5);
+    await devicesReady();
+    if (typeof window.AudioContext === 'undefined' && typeof window.webkitAudioContext === 'undefined') {
+      showToast('This browser does not support Web Audio — playback and export are unavailable');
+    }
+    loader.setStage('engine', 1);
+  } catch (err) {
+    loader.fail();
+    if (window.console) console.warn('[sequencer] loading screen', err);
+  }
+  await loader.finish();
 }
 
 /**

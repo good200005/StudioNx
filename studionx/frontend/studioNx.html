@@ -26,6 +26,26 @@
      hidden 으로 들어 있는 것: 트랙 펼침(#acc-2) · 아래 칸 패널 4개 · 협업 패널 · 메뉴 드롭다운 -->
 <body class="sq" style="--bpm: 145">
 
+  <!-- ───────── 로딩 화면 (S1-14) — 목업: docs/page_mockups/sequencer/04~07 (B "Signal in")
+       첫 그림부터 보여서 아래의 예시 화면이 먼저 비치지 않게 합니다. 진행률, 문구, 열기는 pages/sequencer-loader.js 가 맡습니다.
+       이 파일이 실행되지 않아도 CSS 의 안전장치가 30초 뒤에 저절로 숨깁니다. ───────── -->
+  <div class="sq-ld" id="sq-loader" role="progressbar" aria-label="Opening the sequencer" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <div class="sq-ld__half sq-ld__half--top"></div>
+    <div class="sq-ld__half sq-ld__half--bot"></div>
+    <div class="sq-ld__content">
+      <div class="sq-ld__brand"><svg viewBox="-1 -5 98 98" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M73.76 16.83A42 42 0 1 0 88.14 62.36A28 28 0 1 1 73.76 16.83ZM64 -2Q66.66 14.34 83 17Q66.66 19.66 64 36Q61.34 19.66 45 17Q61.34 14.34 64 -2Z"/></svg> Studio Nx</div>
+      <div class="sq-ld__win">STUDIO</div>
+      <div class="sq-ld__title"><small class="sq-ld__kind">OPENING PROJECT</small><b class="sq-ld__name">&nbsp;</b><span class="sq-ld__info">&nbsp;</span></div>
+      <svg class="sq-ld__line" viewBox="0 0 1440 120" aria-hidden="true"><line class="sq-ld__flat" x1="0" y1="60" x2="1440" y2="60"/><path class="sq-ld__wave" pathLength="100"/></svg>
+      <p class="sq-ld__tag">INPUT · <span class="sq-ld__sw"><b class="sq-ld__no">NO SIGNAL</b><b class="sq-ld__yes">SIGNAL IN</b></span> · <span class="sq-ld__pct">0%</span></p>
+      <div class="sq-ld__steps">
+        <div class="sq-ld__step" data-step="data"><i class="sq-ld__dot"></i><span class="sq-ld__st">PROJECT DATA <span class="sq-ld__cnt"></span></span></div>
+        <div class="sq-ld__step" data-step="content"><i class="sq-ld__dot"></i><span class="sq-ld__st">SAMPLES <span class="sq-ld__cnt"></span></span></div>
+        <div class="sq-ld__step" data-step="engine"><i class="sq-ld__dot"></i><span class="sq-ld__st">AUDIO ENGINE <span class="sq-ld__cnt"></span></span></div>
+      </div>
+    </div>
+  </div>
+
   <!-- ───────── 상단바 (FR-2192) ───────── -->
   <header class="sq-top">
     <div class="sq-top__row">

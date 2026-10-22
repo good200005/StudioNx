@@ -4,6 +4,8 @@
 
 import { PlaybackSession } from '../audio/session.js';
 import { PPQ } from '../audio/timing.js';
+import { samplerSampleIds } from '../audio/sampler.js';
+import { collectSampleIds } from './sequencer-loader.js';
 import { fetchSampleFileUrl } from '../core/api.js';
 import { TICKS_PER_BAR, setTransportHooks, setTempoChangesSource, getLoop } from './sequencer-arrange.js';
 import {
@@ -83,10 +85,107 @@ function collectMidiClips() {
   return list;
 }
 
-/** 샘플 번호 → 파일 바이트 (토큰을 붙여 받은 blob 주소를 다시 읽음) */
-function loadSampleBytes(sampleId) {
+/** 샘플 파일을 서버에서 받음 (토큰을 붙여 받은 blob 주소를 다시 읽음) */
+function fetchSampleBytes(sampleId) {
   return fetchSampleFileUrl(sampleId).then(function (url) { return fetch(url); })
     .then(function (res) { return res.arrayBuffer(); });
+}
+
+/* ───────────── 샘플 미리 받기 (S1-14) — 로딩 화면이 프로젝트를 열 때 샘플 파일을 먼저 받아 둡니다 ───────────── */
+
+/** 미리 받은 샘플 파일 (샘플 번호 → ArrayBuffer). 재생이나 내보내기가 처음 부를 때 한 번 넘겨주고 지웁니다 */
+const preloaded = {};
+let preloadedBytes = 0;
+/** 미리 받아 둘 총량의 한도 — 넘으면 받기는 하되 메모리에 두지 않고 버림 (재생 때 다시 받음) */
+const PRELOAD_CAP_BYTES = 256 * 1024 * 1024;
+/** 샘플 하나를 기다리는 최대 시간 — 넘으면 건너뛰고 열어서 로딩이 멈추지 않게 함 */
+const PRELOAD_TIMEOUT_MS = 20000;
+const PRELOAD_PARALLEL = 3;
+
+/** 샘플 번호 → 파일 바이트. 로딩 때 미리 받아 둔 것이 있으면 그것을 한 번 넘겨주고, 없으면 서버에서 받음 */
+function loadSampleBytes(sampleId) {
+  const key = String(sampleId);
+  const hit = preloaded[key];
+  if (hit) {
+    delete preloaded[key];
+    preloadedBytes -= hit.byteLength;
+    return Promise.resolve(hit);
+  }
+  return fetchSampleBytes(sampleId);
+}
+
+/** 샘플 하나를 받아 담아 둠. 시간이 지나면 거절 */
+function preloadOne(sampleId) {
+  return new Promise(function (resolve, reject) {
+    let settled = false;
+    const timer = window.setTimeout(function () {
+      if (settled) return;
+      settled = true;
+      reject(new Error('timeout'));
+    }, PRELOAD_TIMEOUT_MS);
+    fetchSampleBytes(sampleId).then(function (bytes) {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timer);
+      if (preloadedBytes + bytes.byteLength <= PRELOAD_CAP_BYTES) {
+        preloaded[String(sampleId)] = bytes;
+        preloadedBytes += bytes.byteLength;
+      }
+      resolve();
+    }, function (err) {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timer);
+      reject(err);
+    });
+  });
+}
+
+/**
+ * 프로젝트가 쓰는 샘플 번호 모으기 — 오디오 클립의 샘플과 Sampler 악기의 샘플, 중복 없이
+ * @param {object} data  GET /projects/{id}/full 의 응답
+ * @returns {number[]}
+ */
+export function projectSampleIds(data) {
+  const trackIds = ((data && data.tracks) || []).map(function (t) { return t.track_id; });
+  return collectSampleIds(data ? data.clips : [], samplerSampleIds(playbackInstruments, trackIds));
+}
+
+/**
+ * 샘플 파일을 미리 받아 둠 (한 번에 세 개씩). 하나가 실패하거나 늦어도 나머지는 계속합니다
+ * @param {number[]} ids
+ * @param {function(number, number):void} [onStep]  하나가 끝날 때마다 (끝난 수, 전체 수) — 실패한 것도 끝난 것으로 셈
+ * @returns {Promise<{total:number, loaded:number, failed:number}>}
+ */
+export function preloadSamples(ids, onStep) {
+  const list = (ids || []).slice();
+  const total = list.length;
+  const step = onStep || function () {};
+  return new Promise(function (resolve) {
+    if (!total) { resolve({ total: 0, loaded: 0, failed: 0 }); return; }
+    let next = 0;
+    let done = 0;
+    let failed = 0;
+    function finishOne(ok) {
+      done += 1;
+      if (!ok) failed += 1;
+      step(done, total);
+      if (done === total) resolve({ total: total, loaded: total - failed, failed: failed });
+      else pump();
+    }
+    function pump() {
+      if (next >= total) return;
+      const id = list[next];
+      next += 1;
+      preloadOne(id).then(function () { finishOne(true); }, function () { finishOne(false); });
+    }
+    for (let i = 0; i < Math.min(PRELOAD_PARALLEL, total); i += 1) pump();
+  });
+}
+
+/** 미리 받아 둔 샘플 수와 바이트 (시험용) */
+export function preloadState() {
+  return { count: Object.keys(preloaded).length, bytes: preloadedBytes };
 }
 
 /** 세션을 처음 쓸 때 만듦 */
