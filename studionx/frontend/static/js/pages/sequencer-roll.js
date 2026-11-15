@@ -101,7 +101,8 @@ export function openRoll(clip) {
     if (name) document.getElementById('roll-track').textContent = `${name} · ${inst ?? ''}`;
     // 서버에서 온 MIDI 클립이면 그 패턴의 노트를 롤에 채웁니다 (S1-10a FR-2196)
     if (clip.__patternBars) setPatternBars(clip.__patternBars);
-    if (clip.__notes) loadClipNotes(clip.__notes);
+    // 서버 패턴 클립은 노트가 없어도(새 빈 패턴) 롤을 비웁니다. 예시 노트가 남아 새 패턴에 저장되는 것을 막음
+    if (clip.__notes || clip.dataset.patternId || clip.classList.contains('sq-clip--midi')) loadClipNotes(clip.__notes || []);
   }
   requestAnimationFrame(() => {
     applyBarWidth();
@@ -400,6 +401,20 @@ function initNoteEdit() {
       return;
     }
     if (e.button !== 0) return;
+    // Ctrl+빈 곳 끌기 = 영역 선택 (FL Studio 의 Ctrl 드래그). Shift 를 더하면 기존 선택에 보탬
+    if (!target && multi) {
+      const box = document.createElement('div');
+      box.className = 'sq-roll__marquee';
+      notes.append(box);
+      const base = e.shiftKey ? new Set(notes.querySelectorAll('.sq-note.is-selected')) : new Set();
+      const nr = notes.getBoundingClientRect();
+      d = { id: e.pointerId, marquee: box, base, ox: e.clientX, oy: e.clientY, sl: R.scroll.scrollLeft, moved: false };
+      if (!e.shiftKey) notes.querySelectorAll('.sq-note.is-selected').forEach((x) => x.classList.remove('is-selected'));
+      d.nr = nr;
+      notes.setPointerCapture(e.pointerId);
+      updateSelectedInfo();
+      return;
+    }
     let note = target;
     let added = false;
     // 빈 곳 클릭 = 찍기 · Shift+클릭(노트 위) = 그 노트에 겹쳐 새로 찍기 (FR-2317 노트 겹침 허용)
@@ -447,6 +462,28 @@ function initNoteEdit() {
   });
 
   notes.addEventListener('pointermove', (e) => {
+    if (d && d.marquee && e.pointerId === d.id) {
+      const nr = notes.getBoundingClientRect();
+      const x0 = d.ox - (R.scroll.scrollLeft - d.sl) - nr.left;
+      const y0 = d.oy - nr.top;
+      const x1 = e.clientX - nr.left;
+      const y1 = e.clientY - nr.top;
+      const l = Math.min(x0, x1);
+      const t = Math.min(y0, y1);
+      const w = Math.abs(x1 - x0);
+      const h = Math.abs(y1 - y0);
+      d.moved = true;
+      d.marquee.style.cssText = `left:${l}px;top:${t}px;width:${w}px;height:${h}px`;
+      notes.querySelectorAll('.sq-note:not(.is-ghost)').forEach((n) => {
+        const r = n.getBoundingClientRect();
+        const nl = r.left - nr.left;
+        const nt = r.top - nr.top;
+        const hit = nl < l + w && nl + r.width > l && nt < t + h && nt + r.height > t;
+        n.classList.toggle('is-selected', hit || d.base.has(n));
+      });
+      updateSelectedInfo();
+      return;
+    }
     if (!d || e.pointerId !== d.id || !d.primary) return;
     if (!d.moved && Math.hypot(e.clientX - d.x, e.clientY - d.y) < DRAG_THRESHOLD) return;
     if (!d.moved) { d.moved = true; d.group.forEach((g) => g.n.classList.add('is-dragging')); }
@@ -478,6 +515,13 @@ function initNoteEdit() {
 
   const end = (e) => {
     if (!d || e.pointerId !== d.id) return;
+    if (d.marquee) {
+      notes.releasePointerCapture(e.pointerId);
+      d.marquee.remove();
+      updateSelectedInfo();
+      d = null;
+      return;
+    }
     if (d.toggleOff) {
       if (!d.moved) d.toggleOff.classList.remove('is-selected');   // Ctrl+클릭 = 선택에서 빼기
     } else {
