@@ -18,6 +18,7 @@ import { initAutomation } from './sequencer-automation.js';
 import { setLanes, buildLanes, onAutomationChange } from './sequencer-autolanes.js';
 import { initFades, syncFades } from './sequencer-fades.js';
 import { initTempoRow, setTempoRow, renderTempoRow } from './sequencer-tempo.js';
+import { initMeterRow, setMeterRow } from './sequencer-meter.js';
 import { initUI } from './sequencer-ui.js';
 import {
   initDevices, devicesReady, readProjectId, applyFullProject, setDeviceNotifier,
@@ -143,6 +144,7 @@ export async function loadProject(projectId) {
   setLanes(data.automation);
   syncFades();
   setTempoRow(data.tempo_changes);
+  setMeterRow(data.meter_changes, data.project);
   if (window.console) console.debug('[sequencer] loaded', projectId, data.tracks.length, 'tracks');
   return data;
 }
@@ -161,7 +163,6 @@ function applyProjectInfo(project) {
   applyBpm(project.bpm);
   applyKey(project.music_key);
   setText('#pattern-select', null);                       // 패턴은 applyPatterns 가 채웁니다
-  setText('.sq-global--meter .sq-global__head small', project.time_sig_num + '/' + project.time_sig_den);
   document.body.dataset.sampleRate = String(project.sample_rate || '');
   document.body.dataset.projectTitle = String(project.title || '');       // 내보내기 파일명에 씀 (S1-11b)
   document.body.dataset.revision = String(project.revision || '');
@@ -779,12 +780,13 @@ export function askAutomationOverlap(info) {
 /**
  * 템포 · 박자 줄 (FR-202a, 목업 14)
  * - 템포 줄은 S1-16 에서 sequencer-tempo.js 가 그립니다 (변경점 찍기, 끌기, 지우기, 저장).
- * - 박자 줄(meter_changes)은 서버 모델이 없어 정적 표시 그대로입니다.
+ * - 박자 줄은 S1-18 에서 sequencer-meter.js 가 그립니다 (변경점 더하기, 바꾸기, 지우기, 저장).
  * @param {object[]} tempoChanges
- * @param {object[]} meterChanges  아직 쓰지 않음
+ * @param {object[]} meterChanges  GET /full 의 meter_changes
  */
 export function renderGlobalLanes(tempoChanges, meterChanges) {
   setTempoRow(tempoChanges);
+  setMeterRow(meterChanges);
 }
 
 /**
@@ -919,6 +921,7 @@ initExport();
 // 오토메이션 — 점 저장은 오토메이션 표가 생긴 뒤 (S2-04)
 initFades({ lanes: document.getElementById('lanes') });
   initTempoRow();
+  initMeterRow();
 initAutomation({
   onChange: (change) => {
     if (change.type === 'automationMode') {

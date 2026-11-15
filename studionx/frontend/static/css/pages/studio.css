@@ -499,6 +499,9 @@ body.sq {
 .sq-global--tempo .sq-global__pt.is-base { cursor: default; background: var(--sq-panel); box-shadow: 0 0 0 2px var(--sq-accent); }
 .sq-global__lab { transform: translateY(-130%); padding: 0 0.2rem; font-size: 0.6rem; font-weight: 700; white-space: nowrap; color: var(--sq-accent); background: var(--sq-panel); }
 .sq-global__seg { position: absolute; top: 0.25rem; bottom: 0.25rem; left: calc(var(--s) * var(--sq-bar-w)); width: calc(var(--l) * var(--sq-bar-w) - 2px); padding-left: 0.5rem; text-align: left; font-size: 0.68rem; font-weight: 700; color: var(--c-ink-soft); border: 1px solid var(--sq-line-2); background: var(--sq-panel-2); }
+.sq-global--meter .sq-global__body { cursor: copy; }
+.sq-global__seg { display: flex; align-items: center; overflow: hidden; white-space: nowrap; }
+.sq-global__seg.is-change { cursor: pointer; }
 .sq-global__seg.is-change { color: var(--sq-accent); border-color: var(--sq-accent); background: color-mix(in srgb, var(--sq-accent) 12%, var(--sq-panel)); box-shadow: -2px 0 0 var(--sq-accent); }
 
 /* 겹침 창 (목업 09) */

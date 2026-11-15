@@ -4,7 +4,7 @@
 그래서 여기의 응답(FullProjectResponse)은 프로젝트 설정, 트랙과 그 안의 악기·이펙트·연결선,
 트랙 간 연결, 패턴과 그 노트, 그리고 클립을 한 덩어리에 담는다.
 
-아직 DB 모델이 없는 것들(markers · tempo_changes · meter_changes)은 응답에 빈 목록으로
+아직 DB 모델이 없는 것(markers)은 응답에 빈 목록으로
 넣어 둔다. 화면이 이 칸들을 늘 읽으므로, 나중에 그 모델과 API 가 생기면 여기 목록만
 채우면 화면을 고치지 않아도 된다.
 """
@@ -23,6 +23,7 @@ from app.schemas.device import (
     TrackPluginLinkResponse,
     TrackPluginResponse,
 )
+from app.schemas.meter import MeterChangeItem
 from app.schemas.pattern import PatternResponse
 from app.schemas.tempo import TempoChangeItem
 from app.schemas.track import TrackResponse
@@ -80,7 +81,7 @@ class FullProjectResponse(BaseModel):
     """GET /projects/{id}/full 응답 — 한 번의 요청으로 곡 전체 (FR-254).
 
     clips 는 프로젝트의 모든 클립(track_id 로 트랙에 묶임), connections 는 각 트랙의
-    나가는 연결이다. tempo_changes 는 저장된 템포 변경점(tick 오름차순)이고, markers ·
+    나가는 연결이다. tempo_changes · meter_changes 는 저장된 변경점(tick 오름차순)이고, markers 는
     meter_changes 는 그 표와 API 가 아직 없어 늘 빈 목록이다.
     """
 
@@ -91,7 +92,7 @@ class FullProjectResponse(BaseModel):
     automation: list[AutomationLaneResponse] = Field(default_factory=list)
     markers: list[dict[str, Any]] = Field(default_factory=list)
     tempo_changes: list[TempoChangeItem] = Field(default_factory=list)
-    meter_changes: list[dict[str, Any]] = Field(default_factory=list)
+    meter_changes: list[MeterChangeItem] = Field(default_factory=list)
 
 
 class FullProjectSettingsUpdateRequest(BaseModel):

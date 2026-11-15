@@ -4,6 +4,7 @@ from app.models.automation import AutomationLane, AutomationPoint, AutomationTar
 from app.models.clip import Clip, ClipType, WarpMode
 from app.models.dev_note import DevNote
 from app.models.inquiry import Inquiry
+from app.models.meter_change import MeterChange
 from app.models.midi_note import MidiNote
 from app.models.password_reset_token import PasswordResetToken
 from app.models.pattern import Pattern
@@ -44,6 +45,7 @@ __all__ = [
     "SampleTag",
     "Tag",
     "TagCategory",
+    "MeterChange",
     "TempoChange",
     "TempoRamp",
     "Track",
