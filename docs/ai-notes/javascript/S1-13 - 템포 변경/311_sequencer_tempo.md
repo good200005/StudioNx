@@ -179,7 +179,7 @@ export const playbackTempoChanges = () => tempoChanges.map((c) => ({ ...c }));
 
 | 한계 | 내용 |
 |---|---|
-| 템포를 화면에서 편집하는 방법이 아직 없습니다 | 템포 줄(Tempo lane)은 `sequencer.js`의 `renderGlobalLanes`로 정해져 있지만 아직 구현되지 않은 템플릿입니다. 지금은 API(`PUT /projects/{id}/tempo-changes`)로만 변경점을 만들 수 있습니다. |
+| 템포를 화면에서 편집하는 방법이 이 작업 당시에는 없었습니다 | 템포 줄(Tempo lane)은 S1-16에서 구현했습니다 (JS 323). 이 문서를 쓸 때는 API(`PUT /projects/{id}/tempo-changes`)로만 변경점을 만들 수 있었습니다. |
 | 박자 변경은 아직 반영하지 않습니다 | 재생선과 시간 표시는 4/4로 계산합니다. 박자 변경점(`meter_changes`)은 모델과 API가 아직 없습니다. |
 | 마디 칸의 눈금은 그대로입니다 | 마디선 간격은 마디 단위라 템포와 무관해서 바뀌지 않습니다. 템포가 바뀌면 같은 마디가 더 오래 또는 짧게 걸릴 뿐입니다. |
 | 딜레이의 템포 동기(Sync)는 시작 템포를 씁니다 | 이펙트가 받는 `getBpm`은 곡 전체에서 하나의 값입니다. 곡 중간에서 템포가 바뀌어도 Sync 딜레이의 간격은 바뀌지 않습니다. |

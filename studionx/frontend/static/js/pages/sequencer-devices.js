@@ -270,6 +270,11 @@ function indexTempoChanges(list) {
   }).sort(function (a, b) { return a.tick - b.tick; });
 }
 
+/** 템포 줄 편집 결과를 재생 목록에 반영 (S1-16) */
+export function replaceTempoChanges(list) {
+  indexTempoChanges(list);
+}
+
 /** 재생과 내보내기가 쓰는 템포 변경점 (S1-13) — 복사본이라 받은 쪽이 고쳐도 원본은 그대로 */
 export function playbackTempoChanges() {
   return tempoChanges.map(function (c) { return { tick: c.tick, bpm: c.bpm, ramp: c.ramp }; });

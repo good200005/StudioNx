@@ -17,6 +17,7 @@ import { initExport } from './sequencer-export.js';
 import { initAutomation } from './sequencer-automation.js';
 import { setLanes, buildLanes, onAutomationChange } from './sequencer-autolanes.js';
 import { initFades, syncFades } from './sequencer-fades.js';
+import { initTempoRow, setTempoRow, renderTempoRow } from './sequencer-tempo.js';
 import { initUI } from './sequencer-ui.js';
 import {
   initDevices, devicesReady, readProjectId, applyFullProject, setDeviceNotifier,
@@ -141,6 +142,7 @@ export async function loadProject(projectId) {
   applyFullProject(data);
   setLanes(data.automation);
   syncFades();
+  setTempoRow(data.tempo_changes);
   if (window.console) console.debug('[sequencer] loaded', projectId, data.tracks.length, 'tracks');
   return data;
 }
@@ -176,6 +178,7 @@ function applyBpm(value) {
     span.textContent = '♪ ' + Math.round(bpm) + ' BPM';
   });
   setText('.sq-global--tempo .sq-global__head small', Math.round(bpm) + ' BPM');
+  renderTempoRow();
 }
 
 /** Key 를 화면에 넣기 (272) — Key 칩과 피아노롤 속성 */
@@ -775,14 +778,13 @@ export function askAutomationOverlap(info) {
 
 /**
  * 템포 · 박자 줄 (FR-202a, 목업 14)
- * - tempo_changes → .sq-global__pt(--at 마디, --y = (170 - bpm) / 40 * 100) + polyline points
- * - meter_changes → .sq-global__seg(--s · --l), 바뀌는 곳은 .is-change
- * - 점을 끌어 BPM·위치 바꾸기, 더블 클릭으로 추가
+ * - 템포 줄은 S1-16 에서 sequencer-tempo.js 가 그립니다 (변경점 찍기, 끌기, 지우기, 저장).
+ * - 박자 줄(meter_changes)은 서버 모델이 없어 정적 표시 그대로입니다.
  * @param {object[]} tempoChanges
- * @param {object[]} meterChanges
+ * @param {object[]} meterChanges  아직 쓰지 않음
  */
 export function renderGlobalLanes(tempoChanges, meterChanges) {
-  // TODO
+  setTempoRow(tempoChanges);
 }
 
 /**
@@ -916,6 +918,7 @@ initExport();
 
 // 오토메이션 — 점 저장은 오토메이션 표가 생긴 뒤 (S2-04)
 initFades({ lanes: document.getElementById('lanes') });
+  initTempoRow();
 initAutomation({
   onChange: (change) => {
     if (change.type === 'automationMode') {
