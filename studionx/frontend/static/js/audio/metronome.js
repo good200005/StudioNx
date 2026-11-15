@@ -99,6 +99,32 @@ export class Metronome {
   }
 
   /**
+   * 박자 변경점을 넣음 (S1-18) — tick 에서 쓸 박자를 이 목록으로 정함
+   * @param {{tick:number, num:number, den:number}[]} list  tick 오름차순 변경점 (시작 박자는 setTimeSignature)
+   * @returns {Metronome} self
+   */
+  setMeterChanges(list) {
+    list = list || [];
+    list.forEach(function (c) { assertTimeSig(c.num, c.den); });
+    this.meterChanges = list.slice().sort(function (a, b) { return a.tick - b.tick; });
+    return this;
+  }
+
+  /**
+   * tick 에서 쓰는 박자 구간 — 마지막으로 지나온 변경점, 없으면 시작 박자 (S1-18)
+   * @param {number} tick
+   * @returns {{tick:number, num:number, den:number}}
+   */
+  meterAt(tick) {
+    let seg = { tick: 0, num: this.timeSigNum, den: this.timeSigDen };
+    const list = this.meterChanges || [];
+    for (let i = 0; i < list.length; i++) {
+      if (list[i].tick <= tick) seg = list[i];
+    }
+    return seg;
+  }
+
+  /**
    * 한 단계 판정 — 켜져 있고 박 위이면 click(time, accent) 를 부름
    * @param {number} tick
    * @param {number} time  소리 시각(초)
@@ -106,7 +132,8 @@ export class Metronome {
    */
   step(tick, time) {
     if (!this.enabled) return null;
-    const info = metronomeClick(tick, this.timeSigNum, this.timeSigDen);
+    const seg = this.meterAt(tick);
+    const info = metronomeClick(tick - seg.tick, seg.num, seg.den);   // 구간 시작부터 마디를 센다
     if (info === null) return null;
     this.click(time, info.accent);
     return info;
