@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "erd",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\USER\\Desktop\\myProject\\StudioNx\\docs\\portfolio\\.archify\\v2-20261028-100000\\erd.json",
+    "sha256": "bd73cf7725810abd3a0ccfb616e7f0c96337c11f1a5d767f2950e12514510cfd",
+    "bytes": 7783
+  },
+  "artifact": {
+    "path": "C:\\Users\\USER\\Desktop\\myProject\\StudioNx\\docs\\portfolio\\studionx-erd.html",
+    "sha256": "cd3991c852c857be3847b8cc8e0b3b9a3442bfaf220bba9035ef37fb1e316cef",
+    "bytes": 868556
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\USER\\Desktop\\myProject\\StudioNx\\docs\\portfolio\\studionx-erd.finalize.json",
+    "summaryReceipt": "C:\\Users\\USER\\Desktop\\myProject\\StudioNx\\docs\\portfolio\\studionx-erd.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\USER\\Desktop\\myProject\\StudioNx\\docs\\portfolio\\studionx-erd.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-27T12:59:02.245Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 3150,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

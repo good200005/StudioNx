@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "99ac9d97-9fcd-4c5b-afa3-1947f87348d5",
+  "status": "current",
+  "command": "deliver",
+  "type": "erd",
+  "input": "C:\\Users\\USER\\Desktop\\myProject\\StudioNx\\docs\\portfolio\\.archify\\v2-20261028-100000\\erd.json",
+  "output": "C:\\Users\\USER\\Desktop\\myProject\\StudioNx\\docs\\portfolio\\studionx-erd.html",
+  "specification": {
+    "sha256": "bd73cf7725810abd3a0ccfb616e7f0c96337c11f1a5d767f2950e12514510cfd",
+    "bytes": 7783
+  },
+  "artifact": {
+    "sha256": "cd3991c852c857be3847b8cc8e0b3b9a3442bfaf220bba9035ef37fb1e316cef",
+    "bytes": 868556
+  }
+}

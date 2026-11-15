@@ -1,0 +1,364 @@
+{
+  "schema_version": 1,
+  "diagram_type": "erd",
+  "meta": {
+    "title": "Studio Nx のデータ構造(主な項目のみ)",
+    "output": "docs/portfolio/studionx-erd.html",
+    "quality_profile": "showcase"
+  },
+  "layout": {
+    "mode": "grid",
+    "gapY": 38,
+    "gapX": 72
+  },
+  "entities": [
+    {
+      "id": "users",
+      "label": "users",
+      "tag": "ユーザー",
+      "row": 1,
+      "col": 3,
+      "attributes": [
+        {
+          "name": "user_id",
+          "type": "bigint",
+          "key": "pk"
+        },
+        {
+          "name": "email",
+          "type": "varchar(255)",
+          "key": "uk"
+        },
+        {
+          "name": "nickname",
+          "type": "varchar(50)",
+          "key": "uk"
+        },
+        {
+          "name": "role",
+          "type": "enum"
+        },
+        {
+          "name": "created_at",
+          "type": "datetime"
+        }
+      ]
+    },
+    {
+      "id": "samples",
+      "label": "samples",
+      "tag": "素材",
+      "row": 2,
+      "col": 0,
+      "attributes": [
+        {
+          "name": "sample_id",
+          "type": "bigint",
+          "key": "pk"
+        },
+        {
+          "name": "owner_id",
+          "type": "bigint"
+        },
+        {
+          "name": "name",
+          "type": "varchar(200)"
+        },
+        {
+          "name": "file_path",
+          "type": "varchar(500)"
+        },
+        {
+          "name": "duration_ms",
+          "type": "int"
+        }
+      ]
+    },
+    {
+      "id": "projects",
+      "label": "projects",
+      "tag": "曲のデータ",
+      "row": 1,
+      "col": 2,
+      "attributes": [
+        {
+          "name": "project_id",
+          "type": "bigint",
+          "key": "pk"
+        },
+        {
+          "name": "owner_id",
+          "type": "bigint",
+          "key": "fk",
+          "references": "users.user_id"
+        },
+        {
+          "name": "title",
+          "type": "varchar(100)"
+        },
+        {
+          "name": "bpm",
+          "type": "decimal(6,2)"
+        },
+        {
+          "name": "sample_rate",
+          "type": "int"
+        }
+      ]
+    },
+    {
+      "id": "patterns",
+      "label": "patterns",
+      "tag": "曲のデータ",
+      "row": 2,
+      "col": 2,
+      "attributes": [
+        {
+          "name": "pattern_id",
+          "type": "bigint",
+          "key": "pk"
+        },
+        {
+          "name": "project_id",
+          "type": "bigint",
+          "key": "fk",
+          "references": "projects.project_id"
+        },
+        {
+          "name": "name",
+          "type": "varchar(100)"
+        },
+        {
+          "name": "length_tick",
+          "type": "int"
+        }
+      ]
+    },
+    {
+      "id": "midi_notes",
+      "label": "midi_notes",
+      "tag": "曲のデータ",
+      "row": 3,
+      "col": 2,
+      "attributes": [
+        {
+          "name": "note_id",
+          "type": "bigint",
+          "key": "pk"
+        },
+        {
+          "name": "pattern_id",
+          "type": "bigint",
+          "key": "fk",
+          "references": "patterns.pattern_id"
+        },
+        {
+          "name": "pitch",
+          "type": "tinyint"
+        },
+        {
+          "name": "start_tick",
+          "type": "int"
+        },
+        {
+          "name": "length_tick",
+          "type": "int"
+        }
+      ]
+    },
+    {
+      "id": "tracks",
+      "label": "tracks",
+      "tag": "トラックと配置",
+      "row": 1,
+      "col": 1,
+      "attributes": [
+        {
+          "name": "track_id",
+          "type": "bigint",
+          "key": "pk"
+        },
+        {
+          "name": "project_id",
+          "type": "bigint",
+          "key": "fk",
+          "references": "projects.project_id"
+        },
+        {
+          "name": "name",
+          "type": "varchar(100)"
+        },
+        {
+          "name": "track_type",
+          "type": "enum"
+        },
+        {
+          "name": "volume_db",
+          "type": "decimal(5,2)"
+        }
+      ]
+    },
+    {
+      "id": "clips",
+      "label": "clips",
+      "tag": "トラックと配置",
+      "row": 2,
+      "col": 1,
+      "attributes": [
+        {
+          "name": "clip_id",
+          "type": "bigint",
+          "key": "pk"
+        },
+        {
+          "name": "track_id",
+          "type": "bigint",
+          "key": "fk",
+          "references": "tracks.track_id"
+        },
+        {
+          "name": "sample_id",
+          "type": "bigint",
+          "key": "fk",
+          "references": "samples.sample_id"
+        },
+        {
+          "name": "pattern_id",
+          "type": "bigint",
+          "key": "fk",
+          "references": "patterns.pattern_id"
+        },
+        {
+          "name": "start_tick",
+          "type": "int"
+        },
+        {
+          "name": "length_tick",
+          "type": "int"
+        }
+      ]
+    },
+    {
+      "id": "track_connections",
+      "label": "track_connections",
+      "tag": "トラックと配置",
+      "row": 0,
+      "col": 1,
+      "attributes": [
+        {
+          "name": "connection_id",
+          "type": "bigint",
+          "key": "pk"
+        },
+        {
+          "name": "from_track_id",
+          "type": "bigint",
+          "key": "fk",
+          "references": "tracks.track_id"
+        },
+        {
+          "name": "to_track_id",
+          "type": "bigint",
+          "key": "fk",
+          "references": "tracks.track_id"
+        },
+        {
+          "name": "volume_db",
+          "type": "decimal(5,2)"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "id": "projects_users",
+      "from": "projects",
+      "to": "users",
+      "label": "作成者",
+      "fromCardinality": "many",
+      "toCardinality": "one"
+    },
+    {
+      "id": "patterns_projects",
+      "from": "patterns",
+      "to": "projects",
+      "fromCardinality": "many",
+      "toCardinality": "one"
+    },
+    {
+      "id": "notes_patterns",
+      "from": "midi_notes",
+      "to": "patterns",
+      "label": "音符",
+      "fromCardinality": "many",
+      "toCardinality": "one"
+    },
+    {
+      "id": "tracks_projects",
+      "from": "tracks",
+      "to": "projects",
+      "fromCardinality": "many",
+      "toCardinality": "one"
+    },
+    {
+      "id": "clips_tracks",
+      "from": "clips",
+      "to": "tracks",
+      "label": "配置",
+      "fromCardinality": "many",
+      "toCardinality": "one"
+    },
+    {
+      "id": "clips_samples",
+      "from": "clips",
+      "to": "samples",
+      "fromCardinality": "many",
+      "fromOptional": true,
+      "toCardinality": "one",
+      "identifying": false
+    },
+    {
+      "id": "clips_patterns",
+      "from": "clips",
+      "to": "patterns",
+      "fromCardinality": "many",
+      "fromOptional": true,
+      "toCardinality": "one",
+      "identifying": false
+    },
+    {
+      "id": "conn_tracks",
+      "from": "track_connections",
+      "to": "tracks",
+      "label": "接続",
+      "fromCardinality": "many",
+      "toCardinality": "one"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "この図について",
+      "items": [
+        "実際のテーブルの中から、主な項目だけを載せています",
+        "線は、どのデータがどのデータに属するかを表します"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "曲のデータ",
+      "items": [
+        "プロジェクトの中にパターン(音符のまとまり)があります",
+        "音符はパターンごとに保存します"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "トラックと配置",
+      "items": [
+        "クリップは、サンプル音声かパターンのどちらかを指します",
+        "そのため、どちらの線も点線(省略可)で表しています"
+      ]
+    }
+  ]
+}

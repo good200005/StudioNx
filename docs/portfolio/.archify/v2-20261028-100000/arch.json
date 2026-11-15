@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Studio Nx の全体構成",
+    "output": "docs/portfolio/studionx-architecture-v2.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "ユーザー", "sublabel": "作曲する人", "pos": [40, 150], "size": [140, 60] },
+    { "id": "seq", "type": "frontend", "label": "シーケンサー画面", "sublabel": "タイムライン・ピアノロール", "pos": [320, 150], "size": [190, 60] },
+    { "id": "wav", "type": "frontend", "label": "WAV 書き出し", "sublabel": "ブラウザ内で音声を作成", "pos": [320, 290], "size": [190, 60] },
+    { "id": "auth", "type": "backend", "label": "会員管理", "sublabel": "ログイン・会員情報", "pos": [700, 40], "size": [170, 60] },
+    { "id": "save", "type": "backend", "label": "プロジェクト管理", "sublabel": "曲の保存と読み込み", "pos": [700, 150], "size": [170, 60] },
+    { "id": "files", "type": "cloud", "label": "音声ファイル", "sublabel": "取り込んだサンプル", "pos": [700, 290], "size": [170, 60] },
+    { "id": "db", "type": "database", "label": "データベース", "sublabel": "MySQL", "pos": [1050, 150], "size": [150, 60] }
+  ],
+  "boundaries": [],
+  "connections": [
+    { "id": "user-to-seq", "from": "user", "to": "seq", "label": "操作", "variant": "emphasis" },
+    { "id": "seq-to-save", "from": "seq", "to": "save", "label": "保存・読み込み" },
+    { "id": "save-to-db", "from": "save", "to": "db", "label": "データの保存" },
+    { "id": "seq-to-auth", "from": "seq", "to": "auth", "label": "ログイン", "fromSide": "top", "toSide": "left" },
+    { "id": "auth-to-db", "from": "auth", "to": "db", "label": "会員情報", "fromSide": "right", "toSide": "top" },
+    { "id": "seq-to-wav", "from": "seq", "to": "wav", "label": "書き出し", "variant": "dashed", "fromSide": "bottom", "toSide": "top" },
+    { "id": "save-to-files", "from": "save", "to": "files", "label": "ファイル保管", "variant": "dashed", "fromSide": "bottom", "toSide": "top" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "ブラウザ側", "items": ["作曲の画面と音の再生を担当します", "音源やエフェクトの追加もここで行います", "WAV の書き出しもブラウザの中で処理します"] },
+    { "dot": "emerald", "title": "サーバー側", "items": ["ログインと会員情報を管理します", "トラックやクリップなど、曲のデータを保存します"] },
+    { "dot": "rose", "title": "データの保管", "items": ["曲の情報はデータベースに入ります", "取り込んだサンプル音声はファイルとして保管します"] }
+  ]
+}
