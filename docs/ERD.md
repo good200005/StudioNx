@@ -66,6 +66,7 @@
 | patterns → clips | 0..1 : N | `clips.pattern_id` (null) | MIDI 클립은 패턴 필수. 같은 패턴을 쓰는 클립 = 링크 클립 |
 | tracks → automation_lanes | 1 : N | `automation_lanes.track_id` | 트랙별 오토메이션 레인 (MASTER 포함) |
 | track_plugins → automation_lanes | 0..1 : N | `automation_lanes.track_plugin_id` (null) | 디바이스 파라미터 오토메이션 |
+| track_instruments → automation_lanes | 0..1 : N | `automation_lanes.track_instrument_id` (null) | 악기 파라미터 오토메이션 (2026-11-15) |
 | automation_lanes → automation_points | 1 : N | `automation_points.lane_id` | 포인트 (tick, 값, 곡선) |
 | projects → tempo_changes | 1 : N | `tempo_changes.project_id` | 곡 중간 템포 변경점 (시작 템포는 `projects.bpm`) |
 | projects → meter_changes | 1 : N | `meter_changes.project_id` | 곡 중간 박자 변경점 (시작 박자는 `projects.time_sig_*`) |

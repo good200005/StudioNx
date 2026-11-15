@@ -450,6 +450,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | track_id | BIGINT UNSIGNED | N | | FK → tracks, IDX | 대상 트랙 (MASTER 트랙 포함) |
 | target_type | ENUM('VOLUME','PAN','INSTRUMENT_PARAM','DEVICE_PARAM') | N | | | 대상 종류 |
 | track_plugin_id | BIGINT UNSIGNED | Y | NULL | FK → track_plugins | `DEVICE_PARAM`일 때 대상 디바이스 |
+| track_instrument_id | BIGINT UNSIGNED | Y | NULL | FK → track_instruments | `INSTRUMENT_PARAM`일 때 대상 악기 (2026-11-15 추가) |
 | param_index | SMALLINT UNSIGNED | Y | NULL | | `*_PARAM`일 때 `param_schema` 순번 |
 | is_enabled | TINYINT(1) | N | 1 | | 레인 켜기/끄기 |
 | created_at | DATETIME(3) | N | CURRENT | | |
@@ -756,6 +757,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON studionx.* TO 'studionx_app'@'localhost'
 | samples → tracks.frozen_sample_id | SET NULL | 프리즈 오디오가 지워지면 프리즈 해제 |
 | patterns → midi_cc_events | CASCADE | |
 | track_plugins → automation_lanes | CASCADE | 디바이스를 지우면 그 파라미터 오토메이션도 삭제 |
+| track_instruments → automation_lanes | CASCADE | 악기를 지우면 그 파라미터 오토메이션도 삭제 |
 | projects → timeline_comments, project_snapshots | CASCADE | |
 | tracks / clips → timeline_comments | SET NULL | 트랙·클립이 지워져도 코멘트는 tick 위치로 남음 |
 | timeline_comments → 답글 | CASCADE | 원 코멘트 삭제 시 답글도 삭제 (실제로는 소프트 삭제 사용) |
@@ -1169,6 +1171,7 @@ CREATE TABLE automation_lanes (
   track_id        BIGINT UNSIGNED   NOT NULL,
   target_type     ENUM('VOLUME','PAN','INSTRUMENT_PARAM','DEVICE_PARAM') NOT NULL,
   track_plugin_id BIGINT UNSIGNED   NULL,
+  track_instrument_id BIGINT UNSIGNED NULL,
   param_index     SMALLINT UNSIGNED NULL,
   is_enabled      TINYINT(1)        NOT NULL DEFAULT 1,
   created_at      DATETIME(3)       NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -1176,7 +1179,8 @@ CREATE TABLE automation_lanes (
   PRIMARY KEY (lane_id),
   KEY idx_lanes_track (track_id),
   CONSTRAINT fk_lanes_track  FOREIGN KEY (track_id)        REFERENCES tracks (track_id)               ON DELETE CASCADE,
-  CONSTRAINT fk_lanes_device FOREIGN KEY (track_plugin_id) REFERENCES track_plugins (track_plugin_id) ON DELETE CASCADE
+  CONSTRAINT fk_lanes_device FOREIGN KEY (track_plugin_id) REFERENCES track_plugins (track_plugin_id) ON DELETE CASCADE,
+  CONSTRAINT fk_lanes_instrument FOREIGN KEY (track_instrument_id) REFERENCES track_instruments (track_instrument_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE automation_points (
@@ -1525,6 +1529,7 @@ CREATE TABLE project_snapshots (
 | 2026-10-06 | **시퀀서 기능 보강** ([Sequencer_Feature_Gaps.md](Sequencer_Feature_Gaps.md) A·B + PRD 02 §4.17): 새 표 `track_instruments`(레이어 악기 — `tracks.instrument_plugin_id`·`instrument_params` 삭제), `track_sends`(센드), `track_connections`(Connect to Another), `midi_cc_events`(CC·피치벤드·페달), `markers` / `tracks`: `GROUP`·`RETURN` 종류, `is_enabled`, `parent_track_id`, `frozen_sample_id` / `clips`: 페이드·Warp·음정·거꾸로 / `midi_notes`: `release_velocity`·`is_muted`·`probability`·`velocity_deviation` / `patterns.swing` / `plugins` `MIDI_EFFECT` / `samples` `BOUNCE`·`RESAMPLE` / `export_jobs.export_mode`. 총 42개 테이블. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-06_sequencer_feature_gaps.sql` |
 | 2026-10-05 | `tempo_changes`·`meter_changes` 추가 — 곡 중간 BPM 변속·박자 변경(템포·박자 지도). `projects.bpm`·`time_sig_*`는 시작 값. 총 37개 테이블. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-05_tempo_meter_changes.sql` |
 | 2026-10-19 | 시스템 플러그인 시드에 `delay`(Delay) 추가 — 두 DAW 기본 이펙트 비교 결과 ([Default_Instruments_Effects.md](Default_Instruments_Effects.md)). 표 구조 변경 없음, 시드 8종. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-19_plugin_delay.sql` |
+| 2026-11-15 | `automation_lanes.track_instrument_id` 추가 (FK → track_instruments), `INSTRUMENT_PARAM` 레인이 악기를 가리키게 함. 이전에는 `track_plugin_id` 가 `track_plugins` 만 참조해서 악기 노브 오토메이션을 저장할 수 없었음. 표 수 그대로. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-11-15_automation_instrument_lane.sql` |
 | 2026-10-21 | `sampler` 플러그인의 `param_schema`에 `sample_id`(type `sample`)와 `mode`(Classic, One-Shot) 추가, S1-11c Sampler MIDI 연주 ([Default_Instruments_Effects.md](Default_Instruments_Effects.md)). 항목에 `display`(`segment`)와 옵션의 `hint` 필드가 새로 생겼습니다. 표 구조 변경 없음, 시드 8종. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-21_sampler_sample_mode.sql` |
 | 2026-10-05 | `users.privacy_agreed_at`, `users.privacy_version` 추가 — 가입 때 개인정보 처리방침 동의 기록 (GDPR·개인정보 보호법 동의 증빙, [Privacy_Policy_Draft.md](Privacy_Policy_Draft.md) D3). 테이블 수 그대로 35개. 기존 DB용 변경 SQL: `studionx/db/migrations/2026-10-05_users_privacy_consent.sql` |
 | 2026-10-01 | 이름 **Nyxi** 확정 · `user_settings.tips_level`/`tips_state`(Nyxi 팁) · `plugins.card_asset` 및 `param_schema`의 `primary`/`group`(카드 UI·상세 모달) 추가 |

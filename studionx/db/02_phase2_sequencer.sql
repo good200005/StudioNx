@@ -283,6 +283,7 @@ CREATE TABLE automation_lanes (
   track_id        BIGINT UNSIGNED   NOT NULL,
   target_type     ENUM('VOLUME','PAN','INSTRUMENT_PARAM','DEVICE_PARAM') NOT NULL,
   track_plugin_id BIGINT UNSIGNED   NULL,
+  track_instrument_id BIGINT UNSIGNED NULL,
   param_index     SMALLINT UNSIGNED NULL,
   is_enabled      TINYINT(1)        NOT NULL DEFAULT 1,
   created_at      DATETIME(3)       NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -290,7 +291,8 @@ CREATE TABLE automation_lanes (
   PRIMARY KEY (lane_id),
   KEY idx_lanes_track (track_id),
   CONSTRAINT fk_lanes_track  FOREIGN KEY (track_id)        REFERENCES tracks (track_id)               ON DELETE CASCADE,
-  CONSTRAINT fk_lanes_device FOREIGN KEY (track_plugin_id) REFERENCES track_plugins (track_plugin_id) ON DELETE CASCADE
+  CONSTRAINT fk_lanes_device FOREIGN KEY (track_plugin_id) REFERENCES track_plugins (track_plugin_id) ON DELETE CASCADE,
+  CONSTRAINT fk_lanes_instrument FOREIGN KEY (track_instrument_id) REFERENCES track_instruments (track_instrument_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE automation_points (

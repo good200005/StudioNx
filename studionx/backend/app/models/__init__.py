@@ -1,5 +1,6 @@
 """ORM 모델 모음. 여기서 모두 import 해 두어야 관계(relationship)의 문자열 이름이 연결된다."""
 
+from app.models.automation import AutomationLane, AutomationPoint, AutomationTarget
 from app.models.clip import Clip, ClipType, WarpMode
 from app.models.dev_note import DevNote
 from app.models.inquiry import Inquiry
@@ -18,6 +19,9 @@ from app.models.track_plugin import TrackInstrument, TrackPlugin, TrackPluginLin
 from app.models.user import User
 
 __all__ = [
+    "AutomationLane",
+    "AutomationPoint",
+    "AutomationTarget",
     "Clip",
     "ClipType",
     "ConnectionTarget",

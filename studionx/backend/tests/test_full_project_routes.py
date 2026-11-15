@@ -213,7 +213,7 @@ def test_full_returns_project_tracks_and_patterns(client, db):
 
     data = get(client, user, project.project_id)
 
-    assert set(data) == {"project", "tracks", "patterns", "clips", *EMPTY_LATER}
+    assert set(data) == {"project", "tracks", "patterns", "clips", "automation", *EMPTY_LATER}
     assert set(data["project"]) == PROJECT_KEYS
     assert data["project"]["title"] == "Full Basic"
     assert data["project"]["my_role"] == "OWNER"
