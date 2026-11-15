@@ -111,6 +111,46 @@ try {
   const dots2 = await q(`document.querySelectorAll('.sq-global--tempo .sq-global__pt').length`);
   check('기준 점은 지워지지 않음', Number(dots2) === 2, 'dots=' + dots2);
   await b.shot(OUT + '04_after_delete.png');
+
+  // 6) 되돌리기와 다시 실행 (S1-17)
+  const hist = (fn) => api(`const h=await import('/static/js/pages/sequencer-history.js'); await h.${fn}(); return 'ok'`);
+  await hist('undo'); await sleep(900);
+  t = await tempoOf();
+  check('삭제 되돌리기: 점 2개와 LINEAR 복원', t.length === 2 && t[1].ramp === 'LINEAR', JSON.stringify(t));
+  await hist('redo'); await sleep(900);
+  t = await tempoOf();
+  check('다시 실행: 1개', t.length === 1, JSON.stringify(t));
+
+  // 7) 새로 열어 기록을 비우고: 추가 2번, 끌기, 램프를 차례로 되돌림
+  await api(`await m.api.put('/projects/14431/tempo-changes',{changes:[]})`);
+  await b.goto(BASE + '/studioNx.html?projectId=14431');
+  await sleep(2500);
+  await q(`document.getElementById('automation-mode').click()`);
+  await sleep(800);
+  const b2 = await rect('.sq-global--tempo .sq-global__body');
+  await click(b2.x + barW * 8, b2.y + b2.h / 2);
+  await click(b2.x + barW * 16, b2.y + b2.h * 0.25);
+  const q0 = await tempoOf();
+  const g1 = await rect('.sq-global__pt[data-i="1"]');
+  await drag(g1.x + g1.w / 2, g1.y + g1.h / 2, g1.x + g1.w / 2 + barW * 2, g1.y + g1.h / 2 + 12);
+  await sleep(700);
+  const g2 = await rect('.sq-global__pt[data-i="2"]');
+  await click(g2.x + g2.w / 2, g2.y + g2.h / 2, 8);
+  await sleep(700);
+  t = await tempoOf();
+  check('준비: 점 2개, 램프 LINEAR', t.length === 2 && t[1].ramp === 'LINEAR', JSON.stringify(t));
+  await hist('undo'); await sleep(900);
+  t = await tempoOf();
+  check('램프 되돌리기: STEP', t.length === 2 && t[1].ramp === 'STEP', JSON.stringify(t));
+  await hist('undo'); await sleep(900);
+  t = await tempoOf();
+  check('끌기 되돌리기: 처음 위치와 BPM', t.length === 2 && t[0].tick === q0[0].tick && t[0].bpm === q0[0].bpm, JSON.stringify(t));
+  await hist('undo'); await hist('undo'); await sleep(900);
+  t = await tempoOf();
+  check('추가 두 번 모두 되돌리면 비어 있음', t.length === 0, JSON.stringify(t));
+  await hist('redo'); await sleep(900);
+  t = await tempoOf();
+  check('다시 실행하면 첫 점이 돌아옴', t.length === 1, JSON.stringify(t));
 } catch (e) {
   console.log('오류', e && e.message);
   results.push(false);

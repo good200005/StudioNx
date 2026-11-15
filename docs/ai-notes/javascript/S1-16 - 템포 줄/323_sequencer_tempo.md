@@ -3,7 +3,7 @@
 | 항목 | 내용 |
 |---|---|
 | 파일 | `studionx/frontend/static/js/pages/sequencer-tempo.js` |
-| 작업 | S1-16 템포 줄: 오토메이션 모드의 Tempo 줄에서 템포 변경점을 찍고, 끌고, 지우고, 저장 |
+| 작업 | S1-16 템포 줄: 오토메이션 모드의 Tempo 줄에서 템포 변경점을 찍고, 끌고, 지우고, 저장 (S1-17에서 되돌리기 추가) |
 | 작성 | Claude (AI), 2026-11-15, 사용자 검토 |
 | 이전, 다음 | 이전 322 재생 연결, 다음 없음 |
 
@@ -82,7 +82,21 @@ api.put('/projects/' + pid + '/tempo-changes', { changes: playbackTempoChanges()
 
 400ms 안에 이어진 편집은 한 번으로 모아 보냅니다. 서버는 목록을 통째로 바꿔 저장합니다 (S1-13). 저장에 실패하면 콘솔에 경고만 남깁니다.
 
-### 3.5 최신 문법으로 쓰면
+### 3.5 되돌리기 `record` (S1-17)
+
+```js
+function record(label, before, after) {
+  pushHistory({
+    label: label,
+    undo: function () { commit(before, true); },
+    redo: function () { commit(after, true); },
+  });
+}
+```
+
+추가, 끌기, 램프 전환, 삭제가 끝날 때마다 바꾸기 전 목록(`before`)과 후 목록(`after`)을 `sequencer-history.js`에 기록합니다. 되돌리기와 다시 실행은 그 목록을 그대로 `commit`하므로 화면, 재생 목록, 서버 저장이 함께 돌아갑니다. 끌기는 놓을 때 한 번만 기록하고, 움직이지 않고 뗀 경우는 기록하지 않습니다. `Ctrl+Z`와 `Ctrl+Shift+Z`, 메뉴의 EDIT 항목이 그대로 쓰입니다.
+
+### 3.6 최신 문법으로 쓰면
 
 ```js
 const baseBpm = () => parseFloat(document.getElementById('bpm')?.textContent) || 120;
@@ -100,7 +114,7 @@ Q. 첫 점은 왜 못 끄나요?
 A. 곡의 시작 BPM은 프로젝트 BPM이어서 상단 칩에서 바꿉니다. 이 줄은 그 뒤의 변경점만 다룹니다.
 
 Q. 실행 취소가 되나요?
-A. 아직 안 됩니다. 변경점 편집은 실행 취소 기록에 넣지 않았습니다.
+A. 됩니다 (S1-17). 프로젝트를 다시 열면 기록은 비워집니다.
 
 Q. 박자(Meter) 줄은요?
 A. 서버에 박자 변경 모델이 없고, 마디 길이가 바뀌면 눈금자와 스냅 계산이 모두 달라지므로 따로 다룹니다.
