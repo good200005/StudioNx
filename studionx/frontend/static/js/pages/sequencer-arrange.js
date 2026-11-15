@@ -1,3 +1,4 @@
+import { registerCommand, runCommand } from './sequencer-commands.js';
 import { PPQ, ticksToSecondsWithChanges, secondsToTicks } from '../audio/timing.js';
 
 // 시퀀서 편곡 영역 드래그 · 재생선 (구현: AI — 사용자 요청 2026-10-06 "수정 사항.pdf", "수정 사항2.pdf")
@@ -988,7 +989,7 @@ function initListDrop({ scroll, lanes, onChange }) {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'copy';
       if (ghost) { ghost.parentElement?.classList.remove('is-drop-target'); ghost.remove(); ghost = null; }
-      fillTarget = lanes.querySelector('.sq-fill');
+      fillTarget = lanes.querySelector('.sq-addrow');   // 안내 상자는 ＋ Add Track 줄에 (새 트랙이 생길 자리)
       fillTarget.classList.add('is-drop-new');
       const at = startAt(e.clientX, fillLane(), e.altKey);
       fillTarget.style.setProperty('--drop-at', at);   // 안내 상자를 놓일 자리에
@@ -1551,6 +1552,7 @@ function applyBarWidth(c) {
   const fill = (c.scroll.clientWidth - head) / totalBars(c.lanes);
   c.lanes.style.setProperty('--sq-zoom', c.zoom);
   c.lanes.style.setProperty('--sq-bar-w', `${Math.max(1, Math.round(base * c.zoom), Math.ceil(fill))}px`);
+  window.dispatchEvent(new CustomEvent('sq:zoom'));
 }
 
 /** 1마디 폭에 맞춰 격자 단계 · 줄자 숫자 다시 쓰기 */
@@ -1958,7 +1960,7 @@ export function setLoop(next) {
   requestGrid();
 }
 
-/** 마커 줄에서 마우스 오른쪽 버튼을 누른 채 끌면 Loop 구간 · ⟲ 버튼으로 켜고 끄기 */
+/** 마커 줄 · 마디 눈금에서 마우스 오른쪽 버튼을 누른 채 끌면 Loop 구간 · ⟲ 버튼으로 켜고 끄기 */
 function initLoop({ scroll, lanes, onChange }) {
   const el = document.getElementById('loop');
   if (el) setLoop({ start: parseFloat(el.style.getPropertyValue('--s')) || 0, length: parseFloat(el.style.getPropertyValue('--l')) || 4, on: !el.classList.contains('is-off') });
@@ -1968,8 +1970,35 @@ function initLoop({ scroll, lanes, onChange }) {
     onChange({ type: 'loop', ...getLoop() });
   });
 
-  const row = lanes.querySelector('.sq-markers__track');
-  if (!row) return;
+  // 마커 줄과 마디 눈금 줄 둘 다에서 오른쪽 끌기로 Loop 를 그림 (Ableton 의 루프 브레이스처럼 눈금에서)
+  // 메뉴 · 단축키: 선택한 클립에 맞춰 Loop 를 켜고 (Ctrl+L), 켜고 끄고 (Ctrl+Shift+L), 곡 전체로 (Ableton 의 Loop Selection)
+  registerCommand('loop.selection', function () {
+    const sel = [...lanes.querySelectorAll('.sq-clip.is-selected:not(.is-ghost)')];
+    if (!sel.length) { showToast('Select a clip first, then Loop selection'); return; }
+    let lo = Infinity;
+    let hi = 0;
+    sel.forEach((c) => {
+      const s0 = parseFloat(c.style.getPropertyValue('--s')) || 0;
+      lo = Math.min(lo, s0);
+      hi = Math.max(hi, s0 + (parseFloat(c.style.getPropertyValue('--l')) || 0));
+    });
+    setLoop({ start: lo, length: round(hi - lo), on: true });
+    onChange({ type: 'loop', ...getLoop() });
+  }, { label: 'Loop selection', group: 'edit' });
+  registerCommand('loop.toggle', function () { setLoop({ on: !loopState.on }); onChange({ type: 'loop', ...getLoop() }); }, { label: 'Loop on / off', group: 'edit' });
+  registerCommand('loop.all', function () { setLoop({ start: 0, length: totalBars(lanes), on: true }); onChange({ type: 'loop', ...getLoop() }); }, { label: 'Loop whole project', group: 'edit' });
+  document.addEventListener('keydown', (e) => {
+    if (!(e.ctrlKey || e.metaKey) || e.altKey || e.key.toLowerCase() !== 'l') return;
+    if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
+    if (document.querySelector('dialog[open]')) return;
+    e.preventDefault();   // 브라우저의 주소창 이동 막기
+    runCommand(e.shiftKey ? 'loop.toggle' : 'loop.selection');
+  });
+  const rows = [lanes.querySelector('.sq-markers__track'), lanes.querySelector('.sq-ruler__bars')].filter(Boolean);
+  rows.forEach((row) => bindLoopDrag(row, { scroll, lanes, onChange, isMarkerRow: row.classList.contains('sq-markers__track') }));
+}
+
+function bindLoopDrag(row, { scroll, lanes, onChange, isMarkerRow }) {
   row.addEventListener('contextmenu', (e) => e.preventDefault());   // 오른쪽 버튼은 Loop 그리기에 씀
   let d = null;
   const barAt = (x) => (x - row.getBoundingClientRect().left) / barWidth(lanes);
@@ -1998,7 +2027,7 @@ function initLoop({ scroll, lanes, onChange }) {
     row.releasePointerCapture(e.pointerId);
     row.classList.remove('is-looping');
     if (d.moved) onChange({ type: 'loop', ...getLoop() });
-    else if (!d.onMarker) addMarker(d.anchor, { edit: true });   // 빈 곳 오른쪽 클릭 = 마커 추가 (끌면 Loop)
+    else if (isMarkerRow && !d.onMarker) addMarker(d.anchor, { edit: true });   // 빈 곳 오른쪽 클릭 = 마커 추가 (끌면 Loop)
     d = null;
   };
   row.addEventListener('pointerup', end);

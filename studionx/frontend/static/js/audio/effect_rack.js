@@ -35,6 +35,7 @@ export class EffectRack {
 
     const self = this;
     const chain = [];
+    const groups = [];   // 병렬로 묶인 이펙트 묶음들 (직렬 순서)
     items.forEach(function (e) {
       const params = resolveParams(e.schema, e.params);
       const sig = JSON.stringify(params);
@@ -49,12 +50,16 @@ export class EffectRack {
       } else if (e.plugin_code === 'delay') {
         entry.fx.update(params);    // 템포 동기 딜레이는 BPM 이 바뀌면 값이 달라져서 매번 다시 계산함
       }
+      // params.__parallel 이 켜진 이펙트는 바로 앞 이펙트와 같은 입력을 받는 병렬 체인 (출력은 합쳐짐)
+      const parallel = !!(e.params && e.params.__parallel) && groups.length > 0;
+      if (parallel) groups[groups.length - 1].push({ id: e.id, fx: entry.fx });
+      else groups.push([{ id: e.id, fx: entry.fx }]);
       chain.push({ id: e.id, fx: entry.fx });
     });
 
-    const signature = chain.map(function (c) { return c.id; }).join(',');
+    const signature = groups.map(function (g) { return g.map(function (c) { return c.id; }).join('+'); }).join(',');
     if (this.chains[key] !== signature) {
-      const list = chain.map(function (c) { return c.fx; });
+      const list = groups.map(function (g) { return g.map(function (c) { return c.fx; }); });
       if (key === 'master') this.mixer.setMasterEffects(list);
       else this.mixer.setTrackEffects(trackId, list);
       this.chains[key] = signature;

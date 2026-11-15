@@ -15,6 +15,8 @@ import { initAudio, preloadSamples, projectSampleIds } from './sequencer-audio.j
 import { createLoader, loaderMode, projectInfoText } from './sequencer-loader.js';
 import { initExport } from './sequencer-export.js';
 import { initAutomation } from './sequencer-automation.js';
+import { setLanes, buildLanes, onAutomationChange } from './sequencer-autolanes.js';
+import { initFades, syncFades } from './sequencer-fades.js';
 import { initUI } from './sequencer-ui.js';
 import {
   initDevices, devicesReady, readProjectId, applyFullProject, setDeviceNotifier,
@@ -137,6 +139,8 @@ export async function loadProject(projectId) {
   applyProjectInfo(data.project);
   applyPatterns(data.patterns);
   applyFullProject(data);
+  setLanes(data.automation);
+  syncFades();
   if (window.console) console.debug('[sequencer] loaded', projectId, data.tracks.length, 'tracks');
   return data;
 }
@@ -433,7 +437,77 @@ async function saveNewPattern(change) {
       length_tick: TICKS_PER_BAR * 4,
     });
     patternsById[pattern.pattern_id] = pattern;
+    // 목록 항목과 '놓을 것'이 이 패턴 번호를 가리켜야, 놓은 클립이 방금 만든 빈 패턴을 그대로 씁니다
+    if (change.item) change.item.dataset.patternId = String(pattern.pattern_id);
+    const tpl = getDrawTemplate();
+    if (tpl.kind === 'midi' && tpl.name === name && !tpl.patternId) setDrawTemplate({ ...tpl, patternId: pattern.pattern_id });
     if (globalThis.console) globalThis.console.debug('[sequencer] pattern', pattern.pattern_id);
+    markDirty('pattern');
+  } catch (err) { clipWarn(err); }
+}
+
+/** 지금 '놓을 것'으로 고른 패턴 (이름으로도 찾음). 없으면 null */
+function currentPattern() {
+  const tpl = getDrawTemplate();
+  if (tpl.patternId && patternsById[tpl.patternId]) return patternsById[tpl.patternId];
+  const ids = Object.keys(patternsById);
+  for (let i = 0; i < ids.length; i += 1) {
+    if (patternsById[ids[i]].name === tpl.name) return patternsById[ids[i]];
+  }
+  return null;
+}
+
+/** 패턴 목록을 서버가 가진 값으로 다시 그리고 놓을 것도 맞춤 */
+function refreshPatternList(selectId) {
+  applyPatterns(Object.keys(patternsById).map(function (id) { return patternsById[id]; }));
+  const p = selectId ? patternsById[selectId] : null;
+  if (p) setDrawTemplate({ kind: 'midi', name: p.name, length: Math.round(p.length_tick / TICKS_PER_BAR * 100) / 100, patternId: p.pattern_id });
+}
+
+/** 패턴 복제 (FL Studio 의 Clone pattern) — 노트까지 새 패턴으로 복사 */
+async function clonePattern() {
+  const src = currentPattern();
+  if (!src) { showToast('Pick a saved pattern first'); return; }
+  try {
+    const copy = await api.post('/patterns', {
+      project_id: Number(projectIdOf()),
+      name: (src.name + ' copy').slice(0, 100),
+      color: src.color,
+      length_tick: src.length_tick,
+      swing: src.swing,
+    });
+    const saved = await api.put('/patterns/' + copy.pattern_id + '/notes', {
+      notes: (src.notes || []).map(function (n) {
+        return { pitch: n.pitch, start_tick: n.start_tick, length_tick: n.length_tick, velocity: n.velocity };
+      }),
+    });
+    patternsById[copy.pattern_id] = saved || copy;
+    refreshPatternList(copy.pattern_id);
+    markDirty('pattern');
+    showToast('Pattern cloned: ' + copy.name);
+  } catch (err) { clipWarn(err); }
+}
+
+/** 패턴 이름 · 길이(마디) · 스윙(%) 바꾸기 */
+async function editPattern(field) {
+  const p = currentPattern();
+  if (!p) { showToast('Pick a saved pattern first'); return; }
+  let body = null;
+  if (field === 'name') {
+    const v = window.prompt('Pattern name', p.name);
+    if (v && v.trim()) body = { name: v.trim().slice(0, 100) };
+  } else if (field === 'length') {
+    const v = parseFloat(window.prompt('Pattern length (bars)', String(p.length_tick / TICKS_PER_BAR)));
+    if (v > 0 && v <= 64) body = { length_tick: Math.round(v * TICKS_PER_BAR) };
+  } else {
+    const v = parseFloat(window.prompt('Swing (%)', String(Math.round(Number(p.swing) * 100))));
+    if (v >= 0 && v <= 100) body = { swing: Math.round(v) / 100 };
+  }
+  if (!body) return;
+  try {
+    const updated = await api.patch('/patterns/' + p.pattern_id, body);
+    patternsById[p.pattern_id] = Object.assign({}, p, updated);
+    refreshPatternList(p.pattern_id);
     markDirty('pattern');
   } catch (err) { clipWarn(err); }
 }
@@ -444,6 +518,11 @@ function initPatternCommands() {
     const btn = document.getElementById('pattern-new');
     if (btn) btn.click();
   }, { label: 'New pattern', group: 'patterns' });
+  registerCommand('pattern.clone', clonePattern, { label: 'Clone pattern', group: 'patterns' });
+  registerCommand('pattern.rename', function () { editPattern('name'); }, { label: 'Rename pattern', group: 'patterns' });
+  registerCommand('pattern.length', function () { editPattern('length'); }, { label: 'Pattern length', group: 'patterns' });
+  registerCommand('pattern.swing', function () { editPattern('swing'); }, { label: 'Pattern swing', group: 'patterns' });
+  registerCommand('pattern.openRoll', function () { runRegistered('view.roll'); }, { label: 'Open in piano roll', group: 'patterns' });
   registerCommand('pattern.purge', purgeUnusedPatterns, { label: 'Remove unused patterns', group: 'patterns' });
 }
 
@@ -836,7 +915,17 @@ initAudio();
 initExport();
 
 // 오토메이션 — 점 저장은 오토메이션 표가 생긴 뒤 (S2-04)
-initAutomation({ onChange: (change) => handleChange(Object.assign({}, change, { type: 'automation' })) });
+initFades({ lanes: document.getElementById('lanes') });
+initAutomation({
+  onChange: (change) => {
+    if (change.type === 'automationMode') {
+      if (change.on) buildLanes();
+      return;
+    }
+    onAutomationChange(change);
+    handleChange(Object.assign({}, change, { type: 'automation' }));
+  },
+});
 
 // 화면 버튼 — 곡 설정(BPM · Key)은 이력·저장 대기열로, 나머지는 표시만
 initUI({ onChange: (change) => handleChange(change) });

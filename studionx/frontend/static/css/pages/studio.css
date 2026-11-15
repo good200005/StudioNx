@@ -381,7 +381,7 @@ body.sq {
 .sq-clip__name { padding: 1px 0.3rem; font-weight: 600; font-size: 0.64rem; white-space: nowrap; overflow: hidden; }
 .sq-clip__preview { flex: 1; width: 100%; min-height: 0; display: block; }
 /* JS 가 canvas 에 그리기 전 자리 표시 무늬: MIDI = 노트 막대, 오디오 = 파형 */
-.sq-clip--midi .sq-clip__preview { background: repeating-linear-gradient(90deg, transparent 0 0.45rem, color-mix(in srgb, var(--tc) 70%, transparent) 0.45rem 0.6rem) 0 55% / 100% 30% no-repeat; }
+.sq-clip--midi .sq-clip__preview { background: none; }   /* 노트는 JS 가 캔버스에 그림. 빈 패턴은 비어 보임 */
 .sq-clip--audio .sq-clip__preview { background: none; mask: none; }   /* 파형은 JS 가 캔버스에 그림 (FR-210) */
 .sq-clip.is-selected { outline: 2px solid var(--c-ink); outline-offset: -1px; }
 .sq-clip.is-frozen { filter: saturate(0.2) brightness(0.85); }
@@ -623,6 +623,7 @@ body.sq {
 }
 .sq-note::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; width: 5px; cursor: ew-resize; }   /* 오른쪽 끝 = 길이 손잡이 */
 .sq-note.is-selected { background: var(--c-ink); }
+.sq-roll__marquee { position: absolute; z-index: 5; pointer-events: none; border: 1px solid var(--c-ink); background: color-mix(in srgb, var(--c-ink) 14%, transparent); }   /* Ctrl 드래그 영역 선택 */
 .sq-note.is-muted { background: transparent; border: 1.5px dashed var(--tc-2); color: var(--c-ink-soft); }
 .sq-note.is-ghost { z-index: 0; background: transparent; border: 1px solid rgb(255 255 255 / 0.22); pointer-events: none; }
 :root[data-theme="light"] .sq-note.is-ghost { border-color: rgb(0 0 0 / 0.22); }
@@ -769,8 +770,8 @@ body.sq {
 .sq-auto__tip { position: absolute; z-index: 2; transform: translate(-50%, -150%); padding: 0 0.3rem; font-size: 0.58rem; white-space: nowrap; color: #10120a; background: var(--c-ink); pointer-events: none; }
 /* ───────── 목록 → 새 트랙 (2026-10-06) ───────── */
 /* 빈 곳에 끌어 올리면 새 트랙 안내 */
-.sq-fill { position: relative; }
-.sq-fill.is-drop-new::after {
+.sq-fill, .sq-addrow { position: relative; }
+.sq-addrow.is-drop-new::after {
   content: attr(data-drop-label); position: absolute; left: calc(var(--sq-head-w) + var(--drop-at, 0) * var(--sq-bar-w)); top: 0; height: var(--sq-row-h);
   display: flex; align-items: center; padding: 0 0.75rem; white-space: nowrap;
   border: 1.5px dashed var(--sq-accent); background: color-mix(in srgb, var(--sq-accent) 12%, transparent);
@@ -1035,3 +1036,33 @@ body.sq {
   .sq-ld.is-opening .sq-ld__half--top, .sq-ld.is-opening .sq-ld__half--bot { transform: none; }
   .sq-ld.is-in .sq-ld__wave { animation: none; }
 }
+
+/* 오토메이션 대상 선택기 (S1-15) — 트랙 줄 오른쪽 위, 오토메이션 모드에서만 */
+.sq-auto-pick { display: none; position: absolute; z-index: 5; bottom: 2px; left: 4px; gap: 2px; }
+.sq.is-automation .sq-auto-pick { display: flex; }
+.sq-auto-pick select { max-width: 11rem; font-size: 0.62rem; color: var(--c-ink); background: var(--sq-panel); border: 1px solid var(--sq-auto); }
+.sq-auto-clear { font-size: 0.7rem; line-height: 1; padding: 0 0.35rem; color: var(--c-ink); background: var(--sq-panel); border: 1px solid var(--sq-line-2); cursor: pointer; }
+
+/* 클립 페이드 (S1-15) — 곡선 그림 + 핸들 (핸들은 클립에 올리거나 선택했을 때만 보임) */
+.sq-fade { position: absolute; top: 0; bottom: 0; z-index: 3; pointer-events: none; }
+.sq-fade--in { left: 0; }
+.sq-fade--out { right: 0; }
+.sq-fade svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.sq-fade__area { fill: rgb(0 0 0 / 0.42); stroke: none; }
+.sq-fade__line { fill: none; stroke: var(--c-ink); stroke-width: 1.4; vector-effect: non-scaling-stroke; }
+.sq-fade__h { position: absolute; display: none; pointer-events: auto; cursor: ew-resize; width: 9px; height: 9px; margin: -4px 0 0 -4px; background: var(--c-ink); border: 1px solid var(--sq-bg); }
+.sq-fade__h--len { top: 4px; }
+.sq-fade--in .sq-fade__h--len { left: 100%; }
+.sq-fade--out .sq-fade__h--len { left: 0; }
+.sq-fade--in.is-empty .sq-fade__h--len { left: 8px; }
+.sq-fade--out.is-empty .sq-fade__h--len { left: -4px; }
+.sq-fade__h--curve { border-radius: 50%; cursor: ns-resize; background: var(--sq-accent); }
+.sq-fade.is-empty .sq-fade__h--curve { display: none !important; }
+.sq-clip--audio:hover .sq-fade__h, .sq-clip--audio.is-selected .sq-fade__h, .sq-clip.is-fading .sq-fade__h { display: block; }
+.sq-clip.is-fading { cursor: ew-resize; }
+
+/* 이펙트 병렬 버튼 (S1-15) */
+.sq-fx__par { margin-left: auto; color: var(--c-ink-faint); font-weight: 700; }
+.sq-fx__par + .sq-fx__power { margin-left: 0; }
+.sq-fx__par[aria-pressed="true"] { color: var(--sq-accent); }
+.sq-fx:has(.sq-fx__par[aria-pressed="true"]) { box-shadow: inset 0 3px 0 var(--sq-accent); }

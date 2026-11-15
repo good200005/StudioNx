@@ -7,6 +7,7 @@ import { PPQ } from '../audio/timing.js';
 import { samplerSampleIds } from '../audio/sampler.js';
 import { collectSampleIds } from './sequencer-loader.js';
 import { fetchSampleFileUrl } from '../core/api.js';
+import { getLanes } from './sequencer-autolanes.js';
 import { TICKS_PER_BAR, setTransportHooks, setTempoChangesSource, getLoop } from './sequencer-arrange.js';
 import {
   playbackTracks, clipRecord, patternNotes, playbackInstruments, playbackEffects, playbackTempoChanges,
@@ -29,6 +30,14 @@ function currentBpm() {
  * - 아직 저장되지 않은 트랙(번호가 숫자가 아님)과 샘플이 없는 클립은 건너뜁니다
  * @returns {Array<object>}
  */
+/** 클립의 페이드 길이(tick) — 화면에서 끈 값(data-fade-in/out, 마디)이 우선이고 없으면 서버 기록 */
+function fadeOf(el, name) {
+  const bars = parseFloat(el.dataset[name]);
+  if (isFinite(bars)) return Math.round(bars * TICKS_PER_BAR);
+  const rec = el.dataset.clipId ? clipRecord(el.dataset.clipId) : null;
+  return rec ? Number(rec[name === 'fadeIn' ? 'fade_in_tick' : 'fade_out_tick']) || 0 : 0;
+}
+
 function collectAudioClips() {
   const list = [];
   Array.prototype.forEach.call(document.querySelectorAll('.sq-clip--audio'), function (el) {
@@ -52,6 +61,10 @@ function collectAudioClips() {
       gain_db: rec ? Number(rec.gain_db) || 0 : 0,
       is_looped: rec ? !!rec.is_looped : false,
       pitch_semitones: rec ? Number(rec.pitch_semitones) || 0 : 0,
+      fade_in_tick: fadeOf(el, 'fadeIn'),
+      fade_out_tick: fadeOf(el, 'fadeOut'),
+      fade_in_curve: Number(el.dataset.fadeInCurve) || 0,
+      fade_out_curve: Number(el.dataset.fadeOutCurve) || 0,
     });
   });
   return list;
@@ -197,6 +210,7 @@ function getSession() {
     getMidiClips: collectMidiClips,
     getInstruments: playbackInstruments,
     getEffects: playbackEffects,
+    getAutomation: getLanes,
     getBpm: currentBpm,
     getTempoChanges: playbackTempoChanges,
     getLoop: function () {
@@ -230,6 +244,7 @@ export function exportSnapshot() {
     midiClips: collectMidiClips(),
     getInstruments: playbackInstruments,
     getEffects: playbackEffects,
+    getAutomation: getLanes,
     bpm: currentBpm(),
     tempoChanges: playbackTempoChanges(),
     loop: loop.on && loop.length > 0

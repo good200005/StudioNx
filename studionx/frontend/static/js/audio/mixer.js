@@ -53,6 +53,11 @@ export function audibleTrackIds(tracks) {
  * 믹서 그래프 — 트랙별 볼륨 · 팬 노드와 마스터를 다룸
  * - context 는 AudioContext 또는 OfflineAudioContext 어느 쪽이든 됩니다
  */
+/** 직렬 목록과 병렬 묶음이 섞인 목록을 이펙트 하나씩의 평평한 목록으로 폄 */
+function flatten(list) {
+  return list.reduce(function (all, g) { return all.concat(g); }, []);
+}
+
 export class MixerGraph {
   /**
    * @param {BaseAudioContext} context
@@ -93,10 +98,18 @@ export class MixerGraph {
    * @param {Array<{input:AudioNode, output:AudioNode}>} newList
    */
   _rewire(head, tail, oldList, newList) {
+    const ctx = this.context;
     try { head.disconnect(); } catch (e) { /* 연결이 없었음 */ }
-    oldList.forEach(function (fx) { try { fx.output.disconnect(); } catch (e) { /* 무시 */ } });
+    flatten(oldList).forEach(function (fx) { try { fx.output.disconnect(); } catch (e) { /* 무시 */ } });
+    // 목록의 원소가 배열이면 병렬 묶음 (Ableton Effect Rack 의 체인들): 같은 입력을 받아 각자 처리한 뒤 출력을 합침
     let prev = head;
-    newList.forEach(function (fx) { prev.connect(fx.input); prev = fx.output; });
+    newList.forEach(function (group) {
+      if (!Array.isArray(group)) group = [group];
+      if (group.length === 1) { prev.connect(group[0].input); prev = group[0].output; return; }
+      const sum = ctx.createGain();
+      group.forEach(function (fx) { prev.connect(fx.input); fx.output.connect(sum); });
+      prev = sum;
+    });
     prev.connect(tail);
   }
 

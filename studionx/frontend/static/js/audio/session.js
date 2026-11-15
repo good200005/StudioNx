@@ -9,6 +9,7 @@ import { ClipPlayer, clipsStartingIn, clipsCovering } from './playback.js';
 import { InstrumentRack } from './instruments.js';
 import { NotePlayer, expandNotes, notesStartingIn } from './notes.js';
 import { EffectRack } from './effect_rack.js';
+import { overlayTracks, overlayItems } from './automation.js';
 import { samplerSampleIds } from './sampler.js';
 
 export class PlaybackSession {
@@ -65,18 +66,35 @@ export class PlaybackSession {
     this.effects = new EffectRack(
       this.engine.context,
       this.mixer,
-      deps.getEffects ? deps.getEffects : function () { return []; },
+      function (trackId) {
+        const items = deps.getEffects ? deps.getEffects(trackId) : [];
+        return self.playing ? overlayItems(items, self._lanes(), trackId, 'DEVICE_PARAM', self.positionTick()) : items;
+      },
       function () { return deps.getBpm(); },
     );
     this.rack = new InstrumentRack(
       this.engine.context,
       function (trackId) { return self.mixer.trackInput(trackId); },
-      deps.getInstruments ? deps.getInstruments : function () { return []; },
+      function (trackId) {
+        const items = deps.getInstruments ? deps.getInstruments(trackId) : [];
+        return self.playing ? overlayItems(items, self._lanes(), trackId, 'INSTRUMENT_PARAM', self.positionTick()) : items;
+      },
       function (sampleId) { return self.buffers[String(sampleId)] || null; },
     );
     this.notePlayer = new NotePlayer(this.engine.context, function (trackId, pitch, velocity, when, dur) {
       return self.rack.playNote(trackId, pitch, velocity, when, dur);
     });
+  }
+
+  /** 이번 재생이 쓰는 오토메이션 레인 (getAutomation 이 없으면 빈 목록) */
+  _lanes() {
+    return this.deps.getAutomation ? this.deps.getAutomation() : [];
+  }
+
+  /** 트랙 목록에 지금 위치의 볼륨 · 팬 오토메이션을 덮어씀 (재생 중일 때만) */
+  _tracks(tick) {
+    const tracks = this.deps.getTracks();
+    return this.playing ? overlayTracks(tracks, this._lanes(), tick) : tracks;
   }
 
   /** 샘플 하나를 디코딩해 담아 둠 (같은 번호는 한 번만) */
@@ -150,6 +168,10 @@ export class PlaybackSession {
       });
     }
     this.lastTick = tick;
+    if (this._lanes().length) {
+      this.mixer.applyTracks(this._tracks(tick));
+      this.effects.sync(this._tracks(tick));
+    }
     const self2 = this;
     clipsStartingIn(this.clips, tick, tick + t.stepTicks).forEach(function (c) {
       self2.player.schedule(c, tick, time, t.baseBpm, t.changes);
@@ -162,8 +184,9 @@ export class PlaybackSession {
   /** 믹서 값(볼륨 · 팬 · 뮤트 · 솔로)과 이펙트(추가 · 삭제 · 순서 · 바이패스 · 노브)를 다시 반영 — 재생 중 조작에 쓰임 */
   refreshMixer() {
     if (!this.mixer) return;
-    this.mixer.applyTracks(this.deps.getTracks());
-    this.effects.sync(this.deps.getTracks());
+    const tracks = this._tracks(this.positionTick());
+    this.mixer.applyTracks(tracks);
+    this.effects.sync(tracks);
   }
 
   /**

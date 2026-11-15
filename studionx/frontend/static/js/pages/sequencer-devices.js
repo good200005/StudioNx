@@ -398,8 +398,20 @@ export function renderTracks() {
 
   renderMixerStrips();
   // 캔버스 크기는 줄이 화면에 붙은 뒤에야 잡히므로, 다음 그리기 틱에 MIDI 미리보기를 그립니다
-  if (typeof window !== 'undefined') window.requestAnimationFrame(drawClipPreviews);
+  if (typeof window !== 'undefined') {
+    window.requestAnimationFrame(drawClipPreviews);
+    // 줌 · 창 크기로 클립 폭이 바뀌면 캔버스가 늘어나 흐려지므로 다시 그립니다
+    if (!previewObserver && typeof ResizeObserver !== 'undefined') {
+      var lanesEl = document.getElementById('lanes');
+      if (lanesEl) {
+        previewObserver = new ResizeObserver(function () { window.requestAnimationFrame(drawClipPreviews); });
+        previewObserver.observe(lanesEl);
+        window.addEventListener('sq:zoom', function () { window.requestAnimationFrame(drawClipPreviews); });
+      }
+    }
+  }
 }
+var previewObserver = null;
 
 /** 예시 화면의 MASTER 줄을 실제 트랙 값에 맞추기 (data-track-id · 이름 · ⏻ · M) */
 function syncMasterRow(track, row) {
@@ -963,7 +975,8 @@ export function cardHtml(kind, track, d) {
     + '<div class="sq-fx__head"><span class="sq-fx__grip" aria-hidden="true">' + (kind === 'EFFECT' ? '⠿' : '⏻') + '</span>'
     + '<span class="sq-fx__name">' + esc(name) + '</span>'
     + (kind === 'EFFECT'
-      ? '<button type="button" class="sq-fx__power" aria-pressed="' + String(!d.is_bypassed) + '" aria-label="Bypass">🎛</button>'
+      ? '<button type="button" class="sq-fx__par" aria-pressed="' + String(!!(d.params && d.params.__parallel)) + '" aria-label="Parallel" title="Parallel: run side by side with the effect before it (outputs are summed)">∥</button>'
+        + '<button type="button" class="sq-fx__power" aria-pressed="' + String(!d.is_bypassed) + '" aria-label="Bypass">🎛</button>'
       : '')
     + '<button type="button" class="sq-fx__del" aria-label="Remove ' + (kind === 'EFFECT' ? 'effect' : 'instrument') + '">✕</button></div>'
     + sub
@@ -1068,6 +1081,12 @@ function buildStrip(track, master) {
     + (master ? '' : '<button type="button" class="is-solo" aria-pressed="' + String(!!track.is_solo) + '" aria-label="Solo">S</button>'
       + '<button type="button" class="is-arm" aria-pressed="false" aria-label="Record arm">●</button>')
     + '</span>';
+  // 아래 칸 믹서도 펼침 칸과 같은 조작(끌기 · 휠 · 키)을 씁니다. 연결이 빠져 있어 페이더 · 팬이 움직이지 않았음 (수정 사항3 j)
+  wireControls(strip, track);
+  // 더블클릭 = 0 dB · 가운데로 되돌리기 (Ableton · FL 믹서와 같은 동작)
+  Array.prototype.forEach.call(strip.querySelectorAll('[data-live="track-volume"], [data-live="track-pan"]'), function (el) {
+    el.addEventListener('dblclick', function () { if (el.devCfg) setControlValue(el, el.devCfg, 0, true); });
+  });
   return strip;
 }
 
@@ -2040,6 +2059,21 @@ export function toggleBypass(track, card) {
   });
 }
 
+/**
+ * 이펙트를 바로 앞 이펙트와 병렬로 돌리기 켜기/끄기 (S1-15, Ableton Effect Rack 의 체인처럼)
+ * 켜진 이펙트는 앞 이펙트와 같은 입력을 받고, 둘의 출력이 합쳐져 다음 이펙트로 갑니다.
+ * 켜짐 표시는 params.__parallel 에 저장합니다 (맨 앞 이펙트는 앞이 없어 효과가 없음).
+ */
+export function toggleParallel(track, card) {
+  const device = deviceOfCard(track, card);
+  if (!device) return;
+  const params = Object.assign({}, device.params || {});
+  if (params.__parallel) delete params.__parallel; else params.__parallel = true;
+  updateDevice(track, 'EFFECT', device, { params: params }).then(function (saved) {
+    if (saved) refreshCells(track);
+  });
+}
+
 /** 악기 겹 솔로 켜기/끄기 (FR-245) */
 export function toggleSolo(track, card) {
   const device = deviceOfCard(track, card);
@@ -2087,6 +2121,7 @@ function wireCells(lanes, onChange) {
         return;
       }
       if (card && b.classList.contains('sq-fx__power')) { toggleBypass(track, card); return; }
+      if (card && b.classList.contains('sq-fx__par')) { toggleParallel(track, card); return; }
       if (card && b.classList.contains('sq-fx__del')) {
         const device = deviceOfCard(track, card);
         if (device) removeDevice(track, card.dataset.deviceKind, device);
