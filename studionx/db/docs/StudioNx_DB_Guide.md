@@ -115,7 +115,7 @@ mysql -u studionx_app -p studionx -e "SHOW COLUMNS FROM inquiries LIKE 'privacy_
 | `clips` | 타임라인 클립 (페이드·Warp·음정) | FK track_id, sample_id, pattern_id |
 | `midi_notes` | 패턴의 노트 (릴리즈 벨로시티·뮤트·확률) | FK pattern_id |
 | `midi_cc_events` | 패턴의 CC·피치벤드·페달 | FK pattern_id |
-| `automation_lanes` | 오토메이션 레인 | FK track_id, track_plugin_id |
+| `automation_lanes` | 오토메이션 레인 | FK track_id, track_plugin_id, track_instrument_id |
 | `automation_points` | 오토메이션 포인트 | FK lane_id |
 | `tempo_changes` | 곡 중간 템포 변경점 (시작 템포는 `projects.bpm`) | FK project_id, UQ (project_id, tick) |
 | `meter_changes` | 곡 중간 박자 변경점 (시작 박자는 `projects.time_sig_*`) | FK project_id, UQ (project_id, tick) |

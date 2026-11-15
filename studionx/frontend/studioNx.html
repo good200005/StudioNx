@@ -71,7 +71,7 @@
         <button type="button" id="btn-stop" aria-label="Stop">■</button>
         <button type="button" class="is-rec" id="btn-rec" aria-label="Record">●</button>
         <!-- Loop 켜기 — 범위는 마커 줄에서 오른쪽 버튼으로 끌어 정함 (2026-10-06) -->
-        <button type="button" class="is-loop" id="btn-loop" aria-pressed="false" aria-label="Loop" title="Loop — right-drag on the marker row to set the range">⟲</button>
+        <button type="button" class="is-loop" id="btn-loop" aria-pressed="false" aria-label="Loop" title="Loop — right-drag on the ruler or marker row to set the range (Ctrl+L: loop selection)">⟲</button>
       </div>
       <span class="sq-rec-badge">● REC</span>
       <button type="button" class="sq-chip sq-num" id="bpm" title="Tempo (BPM)">145.000</button>
@@ -246,6 +246,10 @@
       <li><button type="button" role="menuitem" data-command="time.insert">Insert Time <kbd>Ctrl+Alt+I</kbd></button></li>
       <li><button type="button" role="menuitem" data-command="time.delete">Delete Time <kbd>Ctrl+Alt+Del</kbd></button></li>
       <li><button type="button" role="menuitem" data-command="time.duplicate">Duplicate Time <kbd>Ctrl+Alt+D</kbd></button></li>
+      <li role="separator"><hr></li>
+      <li><button type="button" role="menuitem" data-command="loop.selection">Loop selection <kbd>Ctrl+L</kbd></button></li>
+      <li><button type="button" role="menuitem" data-command="loop.toggle">Loop on / off <kbd>Ctrl+Shift+L</kbd></button></li>
+      <li><button type="button" role="menuitem" data-command="loop.all">Loop whole project <kbd></kbd></button></li>
       <li role="separator"><hr></li>
       <li><button type="button" role="menuitem" data-command="edit.selectAll">Select all <kbd>Ctrl+A</kbd></button></li>
       <li><button type="button" role="menuitem" data-command="edit.selectSame">Select same pattern <kbd></kbd></button></li>

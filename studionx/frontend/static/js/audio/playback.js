@@ -5,6 +5,7 @@
 
 import { ticksToSecondsWithChanges } from './timing.js';
 import { dbToGain } from './mixer.js';
+import { fadePoints } from './fades.js';
 
 /**
  * 구간 [fromTick, toTick) 안에서 새로 시작해야 하는 오디오 클립을 고름 (순수 함수)
@@ -97,11 +98,22 @@ export class ClipPlayer {
     const semis = Number(clip.pitch_semitones) || 0;
     if (semis !== 0) src.playbackRate.value = Math.pow(2, semis / 12);
     const gain = ctx.createGain();
-    gain.gain.value = dbToGain(clip.gain_db || 0);
+    const base = dbToGain(clip.gain_db || 0);
+    gain.gain.value = base;
     src.connect(gain);
     gain.connect(this.trackInput(clip.track_id));
 
     const when = Math.max(plan.when, ctx.currentTime);
+    // 클립 페이드 (S1-15): 지금부터 클립 끝까지의 구간에 배율을 이어 붙임
+    const pts = fadePoints(clip, Math.max(clip.start_tick, nowTick), clip.start_tick + clip.length_tick);
+    if (pts.length) {
+      const t0 = pts[0][0];
+      const toSecFrom = function (t) {
+        return ticksToSecondsWithChanges(t, baseBpm, changes) - ticksToSecondsWithChanges(t0, baseBpm, changes);
+      };
+      gain.gain.setValueAtTime(base * pts[0][1], when);
+      for (let i = 1; i < pts.length; i++) gain.gain.linearRampToValueAtTime(base * pts[i][1], when + toSecFrom(pts[i][0]));
+    }
     src.start(when, plan.offsetSec % (buffer.duration || 1));
     src.stop(when + plan.durationSec);
     const self = this;

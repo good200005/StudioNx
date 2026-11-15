@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\USER\\Desktop\\myProject\\StudioNx\\docs\\portfolio\\.archify\\v2-20261028-100000\\arch.json",
+    "sha256": "8b89aa925f9415b39761e05205baa3ae8690611663abf2607df4a2402b35c85c",
+    "bytes": 2777
+  },
+  "artifact": {
+    "path": "C:\\Users\\USER\\Desktop\\myProject\\StudioNx\\docs\\portfolio\\studionx-architecture-v2.html",
+    "sha256": "b0517f03c9564b26ef6785337d4795391c7e8028f416176914c806dc1dd3a4c9",
+    "bytes": 841092
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\USER\\Desktop\\myProject\\StudioNx\\docs\\portfolio\\studionx-architecture-v2.finalize.json",
+    "summaryReceipt": "C:\\Users\\USER\\Desktop\\myProject\\StudioNx\\docs\\portfolio\\studionx-architecture-v2.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\USER\\Desktop\\myProject\\StudioNx\\docs\\portfolio\\studionx-architecture-v2.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-27T12:59:02.245Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 2850,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

@@ -15,6 +15,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from app.schemas.automation import AutomationLaneResponse
 from app.schemas.clip import ClipResponse
 from app.schemas.connection import TrackConnectionResponse
 from app.schemas.device import (
@@ -87,6 +88,7 @@ class FullProjectResponse(BaseModel):
     tracks: list[FullTrackResponse]
     patterns: list[PatternResponse]
     clips: list[ClipResponse] = Field(default_factory=list)
+    automation: list[AutomationLaneResponse] = Field(default_factory=list)
     markers: list[dict[str, Any]] = Field(default_factory=list)
     tempo_changes: list[TempoChangeItem] = Field(default_factory=list)
     meter_changes: list[dict[str, Any]] = Field(default_factory=list)

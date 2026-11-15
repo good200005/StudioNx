@@ -467,7 +467,7 @@ function initHeaderChips() {
     list.append(li);
     setDrawTemplate({ kind: 'midi', name, length: 4 });
     showToast(`${name} added to Patterns — draw it with P`);
-    onChange({ type: 'patternNew', name });
+    onChange({ type: 'patternNew', name, item: li });
   });
   const key = document.getElementById('key');
   key?.addEventListener('click', () => {

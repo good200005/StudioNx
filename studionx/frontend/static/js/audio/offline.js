@@ -10,9 +10,13 @@ import { samplerSampleIds } from './sampler.js';
 import { NotePlayer, expandNotes, notesStartingIn } from './notes.js';
 import { EffectRack } from './effect_rack.js';
 import { ticksToSecondsWithChanges, secondsToTicks } from './timing.js';
+import { overlayTracks, overlayItems } from './automation.js';
 
 /** 한 번에 노드를 만들어 두는 시간 창(초) */
 export const WINDOW_SECONDS = 2;
+
+/** 오토메이션 레인이 있을 때의 시간 창(초): 창 경계마다 곡선 값을 다시 적용하므로 촘촘하게 나눔 (S1-15) */
+export const AUTOMATION_WINDOW_SECONDS = 0.1;
 
 /**
  * 범위 [startTick, endTick) 와 겹치는 클립만 남기고, 범위 밖으로 나가는 끝은 잘라 냄 (순수 함수)
@@ -64,6 +68,7 @@ export function windowBoundaries(startTick, endTick, baseBpm, changes, windowSec
  * @param {Array} o.midiClips          MIDI 클립 (notes 포함)
  * @param {function} o.getInstruments  트랙 번호 → 악기 층 목록
  * @param {function} o.getEffects      트랙 번호 → 이펙트 목록
+ * @param {function} [o.getAutomation] 오토메이션 레인 목록 (없으면 오토메이션을 적용하지 않음, S1-15)
  * @param {number} o.bpm
  * @param {Array} [o.tempoChanges]
  * @param {number} o.startTick
@@ -113,19 +118,36 @@ export async function renderOffline(o) {
 
   // 2) 재생과 같은 그래프
   const mixer = new MixerGraph(ctx);
-  const effects = new EffectRack(ctx, mixer, o.getEffects, function () { return o.bpm; });
-  const rack = new InstrumentRack(ctx, function (id) { return mixer.trackInput(id); }, o.getInstruments, function (sid) { return buffers[String(sid)] || null; });
+  // 오토메이션 (S1-15): 재생 세션과 같은 overlay 함수로, 지금 창의 시작 tick 값을 덮어씀
+  const lanes = (o.getAutomation ? o.getAutomation() : []) || [];
+  let curTick = o.startTick;
+  const effectItems = function (id) {
+    const items = o.getEffects ? o.getEffects(id) : [];
+    return lanes.length ? overlayItems(items, lanes, id, 'DEVICE_PARAM', curTick) : items;
+  };
+  const instrumentItems = function (id) {
+    const items = o.getInstruments ? o.getInstruments(id) : [];
+    return lanes.length ? overlayItems(items, lanes, id, 'INSTRUMENT_PARAM', curTick) : items;
+  };
+  const tracksAt = function (tick) { return lanes.length ? overlayTracks(o.tracks, lanes, tick) : o.tracks; };
+  const effects = new EffectRack(ctx, mixer, effectItems, function () { return o.bpm; });
+  const rack = new InstrumentRack(ctx, function (id) { return mixer.trackInput(id); }, instrumentItems, function (sid) { return buffers[String(sid)] || null; });
   const player = new ClipPlayer(ctx, function (id) { return mixer.trackInput(id); }, function (sid) { return buffers[String(sid)] || null; });
   const notePlayer = new NotePlayer(ctx, function (id, pitch, vel, when, dur) { return rack.playNote(id, pitch, vel, when, dur); });
-  effects.sync(o.tracks);
-  mixer.applyTracks(o.tracks, true);
+  effects.sync(tracksAt(curTick));
+  mixer.applyTracks(tracksAt(curTick), true);
 
   // 3) 창마다 소리를 예약
   const noteEvents = expandNotes(midiClips).filter(function (ev) { return ev.abs_start >= o.startTick; });
-  const bounds = windowBoundaries(o.startTick, o.endTick, o.bpm, changes, WINDOW_SECONDS);
+  const bounds = windowBoundaries(o.startTick, o.endTick, o.bpm, changes, lanes.length ? AUTOMATION_WINDOW_SECONDS : WINDOW_SECONDS);
   const scheduleWindow = function (k) {
     const a = bounds[k];
     const b = bounds[k + 1];
+    if (lanes.length && k > 0) {
+      curTick = a;
+      mixer.applyTracks(tracksAt(a));
+      effects.sync(tracksAt(a));
+    }
     const nowTime = ticksToSecondsWithChanges(a, o.bpm, changes) - ticksToSecondsWithChanges(o.startTick, o.bpm, changes);
     if (k === 0) {
       // 시작 위치에 걸쳐 있는 클립은 중간부터 울림

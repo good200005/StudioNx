@@ -33,7 +33,7 @@ from app.schemas.full_project import (
     FullTrackResponse,
 )
 from app.schemas.track import TrackResponse
-from app.services import pattern_service, project_service, tempo_service
+from app.services import automation_service, pattern_service, project_service, tempo_service
 
 
 def _group_by(rows: list, key) -> dict[Any, list]:
@@ -196,5 +196,10 @@ def get_full_project(db: Session, user: User, project_id: int) -> FullProjectRes
             for pattern in patterns
         ],
         clips=clips,
+        automation=[
+            lane
+            for lanes in automation_service.lanes_for_tracks(db, track_ids).values()
+            for lane in lanes
+        ],
         tempo_changes=tempo_service.tempo_items(db, project_id),
     )

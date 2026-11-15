@@ -77,6 +77,7 @@ export function undo() {
       done();
     }
   } catch (err) {
+    if (window.console) console.warn('[history] 되돌리기에 실패했습니다', err);
     done();
   }
   return true;
@@ -106,6 +107,7 @@ export function redo() {
       done();
     }
   } catch (err) {
+    if (window.console) console.warn('[history] 다시 하기에 실패했습니다', err);
     done();
   }
   return true;

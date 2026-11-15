@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "c6c09a2a-6a3e-4764-b6fd-fd101b3b0064",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\USER\\Desktop\\myProject\\StudioNx\\docs\\portfolio\\.archify\\arch-studionx-20261027-220000\\candidate.json",
+  "output": "C:\\Users\\USER\\Desktop\\myProject\\StudioNx\\docs\\portfolio\\studionx-architecture.html",
+  "specification": {
+    "sha256": "fc4610f96ee32846e2979b845ecf01d35ac538243083451937d701c863f3507d",
+    "bytes": 1920
+  },
+  "artifact": {
+    "sha256": "b66f90c8fdeddc96f1f05d320f94cb39010a713840984cdf856f15509be21c61",
+    "bytes": 834595
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Studio Nx の構成",
+    "output": "docs/portfolio/studionx-architecture.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "ユーザー", "sublabel": "作曲する人", "pos": [40, 40], "size": [140, 60] },
+    { "id": "browser", "type": "frontend", "label": "ブラウザ", "sublabel": "画面・音の再生", "pos": [330, 40], "size": [150, 60] },
+    { "id": "server", "type": "backend", "label": "サーバー", "sublabel": "FastAPI(Python)", "pos": [650, 40], "size": [150, 60] },
+    { "id": "db", "type": "database", "label": "データベース", "sublabel": "MySQL", "pos": [970, 40], "size": [150, 60] },
+    { "id": "wav", "type": "external", "label": "WAV ファイル", "sublabel": "完成した音声", "pos": [330, 190], "size": [150, 60] }
+  ],
+  "boundaries": [],
+  "connections": [
+    { "id": "user-to-browser", "from": "user", "to": "browser", "label": "操作", "variant": "emphasis" },
+    { "id": "browser-to-server", "from": "browser", "to": "server", "label": "ログイン・保存" },
+    { "id": "server-to-db", "from": "server", "to": "db", "label": "データの保存" },
+    { "id": "browser-to-wav", "from": "browser", "to": "wav", "label": "ブラウザ内で書き出し", "variant": "dashed", "fromSide": "bottom", "toSide": "top" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "ブラウザ", "items": ["作曲の画面と音の再生を担当します", "WAV の書き出しもブラウザの中で行います"] },
+    { "dot": "emerald", "title": "サーバー", "items": ["ログインとプロジェクトの管理を担当します", "作った曲のデータを保存します"] },
+    { "dot": "rose", "title": "データベース", "items": ["ユーザー情報とプロジェクトの内容を保管します"] }
+  ]
+}

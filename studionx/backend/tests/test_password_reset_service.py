@@ -250,8 +250,9 @@ def test_email_lookup_ignores_case_and_spaces(db, reset_env):
 
 
 def test_unknown_email_does_nothing_and_returns_the_same(db, reset_env):
+    before = len(db.scalars(select(PasswordResetToken)).all())  # DB에 남은 다른 행과 무관하게 비교
     assert svc.request_password_reset(db, "ghost@example.com", "1.1.1.1") is None
-    assert db.scalar(select(PasswordResetToken)) is None
+    assert len(db.scalars(select(PasswordResetToken)).all()) == before
     assert "resetPassword" not in logged(reset_env)
 
 

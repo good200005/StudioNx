@@ -269,7 +269,7 @@ async function startExport() {
   try {
     const out = await renderOffline({
       tracks: snap.tracks, audioClips: audio, midiClips: midi,
-      getInstruments: snap.getInstruments, getEffects: snap.getEffects,
+      getInstruments: snap.getInstruments, getEffects: snap.getEffects, getAutomation: snap.getAutomation,
       bpm: snap.bpm, tempoChanges: snap.tempoChanges,
       startTick: range.startTick, endTick: range.endTick, tailSec: o.tailSec, sampleRate: o.sampleRate,
       loadSampleBytes: snap.loadSampleBytes,

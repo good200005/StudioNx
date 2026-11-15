@@ -103,11 +103,13 @@ a {
 
 /* ---------- 모달 (<dialog>) ---------- */
 .modal {
-  width: min(40rem, calc(100vw - 2rem)); max-height: min(80svh, 46rem);
+  width: min(40rem, calc(100vw - 2rem)); max-height: min(92svh, 46rem);
   padding: 0; border: 1px solid var(--c-rule);
+  overflow: hidden;   /* 스크롤은 본문(.modal__body) 하나만. 겹쳐서 두 줄 생기는 것을 막음 */
   background: var(--c-ground-raised); color: var(--c-ink);
   box-shadow: 0 24px 60px rgb(0 0 0 / 0.55);
 }
+.modal[open] { display: flex; flex-direction: column; }
 .modal::backdrop { background: rgb(11 10 15 / 0.72); backdrop-filter: blur(3px); }
 .modal__head {
   display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4);
@@ -115,7 +117,8 @@ a {
 }
 .modal__title { font: 700 var(--fs-lg) / 1.2 var(--font-display); }
 .modal__close { min-height: 2.25rem; padding: 0 var(--sp-4); }
-.modal__body { padding: var(--sp-6) var(--sp-8) var(--sp-8); overflow-y: auto; max-height: calc(min(80svh, 46rem) - 5rem); }
+.modal__body { padding: var(--sp-6) var(--sp-8) var(--sp-8); overflow-y: auto; flex: 1 1 auto; min-height: 0; scrollbar-width: thin; }
+.modal__head { flex: none; }
 .modal__body h3 { margin-top: var(--sp-6); font: 700 var(--fs-md) / 1.4 var(--font-text); }
 .modal__body h3:first-child { margin-top: 0; }
 .modal__body p, .modal__body li { margin-top: var(--sp-2); color: var(--c-ink-soft); font-size: var(--fs-sm); line-height: 1.7; }

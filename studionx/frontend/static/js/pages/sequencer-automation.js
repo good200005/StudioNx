@@ -87,6 +87,9 @@ const pointsOf = (clip) => JSON.parse(clip.dataset.points);
 const lengthOf = (clip) => parseFloat(clip.style.getPropertyValue('--l')) || 1;
 
 /** 점 · 곡선 · ↕ 손잡이를 다시 그림 */
+/** 오토메이션 클립 하나를 다시 그림 (sequencer-autolanes.js 가 만든 클립용) */
+export function renderAutomation(clip) { render(clip); }
+
 function render(clip) {
   const pts = pointsOf(clip);
   const len = lengthOf(clip);
