@@ -10,6 +10,7 @@ import { api } from '../core/api.js';
 import { playbackTempoChanges, replaceTempoChanges } from './sequencer-devices.js';
 import { getSnap } from './sequencer-arrange.js';
 import { projectIdOf } from './sequencer-save.js';
+import { pushHistory } from './sequencer-history.js';
 
 const TICKS_PER_BAR = 3840;
 const MIN_BARS = 64;
@@ -139,6 +140,15 @@ function commit(list, saveNow) {
   if (saveNow) scheduleSave();
 }
 
+/** 되돌리기 기록 (S1-17): 바꾸기 전과 후 목록을 들고 있다가 그대로 되돌리거나 다시 적용 */
+function record(label, before, after) {
+  pushHistory({
+    label: label,
+    undo: function () { commit(before, true); },
+    redo: function () { commit(after, true); },
+  });
+}
+
 /** 포인터 위치 → 줄 안의 가로(틱)와 세로(0~100) */
 function locate(e) {
   const box = body.getBoundingClientRect();
@@ -170,14 +180,16 @@ function onDown(e) {
     const i = parseInt(btn.dataset.i, 10);
     if (i === 0) return;                         // 기준 점은 상단 BPM 으로 고침
     if (e.shiftKey) {                            // Shift+클릭: STEP ↔ LINEAR
+      const before = playbackTempoChanges();
       const list = playbackTempoChanges();
       list[i - 1].ramp = list[i - 1].ramp === 'LINEAR' ? 'STEP' : 'LINEAR';
       commit(list, true);
+      record('Tempo ramp', before, list);
       e.preventDefault();
       return;
     }
     frozen = r;
-    drag = { index: i - 1, moved: false };
+    drag = { index: i - 1, moved: false, before: playbackTempoChanges() };
     btn.setPointerCapture(e.pointerId);
     e.preventDefault();
     return;
@@ -187,9 +199,11 @@ function onDown(e) {
   const tick = snapTick(at.bar, e.altKey);
   const list = playbackTempoChanges();
   if (list.some(function (c) { return c.tick === tick; })) return;
+  const before = playbackTempoChanges();
   list.push({ tick: tick, bpm: bpmAt(at.y, r, e.shiftKey), ramp: 'STEP' });
   list.sort(function (a, b) { return a.tick - b.tick; });
   commit(list, true);
+  record('Tempo add', before, list);
   e.preventDefault();
 }
 
@@ -210,11 +224,13 @@ function onMove(e) {
 function onUp() {
   if (!drag) return;
   const moved = drag.moved;
+  const before = drag.before;
   drag = null;
   frozen = null;
   if (!moved) return;                            // 그대로 눌렀다 떼면 다시 그리지 않음: 점이 바뀌면 더블클릭이 끊김
   renderTempoRow();
   scheduleSave();
+  record('Tempo move', before, playbackTempoChanges());
 }
 
 function onDouble(e) {
@@ -222,9 +238,11 @@ function onDouble(e) {
   if (!btn) return;
   const i = parseInt(btn.dataset.i, 10);
   if (i === 0) return;
+  const before = playbackTempoChanges();
   const list = playbackTempoChanges();
   list.splice(i - 1, 1);
   commit(list, true);
+  record('Tempo delete', before, list);
 }
 
 /** 한 번만 부르면 됩니다 — 템포 줄에 포인터 이벤트를 연결 */
